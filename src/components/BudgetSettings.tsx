@@ -267,10 +267,10 @@ export default function BudgetSettings({
             {categories.map((cat) => (
               <div
                 key={cat.id}
-                className="flex items-center justify-between rounded-2xl border border-slate-100 bg-white p-4.5 shadow-xs"
+                className="flex flex-col sm:flex-row sm:items-center justify-between rounded-2xl border border-slate-100 bg-white p-4.5 shadow-xs gap-3.5"
               >
-                <div className="flex items-center gap-3">
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl font-bold ${cat.color}`}>
+                <div className="flex items-center gap-3 w-full sm:w-auto min-w-0">
+                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-bold ${cat.color}`}>
                     {cat.id === 'rent' && '🏠'}
                     {cat.id === 'food' && '🍲'}
                     {cat.id === 'study' && '📚'}
@@ -279,15 +279,15 @@ export default function BudgetSettings({
                     {cat.id === 'shopping' && '🛍️'}
                     {cat.id === 'other' && '🔄'}
                   </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-800">{cat.name}</h4>
-                    <p className="text-[10px] text-slate-400 max-w-[200px] truncate leading-normal">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-xs font-bold text-slate-800 truncate">{cat.name}</h4>
+                    <p className="text-[10px] text-slate-400 truncate leading-normal">
                       {cat.description}
                     </p>
                   </div>
                 </div>
 
-                <div className="relative rounded-xl border border-slate-200 shadow-sm focus-within:border-emerald-500 overflow-hidden w-40">
+                <div className="relative rounded-xl border border-slate-200 shadow-sm focus-within:border-emerald-500 overflow-hidden w-full sm:w-40 shrink-0">
                   <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 font-mono">
                     đ
                   </span>
