@@ -10,3 +10,5 @@ HỆ THỐNG QUẢN LÝ CHI TIÊU CHO SINH VIÊN
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+link public: https://ais-pre-2odp4ihsmgqrqfmf4berwj-664003072870.asia-east1.run.app
