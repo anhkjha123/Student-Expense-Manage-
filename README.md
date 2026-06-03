@@ -11,4 +11,4 @@ HỆ THỐNG QUẢN LÝ CHI TIÊU CHO SINH VIÊN
 3. Run the app:
    `npm run dev`
 
-link public: https://ais-pre-2odp4ihsmgqrqfmf4berwj-664003072870.asia-east1.run.app
+link public: https://student-expense-manage-cl69okp0h-anhkjha123s-projects.vercel.app
