@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Student Expense Manager",
+  "description": "Hệ thống quản lý chi tiêu cá nhân tối giản, trực quan và hiệu quả dành cho sinh viên.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

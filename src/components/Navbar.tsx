@@ -1,0 +1,248 @@
+import React, { useState } from 'react';
+import { 
+  Bell, 
+  LogOut, 
+  User as UserIcon, 
+  TrendingUp, 
+  PieChart, 
+  Settings, 
+  AlertTriangle,
+  BookOpen,
+  Home,
+  CheckCircle,
+  HelpCircle
+} from 'lucide-react';
+import { User, Notification } from '../types';
+import { motion, AnimatePresence } from 'motion/react';
+
+interface NavbarProps {
+  user: User;
+  onLogout: () => void;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  notifications: Notification[];
+  markNotificationAsRead: (id: string) => void;
+  clearNotifications: () => void;
+  onOpenAddExpense: () => void;
+}
+
+export default function Navbar({
+  user,
+  onLogout,
+  activeTab,
+  setActiveTab,
+  notifications,
+  markNotificationAsRead,
+  clearNotifications,
+  onOpenAddExpense
+}: NavbarProps) {
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const tabs = [
+    { id: 'dashboard', name: 'Dashboard', icon: 'Activity' },
+    { id: 'history', name: 'Sổ Chi Tiêu', icon: 'List' },
+    { id: 'budget', name: 'Ngân Sách', icon: 'Settings' },
+    { id: 'reports', name: 'Báo Cáo', icon: 'PieChart' },
+  ];
+
+  const getNotifIcon = (type: string) => {
+    switch (type) {
+      case 'warning':
+      case 'alert':
+        return <AlertTriangle className="h-5 w-5 text-amber-500" />;
+      case 'success':
+        return <CheckCircle className="h-5 w-5 text-emerald-500" />;
+      default:
+        return <Bell className="h-5 w-5 text-blue-500" />;
+    }
+  };
+
+  return (
+    <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-white/95 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* LOGO */}
+        <div className="flex items-center gap-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-200">
+            <TrendingUp className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="font-display text-lg font-bold tracking-tight text-slate-900">
+              SemTietKiem
+            </h1>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-emerald-600 font-mono">
+              Student Expense MVP
+            </p>
+          </div>
+        </div>
+
+        {/* NAVIGATION DESKTOP */}
+        <nav className="hidden md:flex items-center space-x-1">
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                id={`nav-tab-${tab.id}`}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                  isActive
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                {tab.id === 'dashboard' && <Home className="h-4 w-4" />}
+                {tab.id === 'history' && <BookOpen className="h-4 w-4" />}
+                {tab.id === 'budget' && <Settings className="h-4 w-4" />}
+                {tab.id === 'reports' && <PieChart className="h-4 w-4" />}
+                {tab.name}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* RIGHT ACTION BUTTONS */}
+        <div className="flex items-center gap-4">
+          {/* Quick Add Button */}
+          <button
+            id="quick-add-expense-btn"
+            onClick={onOpenAddExpense}
+            className="flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-4 py-2 text-xs sm:text-sm font-semibold text-white shadow-sm transition-all inline-flex cursor-pointer"
+          >
+            <span className="font-bold">+</span> Nhập chi tiêu
+          </button>
+
+          {/* Notification Bell */}
+          <div className="relative">
+            <button
+              id="notification-bell-btn"
+              onClick={() => setShowNotifDropdown(!showNotifDropdown)}
+              className="relative rounded-xl p-2.5 text-slate-500 hover:bg-slate-100 transition-colors focus:outline-none"
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white animate-pulse">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Notification Dropdown */}
+            <AnimatePresence>
+              {showNotifDropdown && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setShowNotifDropdown(false)} 
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute right-0 mt-2 z-50 w-80 sm:w-96 rounded-2xl border border-slate-100 bg-white p-4 shadow-xl ring-1 ring-black/5"
+                  >
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
+                      <span className="font-display font-semibold text-slate-800 text-sm flex items-center gap-1.5">
+                        <Bell className="h-4 w-4 text-emerald-600" /> Thông báo ({unreadCount})
+                      </span>
+                      {notifications.length > 0 && (
+                        <button
+                          onClick={clearNotifications}
+                          className="text-xs text-slate-500 hover:text-red-500 transition-colors font-medium"
+                        >
+                          Xóa tất cả
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="max-h-64 overflow-y-auto space-y-2.5 pr-1">
+                      {notifications.length === 0 ? (
+                        <div className="py-8 text-center text-slate-400 text-xs">
+                          Hiện không có thông báo nào mới.
+                        </div>
+                      ) : (
+                        notifications.map((notif) => (
+                          <div
+                            key={notif.id}
+                            id={`notification-item-${notif.id}`}
+                            onClick={() => markNotificationAsRead(notif.id)}
+                            className={`flex gap-3 rounded-xl p-2.5 cursor-pointer text-left transition-colors border ${
+                              notif.read
+                                ? 'bg-white border-transparent hover:bg-slate-50'
+                                : 'bg-emerald-50/40 border-emerald-100 hover:bg-emerald-50/60'
+                            }`}
+                          >
+                            <div className="mt-0.5 shrink-0">{getNotifIcon(notif.type)}</div>
+                            <div className="space-y-0.5">
+                              <h4 className={`text-xs font-bold ${notif.read ? 'text-slate-700' : 'text-slate-900'}`}>
+                                {notif.title}
+                              </h4>
+                              <p className="text-[11px] leading-relaxed text-slate-500">
+                                {notif.message}
+                              </p>
+                              <span className="block text-[9px] text-slate-400 font-mono">
+                                {notif.date}
+                              </span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* User Profile / Logout Desktop */}
+          <div className="hidden border-l border-slate-200 pl-4 sm:flex items-center gap-3">
+            <div className="text-right">
+              <span className="block text-xs font-bold text-slate-800">{user.name}</span>
+              <span className="block text-[10px] text-slate-400">{user.school}</span>
+            </div>
+            <button
+              onClick={onLogout}
+              className="rounded-xl p-2.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer"
+              title="Đăng xuất"
+            >
+              <LogOut className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* User Profile Mobile */}
+          <div className="flex sm:hidden items-center">
+            <button
+              onClick={onLogout}
+              className="rounded-xl p-2.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+              title="Đăng xuất"
+            >
+              <LogOut className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* NAVIGATION MOBILE ROW */}
+      <div className="flex md:hidden border-t border-slate-100 bg-slate-50/50 justify-around py-1">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex flex-col items-center gap-1 py-1 text-[10px] font-semibold transition-all ${
+                isActive ? 'text-emerald-700 font-bold scale-105' : 'text-slate-500'
+              }`}
+            >
+              {tab.id === 'dashboard' && <Home className="h-4.5 w-4.5" />}
+              {tab.id === 'history' && <BookOpen className="h-4.5 w-4.5" />}
+              {tab.id === 'budget' && <Settings className="h-4.5 w-4.5" />}
+              {tab.id === 'reports' && <PieChart className="h-4.5 w-4.5" />}
+              <span>{tab.name}</span>
+            </button>
+          );
+        })}
+      </div>
+    </header>
+  );
+}

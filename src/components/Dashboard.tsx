@@ -1,0 +1,474 @@
+import React from 'react';
+import { 
+  TrendingDown, 
+  AlertTriangle, 
+  CheckCircle, 
+  HelpCircle, 
+  ArrowUpRight, 
+  ArrowDownRight, 
+  Coins, 
+  PiggyBank, 
+  Plus, 
+  DollarSign,
+  Activity,
+  User,
+  ShoppingBag,
+  Bell,
+  Utensils,
+  Car,
+  Home,
+  Coffee
+} from 'lucide-react';
+import { User as UserType, Expense, Category, Budget, Notification } from '../types';
+import { motion } from 'motion/react';
+
+interface DashboardProps {
+  user: UserType;
+  expenses: Expense[];
+  categories: Category[];
+  budgets: Budget[];
+  notifications: Notification[];
+  onOpenAddExpense: () => void;
+  setActiveTab: (tab: string) => void;
+}
+
+export default function Dashboard({
+  user,
+  expenses,
+  categories,
+  budgets,
+  notifications,
+  onOpenAddExpense,
+  setActiveTab
+}: DashboardProps) {
+  
+  // Lọc chi tiêu của tháng hiện tại (Tháng 6, 2026 dựa trên metadata ngày)
+  const currentMonthStr = '2026-06';
+  const currentMonthExpenses = expenses.filter(exp => exp.date.startsWith(currentMonthStr));
+
+  const totalSpentThisMonth = currentMonthExpenses.reduce((sum, item) => sum + item.amount, 0);
+  const totalIncome = user.monthlyIncome;
+  const savingGoal = user.savingGoal;
+  const availableToSpend = totalIncome - savingGoal; // Số tiền khả dụng cho chi tiêu
+  const remainingBudget = availableToSpend - totalSpentThisMonth;
+
+  // Tính thống kê chi tiêu Cần thiết vs Mong muốn của tháng hiện tại
+  const spentNecessary = currentMonthExpenses.filter(e => e.isNecessary).reduce((sum, item) => sum + item.amount, 0);
+  const spentWants = currentMonthExpenses.filter(e => !e.isNecessary).reduce((sum, item) => sum + item.amount, 0);
+
+  // --- TÍNH TOÁN CHỈ SỐ AN TOÀN VÍ (Wallet Safety Gauge) ---
+  // Giả sử hôm nay là Ngày 1 tháng 6, 2026 (Simulated date)
+  const currentDay = 1;
+  const daysInMonth = 30;
+  
+  // Tốc độ chi tiêu lý thuyết tối đa hằng ngày sau khi trừ tiền thuê nhà cố định
+  // Lấy tổng ngân sách khả dụng trừ đi tiền thuê nhà thực tế trong tháng
+  const rentSpent = currentMonthExpenses.filter(e => e.categoryId === 'rent').reduce((sum, item) => sum + item.amount, 0);
+  
+  const variableBudget = availableToSpend - rentSpent; // Quỹ chi tiêu linh hoạt
+  const variableSpent = totalSpentThisMonth - rentSpent; // Số tiền linh hoạt đã chi
+  
+  const dailySafeAllowance = variableBudget / daysInMonth; 
+  const safeSpentUpToNow = dailySafeAllowance * currentDay;
+
+  let walletStatus: 'safe' | 'warning' | 'danger' = 'safe';
+  let walletStatusText = '';
+  let walletStatusDescription = '';
+
+  // Chấm điểm
+  if (remainingBudget < 0) {
+    walletStatus = 'danger';
+    walletStatusText = '🚨 BÁO ĐỘNG ĐỎ: Vỡ ngân sách tháng!';
+    walletStatusDescription = 'Bạn đã chi tiêu vượt quá mức thu nhập khả dụng cho phép của tháng này. Hãy lập tức dừng việc mua sắm không thiết yếu.';
+  } else if (variableSpent > safeSpentUpToNow * 1.5) {
+    walletStatus = 'danger';
+    walletStatusText = '🚨 BÁO ĐỘNG VÍ: Tốc độ chi dùng quá nhanh!';
+    walletStatusDescription = `Mới đầu tháng mà bạn đã chi tiêu linh hoạt hết ${new Intl.NumberFormat('vi-VN').format(variableSpent)}đ. Hãy phanh gấp các khoản chi trà sữa, giải trí để tránh rơi vào cảnh ăn mì tôm cuối tháng.`;
+  } else if (variableSpent > safeSpentUpToNow) {
+    walletStatus = 'warning';
+    walletStatusText = '⚠️ CẢNH BÁO: Chi tiêu hơi nhanh';
+    walletStatusDescription = 'Bạn đang tiêu vượt hạn mức an toàn theo ngày một chút. Nên kiềm chế ăn vặt hoặc mua sắm nhỏ nhặt trong vài ngày tới.';
+  } else {
+    walletStatus = 'safe';
+    walletStatusText = '🌿 VÍ AN TOÀN: Đang kiểm soát siêu chuẩn!';
+    walletStatusDescription = 'Tốc độ tiêu tiền của bạn rất lành mạnh và an toàn. Hãy duy trì thói quen ghi chép này để cuối tháng cầm chắc cục tiết kiệm mục tiêu nhé!';
+  }
+
+  // --- LẤY DANH SÁCH HẠN MỨC CHI TIÊU THEO DANH MỤC ---
+  const categoryStats = categories.map(cat => {
+    // Tiền hạn mức danh mục
+    const limitObj = budgets.find(b => b.categoryId === cat.id);
+    const limitAmount = limitObj ? limitObj.amount : 0;
+
+    // Thực tế đã chi tiêu ở danh mục này trong tháng 6/2026
+    const spentAmount = currentMonthExpenses
+      .filter(exp => exp.categoryId === cat.id)
+      .reduce((sum, item) => sum + item.amount, 0);
+
+    const percent = limitAmount > 0 ? (spentAmount / limitAmount) * 100 : 0;
+
+    return {
+      ...cat,
+      limitAmount,
+      spentAmount,
+      percent
+    };
+  });
+
+  // Tìm các danh mục đã bị vượt ngân sách (hoặc sắp vượt > 90%)
+  const overBudgetWarningList = categoryStats.filter(c => c.percent >= 90);
+
+  // Giao dịch gần đây nhất (4 giao dịch mới nhất)
+  const recentExpenses = [...expenses]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 4);
+
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+      
+      {/* Welcome Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-emerald-700 rounded-3xl p-6 text-white shadow-xl shadow-emerald-100">
+        <div className="space-y-1">
+          <span className="inline-block rounded-full bg-emerald-600 px-3 py-1 text-[10px] font-bold uppercase tracking-wider font-mono">
+            Hôm nay: 01/06/2026
+          </span>
+          <h2 className="font-display text-2xl font-extrabold tracking-tight">
+            Chào {user.name}! 📚
+          </h2>
+          <p className="text-xs text-emerald-50 max-w-prose leading-relaxed">
+            Hôm nay là ngày đầu tháng 6. Hãy lưu ý chuẩn bị đóng các hóa đơn cố định (như Tiền trọ) và phân chia ngân sách nhé!
+          </p>
+        </div>
+        <button
+          onClick={onOpenAddExpense}
+          className="rounded-2xl bg-white hover:bg-emerald-50 px-6 py-3.5 text-center text-sm font-bold text-emerald-800 transition-all shadow-md shrink-0 cursor-pointer"
+        >
+          ✍️ Thêm một khoản chi ngay
+        </button>
+      </div>
+
+      {/* CORE FINANCIAL OVERVIEW CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        {/* Total Monthly Income Box */}
+        <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm relative overflow-hidden">
+          <div className="flex justify-between items-start">
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+                Chu cấp / Thu nhập tháng
+              </span>
+              <div className="text-2xl font-black font-mono text-slate-900">
+                {new Intl.NumberFormat('vi-VN').format(totalIncome)}đ
+              </div>
+            </div>
+            <span className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl">
+              <Coins className="h-5 w-5" />
+            </span>
+          </div>
+          <div className="text-[10px] text-slate-500 font-semibold mt-3 pt-3 border-t border-slate-50">
+            Duy trì mục tiêu tích lũy: <strong className="text-blue-600 font-mono">{new Intl.NumberFormat('vi-VN').format(savingGoal)}đ</strong>
+          </div>
+        </div>
+
+        {/* Total Spent Box */}
+        <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm relative overflow-hidden">
+          <div className="flex justify-between items-start">
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+                Đã tiêu tháng này (T6)
+              </span>
+              <div className="text-2xl font-black font-mono text-slate-900">
+                {new Intl.NumberFormat('vi-VN').format(totalSpentThisMonth)}đ
+              </div>
+            </div>
+            <span className="p-3 bg-rose-50 text-rose-500 rounded-2xl">
+              <TrendingDown className="h-5 w-5" />
+            </span>
+          </div>
+          <div className="text-[10px] text-slate-500 font-semibold mt-3 pt-3 border-t border-slate-50">
+            Còn lại chi tiêu khả dụng: <strong className="text-slate-800 font-mono">{new Intl.NumberFormat('vi-VN').format(Math.max(0, remainingBudget))}đ</strong>
+          </div>
+        </div>
+
+        {/* Projected Savings Box */}
+        <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm relative overflow-hidden">
+          <div className="flex justify-between items-start">
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+                Dự kiến tích lũy cuối tháng
+              </span>
+              <div className={`text-2xl font-black font-mono ${remainingBudget + savingGoal < savingGoal ? 'text-amber-600' : 'text-emerald-700'}`}>
+                {new Intl.NumberFormat('vi-VN').format(Math.max(0, remainingBudget + savingGoal))}đ
+              </div>
+            </div>
+            <span className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
+              <PiggyBank className="h-5 w-5" />
+            </span>
+          </div>
+          <div className="text-[10px] text-slate-500 font-semibold mt-3 pt-3 border-t border-slate-50">
+            Mục tiêu tích lũy ban đầu: <strong className="text-slate-700 font-mono">{new Intl.NumberFormat('vi-VN').format(savingGoal)}đ</strong>
+          </div>
+        </div>
+      </div>
+
+      {/* WALLET SAFETY GAUGE & NEEDS/WANTS PROGRESS */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Wallet Speed Safety Gauge */}
+        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm lg:col-span-8 flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-display text-base font-bold text-slate-800 flex items-center gap-2">
+              <Activity className="h-5 w-5 text-emerald-600 animate-pulse-subtle" /> Chỉ số an toàn cháy ví sinh viên
+            </h3>
+            <span className="text-[10px] font-mono text-slate-400">Thiết lập theo tốc độ trôi ngày</span>
+          </div>
+
+          <div className={`rounded-2xl p-4.5 border ${
+            walletStatus === 'safe' 
+              ? 'bg-emerald-50/50 border-emerald-100 text-emerald-900' 
+              : walletStatus === 'warning'
+              ? 'bg-amber-50/50 border-amber-100 text-amber-900'
+              : 'bg-rose-50/50 border-rose-150 text-rose-900'
+          }`}>
+            <h4 className="font-bold text-sm flex items-center gap-1.5">
+              {walletStatus === 'safe' ? '🍏' : walletStatus === 'warning' ? '⚠️' : '🚨'} {walletStatusText}
+            </h4>
+            <p className="font-normal text-xs text-slate-700 mt-1 leading-relaxed">
+              {walletStatusDescription}
+            </p>
+          </div>
+
+          {/* Quick graphical calendar meter to explain why safety is styled this way */}
+          <div className="space-y-1.5 bg-slate-50 rounded-2xl p-4 text-xs font-semibold text-slate-600">
+            <div className="flex justify-between font-mono text-[10px] text-slate-400">
+              <span>Đầu tháng (Ngày 1)</span>
+              <span>Giữa tháng (Ngày 15)</span>
+              <span>Cuối tháng (Ngày 30)</span>
+            </div>
+            {/* Horizontal timeline bar */}
+            <div className="relative h-2 w-full bg-slate-200 rounded-full">
+              <div 
+                className="absolute top-0 bottom-0 left-0 bg-emerald-600 rounded-full transition-all"
+                style={{ width: `${(currentDay / daysInMonth) * 100}%` }}
+              />
+              <span 
+                className="absolute -top-1 h-4 w-4 rounded-full bg-slate-900 border-2 border-white shadow-sm flex items-center justify-center text-[8px] text-white font-mono"
+                style={{ left: `calc(${(currentDay / daysInMonth) * 100}% - 8px)` }}
+                title="Hôm nay"
+              >
+                1
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-400 text-center font-normal">
+              Bạn đang ở ngày <strong>1 / 30</strong> của tháng {currentMonthStr}. Quỹ chi phí biến đổi linh hoạt hợp lý là {new Intl.NumberFormat('vi-VN').format(variableSpent)}đ / {new Intl.NumberFormat('vi-VN').format(variableBudget)}đ.
+            </p>
+          </div>
+        </div>
+
+        {/* Needs vs Wants 50/30/20 Mini Circle */}
+        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm lg:col-span-4 space-y-4">
+          <h3 className="font-display text-sm font-bold text-slate-800">
+            Phân loại chi tiêu tháng này
+          </h3>
+          
+          <div className="space-y-4 font-semibold text-slate-600">
+            {/* Needs */}
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs">
+                <span className="text-emerald-700 font-bold flex items-center gap-1">🟢 Cần thiết (Needs)</span>
+                <span className="font-mono text-slate-900">{new Intl.NumberFormat('vi-VN').format(spentNecessary)}đ</span>
+              </div>
+              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-emerald-600 rounded-full" 
+                  style={{ width: `${totalSpentThisMonth > 0 ? (spentNecessary / totalSpentThisMonth) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Wants */}
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs">
+                <span className="text-amber-700 font-bold flex items-center gap-1">🟡 Mong muốn (Wants)</span>
+                <span className="font-mono text-slate-900">{new Intl.NumberFormat('vi-VN').format(spentWants)}đ</span>
+              </div>
+              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-amber-500 rounded-full" 
+                  style={{ width: `${totalSpentThisMonth > 0 ? (spentWants / totalSpentThisMonth) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
+
+            <p className="text-[10.5px] leading-relaxed text-slate-400 font-normal">
+              Lời khuyên: Để không cháy ví, hãy duy trì mức <strong>Cần thiết</strong> đóng khung dưới 50% tổng ngân sách chu cấp hằng tháng.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* OVER BUDGET WARNINGS */}
+      {overBudgetWarningList.length > 0 && (
+        <div className="rounded-3xl border border-red-150 bg-red-50/50 p-5 space-y-3 shadow-xs">
+          <h4 className="font-display font-semibold text-red-800 text-sm flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-red-600 shrink-0" /> Cảnh báo quan trọng: Vượt hạn mức danh mục!
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {overBudgetWarningList.map(cat => (
+              <div 
+                key={cat.id} 
+                className="bg-white rounded-2xl p-4 border border-red-100 text-xs font-semibold text-slate-700 shadow-2xs"
+                id={`over-budget-warning-${cat.id}`}
+              >
+                <div className="flex justify-between font-bold text-red-700">
+                  <span> Hạn mục: {cat.name}</span>
+                  <span>Tiêu {Math.round(cat.percent)}%</span>
+                </div>
+                <p className="font-normal text-[11px] text-slate-500 mt-1">
+                  Đã tiêu {new Intl.NumberFormat('vi-VN').format(cat.spentAmount)}đ trên hạn mức cài đặt là {new Intl.NumberFormat('vi-VN').format(cat.limitAmount)}đ. 
+                  Hãy hoãn lại mọi đơn chi tiêu danh mục này hằng ngày.
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* CATEGORIES BUDGET METERS & RECENT EXPENSES */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Categories Budget Limit Meters */}
+        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm lg:col-span-7 space-y-4">
+          <div className="flex justify-between items-center pb-2 border-b border-slate-50">
+            <h3 className="font-display text-base font-bold text-slate-800">
+              Theo dõi Ngân sách Danh mục hằng tháng
+            </h3>
+            <button
+              onClick={() => setActiveTab('budget')}
+              className="text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
+            >
+              Cài đặt hạn mức →
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {categoryStats.map(cat => {
+              const isOver = cat.percent >= 100;
+              const isHigh = cat.percent >= 90 && !isOver;
+
+              return (
+                <div key={cat.id} id={`dashboard-cat-meter-${cat.id}`} className="space-y-1.5">
+                  <div className="flex justify-between text-xs font-semibold text-slate-700">
+                    <span className="flex items-center gap-1.5">
+                      <span>
+                        {cat.id === 'rent' && '🏠'}
+                        {cat.id === 'food' && '🍲'}
+                        {cat.id === 'study' && '📚'}
+                        {cat.id === 'transport' && '🏍️'}
+                        {cat.id === 'entertainment' && '🥤'}
+                        {cat.id === 'shopping' && '🛍️'}
+                        {cat.id === 'other' && '🔄'}
+                      </span>
+                      {cat.name}
+                    </span>
+                    <span className="font-mono text-slate-500 text-[11px]">
+                      <strong className="text-slate-800 font-bold">{new Intl.NumberFormat('vi-VN').format(cat.spentAmount)}đ</strong> / {new Intl.NumberFormat('vi-VN').format(cat.limitAmount)}đ
+                    </span>
+                  </div>
+
+                  {/* Meter scrollbar bar representing category spending */}
+                  <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden relative">
+                    <div 
+                      className={`h-full rounded-full transition-all duration-300 ${
+                        isOver 
+                          ? 'bg-red-500' 
+                          : isHigh 
+                          ? 'bg-amber-500' 
+                          : 'bg-emerald-600'
+                      }`}
+                      style={{ width: `${Math.min(100, cat.percent)}%` }}
+                    />
+                    {isOver && (
+                      <span className="absolute right-2 top-1 w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Recent Spendings List */}
+        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm lg:col-span-5 space-y-4 flex flex-col justify-between">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-50">
+              <h3 className="font-display text-base font-bold text-slate-800">
+                Giao dịch chép gần đây
+              </h3>
+              <button
+                onClick={() => setActiveTab('history')}
+                className="text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
+              >
+                Xem chi tất cả →
+              </button>
+            </div>
+
+            <div className="space-y-2.5">
+              {recentExpenses.length === 0 ? (
+                <div className="py-12 text-center text-slate-400 text-xs">
+                  Hiện bạn chưa ghi lại khoản chi dùng nào. Hãy thêm khoản chi đầu tiên nhé!
+                </div>
+              ) : (
+                recentExpenses.map(exp => {
+                  const catTheme = categories.find(c => c.id === exp.categoryId)?.color || 'bg-slate-50 text-slate-600';
+                  return (
+                    <div
+                      key={exp.id}
+                      className="flex items-center justify-between rounded-xl border border-slate-100 p-2.5 hover:bg-slate-50/50 transition-colors"
+                      id={`recent-expense-${exp.id}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg font-bold ${catTheme}`}>
+                          {exp.categoryId === 'rent' && '🏠'}
+                          {exp.categoryId === 'food' && '🍲'}
+                          {exp.categoryId === 'study' && '📚'}
+                          {exp.categoryId === 'transport' && '🏍️'}
+                          {exp.categoryId === 'entertainment' && '🥤'}
+                          {exp.categoryId === 'shopping' && '🛍️'}
+                          {exp.categoryId === 'other' && '🔄'}
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-800">{exp.title}</h4>
+                          <span className="text-[10px] text-slate-400 font-mono block">{exp.date}</span>
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <span className="block text-xs font-black text-slate-900 font-mono">
+                          {new Intl.NumberFormat('vi-VN').format(exp.amount)}đ
+                        </span>
+                        {exp.isNecessary ? (
+                          <span className="text-[8px] font-bold text-emerald-700 bg-emerald-50 px-1 rounded">Cần thiết</span>
+                        ) : (
+                          <span className="text-[8px] font-bold text-amber-700 bg-amber-50 px-1 rounded">Sở thích</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-slate-50">
+            <p className="text-[10.5px] leading-relaxed text-slate-400">
+              💡 <strong>Thói quen tài chính tốt:</strong> Hãy tạo một khoản chi dùng mới ngay khi bạn trả tiền ở hàng quán. Việc viết ngay lập tức tốn chưa đầy 10 giây nhưng cứu bạn khỏi sự mơ hồ tiền đã đi đâu mất!
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  );
+}
