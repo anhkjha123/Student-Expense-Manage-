@@ -1,4 +1,5 @@
-Student Expense Manager (SemTietKiem) 🎓💳
+Student Expense Manager (SemTietKiem) 🎓
+💳
 Ứng dụng full-stack (React + Express) tinh gọn và mạnh mẽ giúp sinh viên dễ dàng ghi chép chi tiêu trong vòng dưới 10 giây, phân bổ dòng tiền thông minh theo mô hình Cần thiết vs Mong muốn (Needs/Wants) và đề phòng lạm phát cháy túi cuối tháng.
 
 Tích hợp tính năng Đồng bộ Thời gian thực (Real-time Sync): Thời gian trong ứng dụng sẽ luôn đi cùng với thời gian thực trên lịch để đảm bảo báo cáo, quỹ ngân sách và dự báo tương lai được lập trình chính xác nhất. Ngay cả giao diện trên máy tính bảng (Tablet) hay điện thoại cũng tự động tái thiết kế không gian linh hoạt mà không làm giảm trải nghiệm.
