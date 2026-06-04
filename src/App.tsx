@@ -326,14 +326,14 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-emerald-200 relative overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-emerald-200 relative overflow-hidden">
       
       {/* Decorative Modern Background Blobs */}
       <div className="absolute top-[-5%] left-[-10%] w-[60%] h-[50%] rounded-full bg-emerald-200/20 blur-[100px] object-cover pointer-events-none z-0" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-200/20 blur-[120px] object-cover pointer-events-none z-0" />
       <div className="absolute top-[30%] right-[10%] w-[30%] h-[40%] rounded-full bg-amber-100/30 blur-[100px] object-cover pointer-events-none z-0" />
 
-      <div className="relative z-10 flex-1 flex flex-col w-full h-full">
+      <div className="relative z-10 flex flex-col flex-1 w-full">
         {/* Dynamic Header & Actions Bar */}
         <Navbar
           user={currentUser}
@@ -347,7 +347,7 @@ export default function App() {
         />
 
         {/* Main Content Render area */}
-        <main className="flex-1 pb-16">
+        <main className="flex-1 pb-4 sm:pb-8">
           {activeTab === 'dashboard' && (
             <Dashboard
               user={currentUser}
@@ -387,7 +387,7 @@ export default function App() {
         </main>
 
         {/* FOOTER */}
-        <footer className="py-6 border-t border-slate-200/60 bg-white/50 backdrop-blur-sm text-center text-slate-400 text-xs font-medium">
+        <footer className="pt-6 pb-24 sm:py-6 border-t border-slate-200/60 bg-white/50 backdrop-blur-sm text-center text-slate-400 text-xs font-medium relative z-20">
           <p>© 2026 Student Expense Manager (SemTietKiem) | MVP Cắt giảm lạm chi cho Sinh viên</p>
         </footer>
       </div>
