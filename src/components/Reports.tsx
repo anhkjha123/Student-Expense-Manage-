@@ -101,6 +101,109 @@ export default function Reports({
 
   const advice = getAdvisorMessage();
 
+  // Tạo HTML File PDF Client-side
+  const handleExportPDF = () => {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Báo cáo tài chính cá nhân - ${user.name}</title>
+        <style>
+          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 30px; color: #333; }
+          .header { text-align: center; border-bottom: 2px solid #10b981; padding-bottom: 15px; margin-bottom: 25px; }
+          .header h1 { margin: 0; color: #111827; }
+          .header p { margin: 5px 0 0; color: #6b7280; font-size: 14px; }
+          .user-info { display: flex; justify-content: space-between; margin-bottom: 30px; padding: 15px; background: #f9fafb; border-radius: 8px; }
+          .user-info div { font-size: 14px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+          th { background-color: #f3f4f6; color: #374151; font-weight: bold; text-align: left; padding: 12px; border-bottom: 1px solid #e5e7eb; }
+          td { padding: 12px; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
+          .total { text-align: right; font-size: 16px; font-weight: bold; margin-top: 25px; color: #10b981; }
+          @media print {
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print" style="margin-bottom: 20px; text-align: right;">
+          <button onclick="window.print()" style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
+            🖨️ Xuất File PDF / In báo cáo
+          </button>
+        </div>
+        <div class="header">
+          <h1>BÁO CÁO CHI TIẾT CHI TIÊU CÁ NHÂN</h1>
+          <p>Trình dữ liệu tổng phát sinh từ hệ thống Student Expense Manager - Tháng ${selectedMonth}</p>
+        </div>
+        <div class="user-info">
+          <div>
+            <strong>Sinh viên:</strong> ${user.name}<br>
+            <strong>Trường học:</strong> ${user.school || 'Sinh viên'}
+          </div>
+          <div>
+            <strong>Thu nhập hằng tháng:</strong> ${new Intl.NumberFormat('vi-VN').format(user.monthlyIncome)}đ<br>
+            <strong>Ngày lập báo cáo:</strong> ${new Date().toLocaleDateString('vi-VN')}
+          </div>
+        </div>
+
+        <h2>DANH SÁCH LỊCH SỬ GIAO DỊCH CHINH PHỤC</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Ngày phát sinh</th>
+              <th>Tên khoản chi</th>
+              <th>Phân mục</th>
+              <th>Số tiền</th>
+              <th>Bắt buộc (Needs)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${monthlyExpenses.map(e => `
+              <tr>
+                <td>${e.date}</td>
+                <td>${e.title}</td>
+                <td>${categories.find(c => c.id === e.categoryId)?.name || e.categoryId}</td>
+                <td><strong>${new Intl.NumberFormat('vi-VN').format(e.amount)}đ</strong></td>
+                <td>${e.isNecessary ? 'Đúng' : 'Không'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="total">
+          TỔNG THỰC CHI TIÊU ĐẠT: ${new Intl.NumberFormat('vi-VN').format(totalSpent)}đ
+        </div>
+      </body>
+      </html>
+    `;
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  };
+
+  // Tạo CSV File Excel Client-side
+  const handleExportExcel = () => {
+    let csvContent = '\uFEFF'; 
+    csvContent += 'Mã khoản chi,Lịch ngày,Chi tiết tiêu dùng,Mục đích danh mục,Nhóm phân loại,Số tiền chi (VND),Ghi chú thêm\n';
+
+    monthlyExpenses.forEach(e => {
+      const titleEscaped = e.title.replace(/"/g, '""');
+      const noteEscaped = (e.note || '').replace(/"/g, '""');
+      const flowCategory = e.isNecessary ? 'Cần thiết (Needs)' : 'Mong muốn (Wants)';
+      const catName = categories.find(c => c.id === e.categoryId)?.name || e.categoryId;
+      csvContent += `"${e.id}","${e.date}","${titleEscaped}","${catName}","${flowCategory}",${e.amount},"${noteEscaped}"\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `bao-cao-chi-tieu-${selectedMonth}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -151,14 +254,7 @@ export default function Reports({
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              const token = localStorage.getItem('sem_token');
-              if (!token) {
-                alert('Vui lòng đăng ký/đăng nhập hệ thống để sử dụng tính năng xuất PDF chính thức.');
-                return;
-              }
-              window.open(`/api/reports/export/pdf?token=${token}&month=${selectedMonth}`, '_blank');
-            }}
+            onClick={handleExportPDF}
             id="btn-export-pdf"
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-600 text-xs font-bold transition-all border border-emerald-100 cursor-pointer shadow-sm hover:shadow-md"
           >
@@ -168,14 +264,7 @@ export default function Reports({
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              const token = localStorage.getItem('sem_token');
-              if (!token) {
-                alert('Vui lòng đăng ký/đăng nhập hệ thống để sử dụng tính năng tải file Excel chính thức.');
-                return;
-              }
-              window.open(`/api/reports/export/excel?token=${token}&month=${selectedMonth}`, '_blank');
-            }}
+            onClick={handleExportExcel}
             id="btn-export-excel"
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-blue-50 hover:bg-blue-100 text-blue-800 text-xs font-bold transition-all border border-blue-100 cursor-pointer shadow-sm hover:shadow-md"
           >
