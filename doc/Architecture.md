@@ -10,11 +10,11 @@ Tài liệu này mô tả chi tiết các quyết định kiến trúc, cơ ch�
 | Công nghệ | Lựa chọn | Lý do chọn lựa |
 | :--- | :--- | :--- |
 | **Frontend Framework** | React 19 + TypeScript | Tốc độ kết xuất tối đa, kiểm soát kiểu dữ liệu nghiêm ngặt giúp giảm thiểu tối đa lỗi lúc chạy (runtime errors). |
-| **Build & Dev Tool** | Vite | Tốc độ biên dịch cực kỳ nhanh gọn, cấu hình đơn giản và tương thích hoàn hảo với môi trường sandbox của Cloud Run. |
+| **Backend Framework** | Node.js + Express | Xử lý API RESTful, quản lý xác thực người dùng JWT mô phỏng và tương tác với cơ sở dữ liệu ảo tại thư mục hệ thống. |
+| **Build & Dev Tool** | Vite + esbuild | Tốc độ biên dịch cực kỳ nhanh gọn. Kết hợp Vite middleware (dev) và esbuild bundle độc lập (production) cho trải nghiệm Full-stack. |
 | **Styling Engine** | Tailwind CSS v4 | Thiết kế giao diện hiện đại chỉ sử dụng các lớp tiện ích (utility-first). Hỗ trợ sẵn các cơ chế tương thích di động ưu việt (`sm`, `md`, `lg`) bẩm sinh. |
-| **Animation library** | Motion (`motion/react`) | Đảm bảo tính sinh động, mượt mà trong các chuyển động chuyển đổi tab, mở modal và tăng cường độ tinh xảo của trải nghiệm người dùng (UX Sparkles). |
-| **Icon Set** | Lucide React | Thư viện biểu tượng vector sắc nét, tải bất đồng bộ tốt và dễ dàng tùy biến kích thước cũng như sắc độ màu bẩm sinh. |
-| **Cơ sở dữ liệu** | Client-side LocalStorage | Đảm bảo hiệu năng phản hồi < 5ms, bảo mật thông tin tài chính sinh viên tuyệt đối tại thiết bị và hoạt động ngoại tuyến (offline-first) hoàn hảo. |
+| **Animation library** | Motion (`motion/react`) | Đảm bảo tính sinh động, mượt mà trong các chuyển động chuyển đổi tab, mở modal và trải nghiệm người dùng (UX Sparkles). |
+| **Cơ sở dữ liệu** | Server JSON File DB | Dữ liệu được lưu trữ tập trung trên server Node.js với mô hình JSON nhẹ (data/db.json). Chế độ Offline-fallback sử dụng Client-side LocalStorage. |
 | **Testing** | Vitest | Thư viện kiểm thử tiến bộ thế hệ mới tích hợp trực tiếp vào cấu hình Vite, hoạt động cực nhanh phục vụ quá trình TDD (Test-Driven Development). |
 
 ---
@@ -30,23 +30,21 @@ Tài liệu này mô tả chi tiết các quyết định kiến trúc, cơ ch�
 │   └── changeLog.md                # Nhật ký theo dõi súc tích các phiên bản thay đổi
 ├── src/
 │   ├── components/                 # Các Module Giao diện thành phần rời rạc
-│   │   ├── AddExpenseModal.tsx     # Form nhập chi tiêu cực nhanh, chống tràn di động
-│   │   ├── BudgetSettings.tsx     # Thiết lập hạn mức ngân sách thông minh
-│   │   ├── Dashboard.tsx           # Tổng hợp biểu đồ, chỉ số tài chính, dự báo tiết kiệm
-│   │   ├── ExpenseHistory.tsx      # Sổ cái lịch sử, tìm kiếm và lọc nâng cao
-│   │   ├── LoginRegister.tsx       # Onboarding trường học và thông tin thu nhập ban đầu
-│   │   ├── Navbar.tsx              # Thanh điều hướng thích ứng, bảng thông báo động
-│   │   └── Reports.tsx             # Phân tích biểu đồ xu hướng thực tế & Needs/Wants
+│   ├── lib/
+│   │   └── api.ts                  # Module trung gian kết nối RESTful Clients tự động kèm Auth Headers (S1, S2, S3 APIs)
+│   ├── server/                     # Kiến trúc Máy chủ Backend Full-Stack
+│   │   ├── auth.ts                 # Controller xử lý Đăng nhập & Đăng ký (S1-03, S1-04)
+│   │   ├── budgets.ts              # Controller lưu mới thiết lập ngân sách (S2)
+│   │   ├── db.ts                   # Trình quản lý hệ thống File-based DB (JSON) 
+│   │   ├── expenses.ts             # RESTful API chuyên biệt CRUD chi tiêu (S1)
+│   │   └── reports.ts              # Xử lý báo cáo logic (S3) kết hợp xuất tài liệu chuẩn hóa
 │   ├── types.ts                    # Khai báo kiểu thực thể (Entity Models) chặt chẽ
-│   ├── mockData.ts                 # Dữ liệu khởi tạo đa dạng cho người dùng trải nghiệm tức thời
-│   ├── App.tsx                     # Bộ điều phối trạng thái gốc (State Orchestrator)
+│   ├── mockData.ts                 # Dữ liệu khởi tạo đa dạng cho offline demo
+│   ├── App.tsx                     # Bộ điều phối trạng thái gốc, Tích hợp Fetch API trực tuyến
 │   ├── main.tsx                    # Điểm mồi khởi chạy của thư viện React
 │   └── index.css                   # Định nghĩa CSS toàn cục tích hợp Tailwind v4
-├── tests/
-│   └── expenses.test.ts            # Các ca kiểm thử đơn vị tự động (Unit Tests)
-├── package.json                    # Khai báo thư viện phụ thuộc và kịch bản lệnh run
-├── env.example                     # Bản mẫu khai báo biến môi trường phát triển
-└── readme.md                       # Hướng dẫn khởi tạo và bàn giao dự án
+├── server.ts                       # Entry point Express Fullstack App kết hợp Vite Middleware. Middleware chạy cổng 3000 đa tuyến
+├── package.json                    # Khai báo thư viện phụ thuộc và kịch bản lệnh dev, build đa máy chủ
 ```
 
 ---

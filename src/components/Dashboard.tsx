@@ -42,8 +42,8 @@ export default function Dashboard({
   setActiveTab
 }: DashboardProps) {
   
-  // Lọc chi tiêu của tháng hiện tại (Tháng 6, 2026 dựa trên metadata ngày)
-  const currentMonthStr = '2026-06';
+  const currentDate = new Date();
+  const currentMonthStr = currentDate.toISOString().substring(0, 7);
   const currentMonthExpenses = expenses.filter(exp => exp.date.startsWith(currentMonthStr));
 
   const totalSpentThisMonth = currentMonthExpenses.reduce((sum, item) => sum + item.amount, 0);
@@ -57,9 +57,8 @@ export default function Dashboard({
   const spentWants = currentMonthExpenses.filter(e => !e.isNecessary).reduce((sum, item) => sum + item.amount, 0);
 
   // --- TÍNH TOÁN CHỈ SỐ AN TOÀN VÍ (Wallet Safety Gauge) ---
-  // Giả sử hôm nay là Ngày 1 tháng 6, 2026 (Simulated date)
-  const currentDay = 1;
-  const daysInMonth = 30;
+  const currentDay = currentDate.getDate();
+  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   
   // Tốc độ chi tiêu lý thuyết tối đa hằng ngày sau khi trừ tiền thuê nhà cố định
   // Lấy tổng ngân sách khả dụng trừ đi tiền thuê nhà thực tế trong tháng
@@ -123,98 +122,135 @@ export default function Dashboard({
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 4);
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { type: 'spring', stiffness: 300, damping: 24 }
+    }
+  };
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+    <motion.div 
+      className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       
       {/* Welcome Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-emerald-700 rounded-3xl p-6 text-white shadow-xl shadow-emerald-100">
+      <motion.div 
+        variants={itemVariants}
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-emerald-700/90 rounded-3xl p-6 text-white shadow-xl shadow-emerald-200 backdrop-blur-md"
+      >
         <div className="space-y-1">
-          <span className="inline-block rounded-full bg-emerald-600 px-3 py-1 text-[10px] font-bold uppercase tracking-wider font-mono">
-            Hôm nay: 01/06/2026
+          <span className="inline-block rounded-full bg-emerald-600 px-3 py-1 text-[10px] font-bold uppercase tracking-wider font-mono shadow-inner border border-emerald-500/30">
+            Hôm nay: {currentDate.toLocaleDateString('vi-VN')}
           </span>
-          <h2 className="font-display text-2xl font-extrabold tracking-tight">
+          <h2 className="font-display text-2xl font-extrabold tracking-tight drop-shadow-md">
             Chào {user.name}! 📚
           </h2>
-          <p className="text-xs text-emerald-50 max-w-prose leading-relaxed">
-            Hôm nay là ngày đầu tháng 6. Hãy lưu ý chuẩn bị đóng các hóa đơn cố định (như Tiền trọ) và phân chia ngân sách nhé!
+          <p className="text-xs text-emerald-50 max-w-prose leading-relaxed drop-shadow-sm">
+            Hôm nay là ngày {currentDay} của tháng. Hãy lưu ý chi tiêu trong khoảng cho phép và ghi chép đầy đủ nhé!
           </p>
         </div>
-        <button
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={onOpenAddExpense}
-          className="rounded-2xl bg-white hover:bg-emerald-50 px-6 py-3.5 text-center text-sm font-bold text-emerald-800 transition-all shadow-md shrink-0 cursor-pointer"
+          className="rounded-2xl bg-white hover:bg-emerald-50 px-6 py-3.5 text-center text-sm font-bold text-emerald-800 transition-all shadow-lg shrink-0 cursor-pointer border border-white/20"
         >
           ✍️ Thêm một khoản chi ngay
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
       {/* CORE FINANCIAL OVERVIEW CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         {/* Total Monthly Income Box */}
-        <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm relative overflow-hidden">
+        <motion.div 
+          whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
+          className="rounded-3xl border border-slate-100 bg-white p-5 shadow-md relative overflow-hidden transition-all duration-300"
+        >
           <div className="flex justify-between items-start">
             <div className="space-y-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
-                Chu cấp / Thu nhập tháng
+                Chu cấp / Thu nhập
               </span>
-              <div className="text-2xl font-black font-mono text-slate-900">
+              <div className="text-2xl font-black font-mono text-slate-900 drop-shadow-sm">
                 {new Intl.NumberFormat('vi-VN').format(totalIncome)}đ
               </div>
             </div>
-            <span className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl">
+            <span className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl shadow-inner border border-emerald-100">
               <Coins className="h-5 w-5" />
             </span>
           </div>
           <div className="text-[10px] text-slate-500 font-semibold mt-3 pt-3 border-t border-slate-50">
             Duy trì mục tiêu tích lũy: <strong className="text-blue-600 font-mono">{new Intl.NumberFormat('vi-VN').format(savingGoal)}đ</strong>
           </div>
-        </div>
+        </motion.div>
 
         {/* Total Spent Box */}
-        <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm relative overflow-hidden">
+        <motion.div 
+          whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
+          className="rounded-3xl border border-slate-100 bg-white p-5 shadow-md relative overflow-hidden transition-all duration-300"
+        >
           <div className="flex justify-between items-start">
             <div className="space-y-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
-                Đã tiêu tháng này (T6)
+                Đã tiêu tháng này
               </span>
-              <div className="text-2xl font-black font-mono text-slate-900">
+              <div className="text-2xl font-black font-mono text-slate-900 drop-shadow-sm">
                 {new Intl.NumberFormat('vi-VN').format(totalSpentThisMonth)}đ
               </div>
             </div>
-            <span className="p-3 bg-rose-50 text-rose-500 rounded-2xl">
+            <span className="p-3 bg-rose-50 text-rose-500 rounded-2xl shadow-inner border border-rose-100">
               <TrendingDown className="h-5 w-5" />
             </span>
           </div>
           <div className="text-[10px] text-slate-500 font-semibold mt-3 pt-3 border-t border-slate-50">
             Còn lại chi tiêu khả dụng: <strong className="text-slate-800 font-mono">{new Intl.NumberFormat('vi-VN').format(Math.max(0, remainingBudget))}đ</strong>
           </div>
-        </div>
+        </motion.div>
 
         {/* Projected Savings Box */}
-        <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm relative overflow-hidden">
+        <motion.div 
+          whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
+          className="rounded-3xl border border-slate-100 bg-white p-5 shadow-md relative overflow-hidden transition-all duration-300"
+        >
           <div className="flex justify-between items-start">
             <div className="space-y-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
                 Dự kiến tích lũy cuối tháng
               </span>
-              <div className={`text-2xl font-black font-mono ${remainingBudget + savingGoal < savingGoal ? 'text-amber-600' : 'text-emerald-700'}`}>
+              <div className={`text-2xl font-black font-mono drop-shadow-sm ${remainingBudget + savingGoal < savingGoal ? 'text-amber-600' : 'text-emerald-700'}`}>
                 {new Intl.NumberFormat('vi-VN').format(Math.max(0, remainingBudget + savingGoal))}đ
               </div>
             </div>
-            <span className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
+            <span className="p-3 bg-blue-50 text-blue-600 rounded-2xl shadow-inner border border-blue-100">
               <PiggyBank className="h-5 w-5" />
             </span>
           </div>
           <div className="text-[10px] text-slate-500 font-semibold mt-3 pt-3 border-t border-slate-50">
             Mục tiêu tích lũy ban đầu: <strong className="text-slate-700 font-mono">{new Intl.NumberFormat('vi-VN').format(savingGoal)}đ</strong>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* WALLET SAFETY GAUGE & NEEDS/WANTS PROGRESS */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-12 gap-6">
         
         {/* Wallet Speed Safety Gauge */}
-        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm lg:col-span-8 flex flex-col justify-between space-y-4">
+        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md md:col-span-7 lg:col-span-8 flex flex-col justify-between space-y-4 hover:shadow-lg transition-shadow duration-300">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-base font-bold text-slate-800 flex items-center gap-2">
               <Activity className="h-5 w-5 text-emerald-600 animate-pulse-subtle" /> Chỉ số an toàn cháy ví sinh viên
@@ -222,14 +258,14 @@ export default function Dashboard({
             <span className="text-[10px] font-mono text-slate-400">Thiết lập theo tốc độ trôi ngày</span>
           </div>
 
-          <div className={`rounded-2xl p-4.5 border ${
+          <div className={`rounded-2xl p-4.5 border shadow-sm ${
             walletStatus === 'safe' 
-              ? 'bg-emerald-50/50 border-emerald-100 text-emerald-900' 
+              ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' 
               : walletStatus === 'warning'
-              ? 'bg-amber-50/50 border-amber-100 text-amber-900'
-              : 'bg-rose-50/50 border-rose-150 text-rose-900'
+              ? 'bg-amber-50/80 border-amber-200 text-amber-900'
+              : 'bg-rose-50/80 border-rose-200 text-rose-900'
           }`}>
-            <h4 className="font-bold text-sm flex items-center gap-1.5">
+            <h4 className={`font-bold text-sm flex items-center gap-1.5 drop-shadow-sm`}>
               {walletStatus === 'safe' ? '🍏' : walletStatus === 'warning' ? '⚠️' : '🚨'} {walletStatusText}
             </h4>
             <p className="font-normal text-xs text-slate-700 mt-1 leading-relaxed">
@@ -238,35 +274,40 @@ export default function Dashboard({
           </div>
 
           {/* Quick graphical calendar meter to explain why safety is styled this way */}
-          <div className="space-y-1.5 bg-slate-50 rounded-2xl p-4 text-xs font-semibold text-slate-600">
+          <div className="space-y-1.5 bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs font-semibold text-slate-600 shadow-inner">
             <div className="flex justify-between font-mono text-[10px] text-slate-400">
               <span>Đầu tháng (Ngày 1)</span>
               <span>Giữa tháng (Ngày 15)</span>
               <span>Cuối tháng (Ngày 30)</span>
             </div>
             {/* Horizontal timeline bar */}
-            <div className="relative h-2 w-full bg-slate-200 rounded-full">
-              <div 
-                className="absolute top-0 bottom-0 left-0 bg-emerald-600 rounded-full transition-all"
-                style={{ width: `${(currentDay / daysInMonth) * 100}%` }}
+            <div className="relative h-2 w-full bg-slate-200 rounded-full overflow-hidden shadow-inner">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${(currentDay / Math.max(daysInMonth, 1)) * 100}%` }}
+                transition={{ duration: 1, delay: 0.2 }}
+                className="absolute top-0 bottom-0 left-0 bg-emerald-600 rounded-full"
               />
-              <span 
-                className="absolute -top-1 h-4 w-4 rounded-full bg-slate-900 border-2 border-white shadow-sm flex items-center justify-center text-[8px] text-white font-mono"
-                style={{ left: `calc(${(currentDay / daysInMonth) * 100}% - 8px)` }}
+            </div>
+              <motion.span 
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 1 }}
+                className="absolute -top-1 h-4 w-4 rounded-full bg-slate-900 border-2 border-white shadow-md flex items-center justify-center text-[8px] text-white font-mono"
+                style={{ left: `calc(${Math.min(100, (currentDay / Math.max(daysInMonth, 1)) * 100)}% - 8px)` }}
                 title="Hôm nay"
               >
-                1
-              </span>
-            </div>
-            <p className="text-[10px] text-slate-400 text-center font-normal">
-              Bạn đang ở ngày <strong>1 / 30</strong> của tháng {currentMonthStr}. Quỹ chi phí biến đổi linh hoạt hợp lý là {new Intl.NumberFormat('vi-VN').format(variableSpent)}đ / {new Intl.NumberFormat('vi-VN').format(variableBudget)}đ.
+                {currentDay}
+              </motion.span>
+            <p className="text-[10px] text-slate-400 text-center font-normal pt-2">
+              Bạn đang ở ngày <strong>{currentDay} / {daysInMonth}</strong> của tháng {currentMonthStr}. Quỹ chi phí biến đổi linh hoạt hợp lý là <strong>{new Intl.NumberFormat('vi-VN').format(variableSpent)}đ / {new Intl.NumberFormat('vi-VN').format(variableBudget)}đ</strong>.
             </p>
           </div>
         </div>
 
         {/* Needs vs Wants 50/30/20 Mini Circle */}
-        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm lg:col-span-4 space-y-4">
-          <h3 className="font-display text-sm font-bold text-slate-800">
+        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md md:col-span-5 lg:col-span-4 space-y-4 hover:shadow-lg transition-shadow duration-300">
+          <h3 className="font-display text-sm font-bold text-slate-800 drop-shadow-sm">
             Phân loại chi tiêu tháng này
           </h3>
           
@@ -274,13 +315,15 @@ export default function Dashboard({
             {/* Needs */}
             <div className="space-y-1">
               <div className="flex justify-between text-xs">
-                <span className="text-emerald-700 font-bold flex items-center gap-1">🟢 Cần thiết (Needs)</span>
+                <span className="text-emerald-700 font-bold flex items-center gap-1 drop-shadow-sm">🟢 Cần thiết (Needs)</span>
                 <span className="font-mono text-slate-900">{new Intl.NumberFormat('vi-VN').format(spentNecessary)}đ</span>
               </div>
-              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-emerald-600 rounded-full" 
-                  style={{ width: `${totalSpentThisMonth > 0 ? (spentNecessary / totalSpentThisMonth) * 100 : 0}%` }}
+              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner flex">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${totalSpentThisMonth > 0 ? (spentNecessary / totalSpentThisMonth) * 100 : 0}%` }}
+                  transition={{ duration: 0.8 }}
+                  className="h-full bg-emerald-500 rounded-full drop-shadow-sm" 
                 />
               </div>
             </div>
@@ -288,35 +331,41 @@ export default function Dashboard({
             {/* Wants */}
             <div className="space-y-1">
               <div className="flex justify-between text-xs">
-                <span className="text-amber-700 font-bold flex items-center gap-1">🟡 Mong muốn (Wants)</span>
+                <span className="text-amber-700 font-bold flex items-center gap-1 drop-shadow-sm">🟡 Mong muốn (Wants)</span>
                 <span className="font-mono text-slate-900">{new Intl.NumberFormat('vi-VN').format(spentWants)}đ</span>
               </div>
-              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-amber-500 rounded-full" 
-                  style={{ width: `${totalSpentThisMonth > 0 ? (spentWants / totalSpentThisMonth) * 100 : 0}%` }}
+              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner flex">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${totalSpentThisMonth > 0 ? (spentWants / totalSpentThisMonth) * 100 : 0}%` }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                  className="h-full bg-amber-500 rounded-full drop-shadow-sm" 
                 />
               </div>
             </div>
 
             <p className="text-[10.5px] leading-relaxed text-slate-400 font-normal">
-              Lời khuyên: Để không cháy ví, hãy duy trì mức <strong>Cần thiết</strong> đóng khung dưới 50% tổng ngân sách chu cấp hằng tháng.
+              Lời khuyên: Để không cháy ví, hãy duy trì mức <strong className="text-emerald-700">Cần thiết</strong> đóng khung dưới 50% tổng ngân sách chu cấp hằng tháng.
             </p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* OVER BUDGET WARNINGS */}
       {overBudgetWarningList.length > 0 && (
-        <div className="rounded-3xl border border-red-150 bg-red-50/50 p-5 space-y-3 shadow-xs">
-          <h4 className="font-display font-semibold text-red-800 text-sm flex items-center gap-2">
+        <motion.div 
+          variants={itemVariants}
+          className="rounded-3xl border border-red-200 bg-gradient-to-br from-red-50 to-red-100/50 p-5 space-y-3 shadow-md"
+        >
+          <h4 className="font-display font-semibold text-red-800 text-sm flex items-center gap-2 drop-shadow-sm">
             <AlertTriangle className="h-5 w-5 text-red-600 shrink-0" /> Cảnh báo quan trọng: Vượt hạn mức danh mục!
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {overBudgetWarningList.map(cat => (
-              <div 
+              <motion.div 
+                whileHover={{ scale: 1.01 }}
                 key={cat.id} 
-                className="bg-white rounded-2xl p-4 border border-red-100 text-xs font-semibold text-slate-700 shadow-2xs"
+                className="bg-white rounded-2xl p-4 border border-red-100 text-xs font-semibold text-slate-700 shadow-sm"
                 id={`over-budget-warning-${cat.id}`}
               >
                 <div className="flex justify-between font-bold text-red-700">
@@ -327,24 +376,24 @@ export default function Dashboard({
                   Đã tiêu {new Intl.NumberFormat('vi-VN').format(cat.spentAmount)}đ trên hạn mức cài đặt là {new Intl.NumberFormat('vi-VN').format(cat.limitAmount)}đ. 
                   Hãy hoãn lại mọi đơn chi tiêu danh mục này hằng ngày.
                 </p>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* CATEGORIES BUDGET METERS & RECENT EXPENSES */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-12 gap-6">
         
         {/* Categories Budget Limit Meters */}
-        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm lg:col-span-7 space-y-4">
+        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md md:col-span-7 lg:col-span-7 space-y-4 hover:shadow-lg transition-shadow duration-300">
           <div className="flex justify-between items-center pb-2 border-b border-slate-50">
-            <h3 className="font-display text-base font-bold text-slate-800">
+            <h3 className="font-display text-base font-bold text-slate-800 drop-shadow-sm">
               Theo dõi Ngân sách Danh mục hằng tháng
             </h3>
             <button
               onClick={() => setActiveTab('budget')}
-              className="text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
+              className="text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors bg-emerald-50 px-2 py-1 rounded-lg"
             >
               Cài đặt hạn mức →
             </button>
@@ -358,7 +407,7 @@ export default function Dashboard({
               return (
                 <div key={cat.id} id={`dashboard-cat-meter-${cat.id}`} className="space-y-1.5">
                   <div className="flex justify-between text-xs font-semibold text-slate-700">
-                    <span className="flex items-center gap-1.5">
+                    <span className="flex items-center gap-1.5 drop-shadow-sm">
                       <span>
                         {cat.id === 'rent' && '🏠'}
                         {cat.id === 'food' && '🍲'}
@@ -376,16 +425,18 @@ export default function Dashboard({
                   </div>
 
                   {/* Meter scrollbar bar representing category spending */}
-                  <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden relative">
-                    <div 
-                      className={`h-full rounded-full transition-all duration-300 ${
+                  <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden relative shadow-inner">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.min(100, Math.max(0, cat.percent))}%` }}
+                      transition={{ duration: 1, type: "spring", stiffness: 50 }}
+                      className={`h-full rounded-full transition-colors duration-300 drop-shadow-sm ${
                         isOver 
                           ? 'bg-red-500' 
                           : isHigh 
                           ? 'bg-amber-500' 
-                          : 'bg-emerald-600'
+                          : 'bg-emerald-500'
                       }`}
-                      style={{ width: `${Math.min(100, cat.percent)}%` }}
                     />
                     {isOver && (
                       <span className="absolute right-2 top-1 w-1.5 h-1.5 rounded-full bg-white animate-ping" />
@@ -398,15 +449,15 @@ export default function Dashboard({
         </div>
 
         {/* Recent Spendings List */}
-        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm lg:col-span-5 space-y-4 flex flex-col justify-between">
+        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md md:col-span-5 lg:col-span-5 space-y-4 flex flex-col justify-between hover:shadow-lg transition-shadow duration-300">
           <div className="space-y-4">
             <div className="flex justify-between items-center pb-2 border-b border-slate-50">
-              <h3 className="font-display text-base font-bold text-slate-800">
+              <h3 className="font-display text-base font-bold text-slate-800 drop-shadow-sm">
                 Giao dịch chép gần đây
               </h3>
               <button
                 onClick={() => setActiveTab('history')}
-                className="text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
+                className="text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors bg-emerald-50 px-2 py-1 rounded-lg"
               >
                 Xem chi tất cả →
               </button>
@@ -418,16 +469,19 @@ export default function Dashboard({
                   Hiện bạn chưa ghi lại khoản chi dùng nào. Hãy thêm khoản chi đầu tiên nhé!
                 </div>
               ) : (
-                recentExpenses.map(exp => {
+                recentExpenses.map((exp, idx) => {
                   const catTheme = categories.find(c => c.id === exp.categoryId)?.color || 'bg-slate-50 text-slate-600';
                   return (
-                    <div
+                    <motion.div
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 * idx }}
                       key={exp.id}
-                      className="flex items-center justify-between rounded-xl border border-slate-100 p-2.5 hover:bg-slate-50/50 transition-colors"
+                      className="flex items-center justify-between rounded-xl border border-slate-100 p-2.5 hover:bg-slate-50/80 transition-colors shadow-sm"
                       id={`recent-expense-${exp.id}`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg font-bold ${catTheme}`}>
+                        <div className={`p-2 rounded-lg font-bold shadow-inner ${catTheme}`}>
                           {exp.categoryId === 'rent' && '🏠'}
                           {exp.categoryId === 'food' && '🍲'}
                           {exp.categoryId === 'study' && '📚'}
@@ -437,22 +491,22 @@ export default function Dashboard({
                           {exp.categoryId === 'other' && '🔄'}
                         </div>
                         <div>
-                          <h4 className="text-xs font-bold text-slate-800">{exp.title}</h4>
+                          <h4 className="text-xs font-bold text-slate-800 drop-shadow-sm">{exp.title}</h4>
                           <span className="text-[10px] text-slate-400 font-mono block">{exp.date}</span>
                         </div>
                       </div>
 
                       <div className="text-right">
-                        <span className="block text-xs font-black text-slate-900 font-mono">
+                        <span className="block text-xs font-black text-slate-900 font-mono drop-shadow-sm">
                           {new Intl.NumberFormat('vi-VN').format(exp.amount)}đ
                         </span>
                         {exp.isNecessary ? (
-                          <span className="text-[8px] font-bold text-emerald-700 bg-emerald-50 px-1 rounded">Cần thiết</span>
+                          <span className="text-[8px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded shadow-sm">Cần thiết</span>
                         ) : (
-                          <span className="text-[8px] font-bold text-amber-700 bg-amber-50 px-1 rounded">Sở thích</span>
+                          <span className="text-[8px] font-bold text-amber-700 bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded shadow-sm">Sở thích</span>
                         )}
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })
               )}
@@ -460,15 +514,15 @@ export default function Dashboard({
           </div>
 
           <div className="pt-4 border-t border-slate-50">
-            <p className="text-[10.5px] leading-relaxed text-slate-400">
-              💡 <strong>Thói quen tài chính tốt:</strong> Hãy tạo một khoản chi dùng mới ngay khi bạn trả tiền ở hàng quán. Việc viết ngay lập tức tốn chưa đầy 10 giây nhưng cứu bạn khỏi sự mơ hồ tiền đã đi đâu mất!
+            <p className="text-[10.5px] leading-relaxed text-slate-400 bg-slate-50 p-3 rounded-xl border border-slate-100 shadow-inner">
+              💡 <strong>Thói quen tài chính:</strong> Việc viết ngay lập tức tốn chưa đầy 10 giây nhưng cứu bạn khỏi sự mơ hồ khoản tiền đã đi đâu!
             </p>
           </div>
 
         </div>
 
-      </div>
+      </motion.div>
 
-    </div>
+    </motion.div>
   );
 }

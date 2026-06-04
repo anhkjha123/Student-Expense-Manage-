@@ -26,7 +26,9 @@ export default function AddExpenseModal({
   const [amount, setAmount] = useState<string>('');
   const [categoryId, setCategoryId] = useState<string>('');
   const [title, setTitle] = useState<string>('');
-  const [date, setDate] = useState<string>('2026-06-01'); // Đặt thời gian theo simulated metadata
+  const [date, setDate] = useState<string>(
+    new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]
+  );
   const [note, setNote] = useState<string>('');
   const [isNecessary, setIsNecessary] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

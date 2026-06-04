@@ -27,6 +27,39 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
 
 ---
 
+### [v2.1.0] - 2026-06-04
+#### 🌟 Nâng cấp Trải nghiệm Người dùng (UX & Animations)
+*   **Hoạt ảnh & Tương tác (Framer Motion):** Tích hợp thư viện `motion/react` vào các Dashboard Cards, danh sách chi tiêu và Add Expense Modal. 
+    *   Tạo hiệu ứng xuất hiện xếp tầng (staggerChildren) siêu mượt cho giao diện chính.
+    *   Thêm phản hồi nảy nhẹ (Spring bounce), hiệu ứng Scale và di chuyển khi Hover chuột vào các khối thẻ chức năng.
+*   **Hiệu ứng thị giác (Drop Shadows & Depth):** Thêm độ sâu cho ứng dụng thông qua viền bóng mềm (drop-shadow, hover:shadow-lg) của Tailwind. Các icon, văn bản nổi bật và thẻ báo cáo tài chính tạo cảm giác 3D (Depth) cực kì hiện đại.
+*   **Minh bạch Tuân thủ Quy trình (Vibe Coding):** Khởi tạo tài liệu `/doc/vibe-code-proof.md` chứng minh việc lên kế hoạch (Plan), thiết kế tài liệu (Doc), xây dựng (Build), kiểm thử tự động (Test) chuẩn hóa trước khi đẩy (Ship) ứng dụng ra môi trường Production.
+
+---
+
+### [v2.0.0] - 2026-06-03
+#### 🌟 Kiến trúc Máy chủ Full-Stack & Bảo mật API (Backend Migration)
+*   Chuyển đổi ứng dụng từ mô hình Client-side (SPA) sang kiến trúc **Full-stack Client-Server** chuyên nghiệp:
+    *   Sử dụng **Node.js, Express** ở backend và đính kèm bộ dịch Vite Middleware cho môi trường phát triển (Development).
+    *   Biên dịch và đóng gói (Bundle) backend server chuyên biệt qua `esbuild` giảm thiểu gián đoạn module CommonJS tại Production.
+*   Thiết lập hệ thống xác thực người dùng (**JWT Authentication**), loại bỏ hoàn toàn cơ chế định danh mô phỏng giả lập (Mocking) trên Client.
+*   Di dời toàn bộ logic quản lý, lưu trữ từ LocalStorage của Trình duyệt xuống hệ thống File-based Database Server-side an toàn (`data/db.json`). Các module Controller (S1, S2, S3 APIs) phản hồi JSON độc lập.
+*   Hoàn thiện luồng Fetch API thay vì đọc ghi file tĩnh. Vẫn bao hàm cơ chế **Offline-fallback (Demo Mode)** mạnh mẽ từ `LocalStorage` và tài khoản thử nghiệm "sinhvien@hust.edu.vn" để tăng cường độ tương thích khi Backend sập/chưa sẵn sàng.
+
+#### 🖨️ Xuất Báo cáo Tài chính Độc lập (PDF/Excel)
+*   Thực thi S3-15: Chức năng tạo biên lai chi tiêu/ Báo cáo PDF Render trực tiếp qua HTML tại phía máy chủ Express, hỗ trợ đầy đủ Font và Encoding chuẩn. Trích xuất theo từng tháng bằng URL tham số token.
+*   Thực thi S3-16: Xuất file bảng tính Excel dạng CSV (`BOM UTF-8`) kháng triệt để lỗi Font chữ tiếng Việt khi xem trong Excel.
+*   Tái thiết kế thanh điều hướng Navbar (Adaptive Layouts) loại bỏ lỗi hiển thị chèn lấp nhau trên giao diện di động.
+
+#### 🎨 Tối ưu Giao diện Máy tính bảng & Đồng bộ Thời gian thực (Real-time Date)
+*   **Giao diện Tablet (Responsive Layout):** Tái cấu trúc bộ khung lưới hiển thị (Grid) tại Dashboard bằng break-points `md:grid-cols-12`, giúp các khối thẻ thông tin và biểu đồ hiển thị cân đối, tận dụng tuyệt đối không gian trên màn hình máy tính bảng (Tablet/iPad).
+*   **Đồng bộ thời gian thực (Real-time Sync):** Thay thế toàn bộ các biến thời gian cấu hình tĩnh (như 01/06/2026) bằng hệ thống ngày giờ động (Dynamic System Time).
+    *   Thanh điều hướng, Báo cáo và Dashboard tự động nhảy sang ngày/tháng mới theo giờ thực tế.
+    *   Form thêm khoản chi mặc định trỏ về hiện tại thay vì lịch sử (metadata).
+    *   Máy tính an toàn ví tự đồng bộ tỷ lệ chi tiêu theo đúng mốc thời gian hiện thời trong tháng.
+
+---
+
 ### [v1.0.0] - 2026-06-01
 #### 🎉 Khởi tạo Dự án (Initial Release)
 *   Phát triển thành công bộ khung ứng dụng quản lý tài chính sinh viên giao diện tinh tế bằng React 19, TypeScript và Tailwind CSS v4.

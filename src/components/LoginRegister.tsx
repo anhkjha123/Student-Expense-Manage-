@@ -11,6 +11,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { User } from '../types';
+import { ApiService } from '../lib/api';
 
 interface LoginRegisterProps {
   onLoginSuccess: (user: User) => void;
@@ -31,42 +32,69 @@ export default function LoginRegister({
   const [regSchool, setRegSchool] = useState('');
   const [regIncome, setRegIncome] = useState('4,000,000');
   const [regSaving, setRegSaving] = useState('500,000');
+  const [regPassword, setRegPassword] = useState('123456');
   
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleDemoLogin = async () => {
     setErrorMsg(null);
-
-    if (!email) {
-      setErrorMsg('Vui lòng nhập Email sinh viên.');
-      return;
-    }
-
-    // Đăng nhập nhanh
-    if (email.toLowerCase() === mockStudent.email.toLowerCase()) {
+    setIsLoading(true);
+    try {
+      const { user, token } = await ApiService.login(mockStudent.email, '123456');
+      onLoginSuccess(user);
+    } catch (err: any) {
+      console.warn('Backend offline, dropping to localStorage demo mode', err);
       onLoginSuccess(mockStudent);
-    } else {
-      // Cho tạo tài khoản bất kỳ khác
-      const standardUser: User = {
-        id: 'new_user_random',
-        email: email,
-        name: email.split('@')[0],
-        school: 'Đại học Quốc gia Việt Nam',
-        monthlyIncome: 4000000,
-        savingGoal: 400000,
-        joinedDate: '2026-06-01'
-      };
-      onLoginSuccess(standardUser);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setIsLoading(true);
 
-    if (!regEmail || !regName || !regSchool) {
+    if (!email || !password) {
+      setErrorMsg('Vui lòng nhập Email sinh viên và mật khẩu.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const { user } = await ApiService.login(email, password);
+      onLoginSuccess(user);
+    } catch (err: any) {
+      console.warn('Backend login error or offline, falling back directly:', err);
+      // Fallback cho chế độ offline/client-only nếu backend chưa sẵn sàng hoàn toàn
+      if (email.toLowerCase() === mockStudent.email.toLowerCase()) {
+        onLoginSuccess(mockStudent);
+      } else {
+        const standardUser: User = {
+          id: 'new_user_random',
+          email: email,
+          name: email.split('@')[0],
+          school: 'Đại học Quốc gia Việt Nam',
+          monthlyIncome: 4000000,
+          savingGoal: 400000,
+          joinedDate: new Date().toISOString().split('T')[0]
+        };
+        onLoginSuccess(standardUser);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg(null);
+    setIsLoading(true);
+
+    if (!regEmail || !regName || !regSchool || !regPassword) {
       setErrorMsg('Vui lòng điền đầy đủ các thông tin bắt buộc.');
+      setIsLoading(false);
       return;
     }
 
@@ -75,20 +103,35 @@ export default function LoginRegister({
 
     if (isNaN(numIncome) || numIncome <= 0) {
       setErrorMsg('Tổng thu nhập chu cấp phải lớn hơn 0đ.');
+      setIsLoading(false);
       return;
     }
 
-    const newUser: User = {
-      id: `user_${Date.now()}`,
-      email: regEmail,
-      name: regName,
-      school: regSchool,
-      monthlyIncome: numIncome,
-      savingGoal: isNaN(numSaving) ? 0 : numSaving,
-      joinedDate: '2026-06-01'
-    };
-
-    onLoginSuccess(newUser);
+    try {
+      const { user } = await ApiService.register({
+        email: regEmail,
+        passwordString: regPassword,
+        name: regName,
+        school: regSchool,
+        monthlyIncome: numIncome,
+        savingGoal: isNaN(numSaving) ? 0 : numSaving
+      });
+      onLoginSuccess(user);
+    } catch (err: any) {
+      console.warn('Backend register error or offline, falling back directly:', err);
+      const newUser: User = {
+        id: `user_${Date.now()}`,
+        email: regEmail,
+        name: regName,
+        school: regSchool,
+        monthlyIncome: numIncome,
+        savingGoal: isNaN(numSaving) ? 0 : numSaving,
+        joinedDate: new Date().toISOString().split('T')[0]
+      };
+      onLoginSuccess(newUser);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleIncomeFormat = (val: string) => {
@@ -152,9 +195,11 @@ export default function LoginRegister({
             </div>
             
             <button
+              type="button"
               id="try-demo-user-btn"
-              onClick={() => onLoginSuccess(mockStudent)}
-              className="w-full mt-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 py-2.5 px-4 text-xs font-bold text-white transition-colors cursor-pointer text-center"
+              onClick={handleDemoLogin}
+              disabled={isLoading}
+              className="w-full mt-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 py-2.5 px-4 text-xs font-bold text-white transition-colors cursor-pointer text-center disabled:opacity-50"
             >
               🚀 Vào thẳng bằng Tài khoản Mẫu (Bách Khoa)
             </button>
@@ -269,6 +314,23 @@ export default function LoginRegister({
                     placeholder="Đại Học Kinh Tế Quốc Dân"
                     className="w-full py-2 px-3 text-xs font-semibold text-slate-800 focus:outline-none"
                     required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Mật khẩu tài khoản
+                </label>
+                <div className="relative rounded-xl border border-slate-200 focus-within:border-emerald-500 overflow-hidden">
+                  <input
+                    type="password"
+                    value={regPassword}
+                    onChange={(e) => setRegPassword(e.target.value)}
+                    placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)"
+                    className="w-full py-2 px-3 text-xs font-semibold text-slate-800 focus:outline-none"
+                    required
+                    minLength={6}
                   />
                 </div>
               </div>

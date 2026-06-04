@@ -13,6 +13,7 @@ import {
   INITIAL_BUDGETS, 
   INITIAL_NOTIFICATIONS 
 } from './mockData';
+import { ApiService } from './lib/api';
 
 // import components
 import Navbar from './components/Navbar';
@@ -59,74 +60,89 @@ export default function App() {
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const userExpensesKey = `sem_${currentUser.id}_expenses`;
-      const userBudgetsKey = `sem_${currentUser.id}_budgets`;
-      const userNotifsKey = `sem_${currentUser.id}_notifs`;
-
-      const storedExpenses = localStorage.getItem(userExpensesKey);
-      const storedBudgets = localStorage.getItem(userBudgetsKey);
-      const storedNotifs = localStorage.getItem(userNotifsKey);
-
-      let finalExpenses: Expense[] = [];
-      let finalBudgets: Budget[] = [];
-      let finalNotifs: Notification[] = [];
-
-      const isDemoUser = currentUser.id === 'user_01' || currentUser.email === 'sinhvien@hust.edu.vn';
-
-      if (storedExpenses) {
-        finalExpenses = JSON.parse(storedExpenses);
-      } else {
-        if (isDemoUser) {
-          // Gắn ID người dùng tương ứng cho bộ dữ liệu giao dịch mẫu nhằm đảm bảo tính mỹ thuật ban đầu mà không xuyên nhiễm dữ liệu
-          finalExpenses = INITIAL_EXPENSES.map(exp => ({
-            ...exp,
-            userId: currentUser.id
-          }));
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const token = localStorage.getItem('sem_token');
+        if (token) {
+          // Tải từ live server API!
+          const apiExpenses = await ApiService.getExpenses();
+          const apiBudgets = await ApiService.getBudgets();
+          
+          setExpenses(apiExpenses);
+          setBudgets(apiBudgets);
         } else {
-          finalExpenses = [];
+          throw new Error('No api token, falling back');
         }
-        localStorage.setItem(userExpensesKey, JSON.stringify(finalExpenses));
-      }
+      } catch (e) {
+        console.warn('API load failed or offline, loading from LocalStorage instead:', e);
+        const userExpensesKey = `sem_${currentUser.id}_expenses`;
+        const userBudgetsKey = `sem_${currentUser.id}_budgets`;
 
-      if (storedBudgets) {
-        finalBudgets = JSON.parse(storedBudgets);
-      } else {
-        if (isDemoUser) {
-          finalBudgets = INITIAL_BUDGETS;
+        const storedExpenses = localStorage.getItem(userExpensesKey);
+        const storedBudgets = localStorage.getItem(userBudgetsKey);
+
+        let finalExpenses: Expense[] = [];
+        let finalBudgets: Budget[] = [];
+
+        const isDemoUser = currentUser.id === 'user_01' || currentUser.email === 'sinhvien@hust.edu.vn';
+
+        if (storedExpenses) {
+          finalExpenses = JSON.parse(storedExpenses);
         } else {
-          // Khởi động ngân sách trống bằng cách gán 0 cho mọi danh mục
-          finalBudgets = DEFAULT_CATEGORIES.map(cat => ({
-            categoryId: cat.id,
-            amount: 0
-          }));
+          if (isDemoUser) {
+            finalExpenses = INITIAL_EXPENSES.map(exp => ({
+              ...exp,
+              userId: currentUser.id
+            }));
+          } else {
+            finalExpenses = [];
+          }
+          localStorage.setItem(userExpensesKey, JSON.stringify(finalExpenses));
         }
-        localStorage.setItem(userBudgetsKey, JSON.stringify(finalBudgets));
-      }
 
-      if (storedNotifs) {
-        finalNotifs = JSON.parse(storedNotifs);
-      } else {
-        if (isDemoUser) {
-          finalNotifs = INITIAL_NOTIFICATIONS.map(notif => ({
-            ...notif,
-            userId: currentUser.id
-          }));
+        if (storedBudgets) {
+          finalBudgets = JSON.parse(storedBudgets);
         } else {
-          finalNotifs = [];
+          if (isDemoUser) {
+            finalBudgets = INITIAL_BUDGETS;
+          } else {
+            finalBudgets = DEFAULT_CATEGORIES.map(cat => ({
+              categoryId: cat.id,
+              amount: 0
+            }));
+          }
+          localStorage.setItem(userBudgetsKey, JSON.stringify(finalBudgets));
         }
-        localStorage.setItem(userNotifsKey, JSON.stringify(finalNotifs));
-      }
 
-      setExpenses(finalExpenses);
-      setBudgets(finalBudgets);
-      setNotifications(finalNotifs);
-    } catch (e) {
-      console.error('Error loading user-scoped data', e);
-    } finally {
-      setIsLoading(false);
-    }
+        setExpenses(finalExpenses);
+        setBudgets(finalBudgets);
+      } finally {
+        // Tải thông báo từ local storage
+        const userNotifsKey = `sem_${currentUser.id}_notifs`;
+        const storedNotifs = localStorage.getItem(userNotifsKey);
+        let finalNotifs: Notification[] = [];
+        const isDemoUser = currentUser.id === 'user_01' || currentUser.email === 'sinhvien@hust.edu.vn';
+
+        if (storedNotifs) {
+          finalNotifs = JSON.parse(storedNotifs);
+        } else {
+          if (isDemoUser) {
+            finalNotifs = INITIAL_NOTIFICATIONS.map(notif => ({
+              ...notif,
+              userId: currentUser.id
+            }));
+          } else {
+            finalNotifs = [];
+          }
+          localStorage.setItem(userNotifsKey, JSON.stringify(finalNotifs));
+        }
+        setNotifications(finalNotifs);
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
   }, [currentUser]);
 
   // --- SAVE TO USER-SCOPED LOCALSTORAGE ON UPDATES ---
@@ -160,19 +176,26 @@ export default function App() {
   const handleLogout = () => {
     setCurrentUser(null);
     localStorage.removeItem('sem_user');
+    localStorage.removeItem('sem_token');
     setExpenses([]);
     setBudgets([]);
     setNotifications([]);
   };
 
   // --- BUDGET UPDATE HANDLER ---
-  const handleUpdateBudget = (userUpdates: Partial<User>, budgetUpdates: Budget[]) => {
+  const handleUpdateBudget = async (userUpdates: Partial<User>, budgetUpdates: Budget[]) => {
     if (!currentUser) return;
 
     const updatedUser = { ...currentUser, ...userUpdates } as User;
     setCurrentUser(updatedUser);
     localStorage.setItem('sem_user', JSON.stringify(updatedUser));
     saveBudgets(budgetUpdates);
+
+    try {
+      await ApiService.saveBudgets(budgetUpdates);
+    } catch (e) {
+      console.warn('Could not save budgets to API server, updated locally:', e);
+    }
 
     // Phát sinh thông báo thành công hằng tháng
     const newNotif: Notification = {
@@ -189,14 +212,20 @@ export default function App() {
   };
 
   // --- ADD EXPENSE PROCESS & REAL-TIME INCURSION CHECK ---
-  const handleAddExpense = (newExpenseData: Omit<Expense, 'id' | 'userId'>) => {
+  const handleAddExpense = async (newExpenseData: Omit<Expense, 'id' | 'userId'>) => {
     if (!currentUser) return;
 
-    const createdExpense: Expense = {
-      ...newExpenseData,
-      id: `exp_added_${Date.now()}`,
-      userId: currentUser.id
-    };
+    let createdExpense: Expense;
+    try {
+      createdExpense = await ApiService.createExpense(newExpenseData);
+    } catch (e) {
+      console.warn('API create expense failed, writing locally:', e);
+      createdExpense = {
+        ...newExpenseData,
+        id: `exp_added_${Date.now()}`,
+        userId: currentUser.id
+      };
+    }
 
     const nextExpensesList = [createdExpense, ...expenses];
     saveExpenses(nextExpensesList);
@@ -209,13 +238,14 @@ export default function App() {
     const catBudgetObj = budgets.find(b => b.categoryId === categoryId);
     const catBudgetLimit = catBudgetObj ? catBudgetObj.amount : 0;
 
-    // 2. Tính tổng thực chi trong tháng 6 (Tháng hiện tại)
+    // 2. Tính tổng thực chi trong tháng hiện tại
+    const currentYearMonth = newExpenseData.date.substring(0, 7);
     const currentMonthExpenses = nextExpensesList.filter(
-      e => e.categoryId === categoryId && e.date.startsWith('2026-06')
+      e => e.categoryId === categoryId && e.date.startsWith(currentYearMonth)
     );
     const totalSpentInCat = currentMonthExpenses.reduce((sum, item) => sum + item.amount, 0);
 
-    // Phát sinh thông báo nếu vượt ngưỡng 90% hoặc 100% hạn mức danh mục
+    // Phát sinh thông báo nếu vượt ngưỡng 80% hoặc 100% hạn mức danh mục
     if (catBudgetLimit > 0 && catObject) {
       const parentPercent = (totalSpentInCat / catBudgetLimit) * 100;
 
@@ -230,7 +260,7 @@ export default function App() {
           read: false
         };
         saveNotifications([warningNotif, ...notifications]);
-      } else if (parentPercent >= 90) {
+      } else if (parentPercent >= 80) { // S2-15 Cảnh báo 80%
         const warningNotif: Notification = {
           id: `notif_${Date.now()}_almost`,
           userId: currentUser.id,
@@ -246,9 +276,15 @@ export default function App() {
   };
 
   // --- DELETE EXPENSE HANDLER ---
-  const handleDeleteExpense = (id: string) => {
+  const handleDeleteExpense = async (id: string) => {
     const updated = expenses.filter(exp => exp.id !== id);
     saveExpenses(updated);
+
+    try {
+      await ApiService.deleteExpense(id);
+    } catch (e) {
+      console.warn('API delete expense failed:', e);
+    }
   };
 
   // --- NOTIFICATION UTILS ---

@@ -1,93 +1,55 @@
-# Student Expense Manager - Ứng dụng Quản lý Chi tiêu Sinh viên
+Student Expense Manager (SemTietKiem) 🎓💳
+Ứng dụng full-stack (React + Express) tinh gọn và mạnh mẽ giúp sinh viên dễ dàng ghi chép chi tiêu trong vòng dưới 10 giây, phân bổ dòng tiền thông minh theo mô hình Cần thiết vs Mong muốn (Needs/Wants) và đề phòng lạm phát cháy túi cuối tháng.
 
-Một ứng dụng web tinh tế, hiện đại, gọn nhẹ giúp sinh viên dễ dàng ghi chép chi tiêu trong vòng dưới 10 giây, phân bổ dòng tiền thông minh theo mô hình Cần thiết vs Mong muốn (Needs/Wants) và đề phòng lạm phát cháy túi cuối tháng.
+Tích hợp tính năng Đồng bộ Thời gian thực (Real-time Sync): Thời gian trong ứng dụng sẽ luôn đi cùng với thời gian thực trên lịch để đảm bảo báo cáo, quỹ ngân sách và dự báo tương lai được lập trình chính xác nhất. Ngay cả giao diện trên máy tính bảng (Tablet) hay điện thoại cũng tự động tái thiết kế không gian linh hoạt mà không làm giảm trải nghiệm.
 
-Ứng dụng được viết hoàn toàn bằng **React 19**, **TypeScript**, **Tailwind CSS v4** và được tối ưu hóa hiển thị tuyệt hảo trên mọi thiết bị di động.
+✨ Tính năng chính
+Nhập Chi Tiêu Siêu Tốc: Form nhập chi tiêu trực quan, phân định danh mục rõ ràng, tự động định dạng số tiền VND thời gian thực, chống tràn màn hình trên mọi thiết bị di động.
+Kiểm soát Ngân Sách Điểm Ruồi (Budget Radar): Cảnh báo đỏ tức thời ngay khi một danh mục chi tiêu chạm ngưỡng 80% hoặc 100% giới hạn ngân sách tự đề ra hằng tháng.
+Dự Báo & Chỉ Số An Toàn Ví: Mô phỏng số tiền tích lũy thực tế dựa trên tốc độ và xu hướng tiêu xài hiện tại, biểu diễn dưới dạng đồng hồ đo tốc độ sinh động.
+Báo Cáo Tài Chính Chuyên Trách: Trích xuất báo cáo thu chi dưới dạng ấn phẩm PDF hoặc tải thẳng file Excel CSV cực kì chuyên nghiệp.
+Kiến Trúc Máy Chủ Full-Stack Độc Lập: Sử dụng API đồng bộ hóa lưu trữ cấu hình trên Node.js server cùng mô hình Offline-fallback giúp app vẫn hoạt động nội bộ trên thiết bị dù mạng có mất.
 
----
+🛠️ Hướng dẫn cài đặt & Chạy ứng dụng
+Yêu cầu máy tính của bạn đã cài đặt sẵn Node.js (phiên bản khuyến nghị v18 trở lên).
 
-## 🎨 Điểm Nhấn Thiết Kế & Tính Năng Nổi Bật
-
-1.  **Nhập Chi Tiêu 10 Giây:** Giao diện nhập chi tiêu siêu tốc, phân định danh mục rõ ràng, tự động định dạng số tiền VND thời gian thực.
-2.  **Chống Tràn Màn Hình Di Động:** Thiết kế Modal nén tỷ lệ và bổ sung cuộn nội bộ tự động đặc biệt bảo vệ nút lưu trên tất cả các điện thoại thông minh dù nhỏ nhất.
-3.  **Hạn Mức Ngân Sách Thông Minh:** Cảnh báo đỏ tức thời ngay khi một danh mục chi tiêu chạm ngưỡng 80% hoặc 100% giới hạn ngân sách tự đề ra.
-4.  **Dự Báo Tài Chính Cuối Tháng:** Mô phỏng số tiền tích lũy/tiết kiệm thực tế dựa trên tốc độ và xu hướng tiêu xài hiện tại của chính người dùng.
-5.  **Báo Cáo Biểu Đồ Trực Quan:** Hiển thị lưu đồ tròn tỷ trọng các khoản chi, đối chiếu so sánh nhóm Needs/Wants để phát hiện quỹ tiền bị rò rỉ.
-6.  **Bảo Mật Tuyệt Đối (Offline-First):** Toàn bộ dữ liệu nằm an toàn tại LocalStorage của thiết bị người dùng.
-
----
-
-## 📂 Tổ Chức Thư Mục Dự Án (Project Model)
-
-Dự án được đồng bộ tỉ mỉ, ngăn nắp theo cấu trúc module chuyên nghiệp:
-
-```text
-projectmodel
-├── doc/
-│   ├── spec.md                     # Tài liệu Đặc tả Yêu cầu Hệ thống (SRS)
-│   ├── Architecture.md             # Tài liệu Thiết kế Kiến trúc (ADR)
-│   └── changeLog.md                # Nhật ký theo dõi lịch sử cập nhật
-├── src/
-│   ├── components/                 # Các module giao diện trực quan độc lập
-│   │   ├── AddExpenseModal.tsx     # Thiết kế biểu mẫu nhập chi tiêu thông minh
-│   │   ├── BudgetSettings.tsx     # Quản lý hạn mức và cảnh báo giới hạn chi tiêu
-│   │   ├── Dashboard.tsx           # Tổng hợp các thẻ thống kê tổng quan (Dashboard)
-│   │   ├── ExpenseHistory.tsx      # Sổ ghi chép giao dịch, bộ lọc và tìm kiếm nâng cao
-│   │   ├── LoginRegister.tsx       # Màn hình định danh người dùng và cấu hình chu cấp đầu kỳ
-│   │   ├── Navbar.tsx              # Thanh điều chuyển hướng và hòm thư cảnh báo động
-│   │   └── Reports.tsx             # Trang biểu đồ phân tích cơ cấu chi tiêu
-│   ├── types.ts                    # Khai báo kiểu thực thể dữ liệu TypeScript chặt chẽ
-│   ├── mockData.ts                 # Dữ liệu giả lập phong phú khởi tạo ban đầu
-│   ├── App.tsx                     # Điểm đầu não điều phối toàn bộ trạng thái hệ thống
-│   ├── main.tsx                    # File mồi khởi chạy thư viện React
-│   └── index.css                   # Định nghĩa phong cách CSS & Tailwind v4
-├── tests/
-│   └── expenses.test.ts            # Các ca kiểm thử đơn vị tự động (Unit Tests)
-├── package.json                    # Khai báo các kịch bản chạy và thư viện liên quan
-├── env.example                     # Bản mẫu khai báo biến cấu hình môi trường
-└── readme.md                       # Bản hướng dẫn cài đặt và vận hành hệ thống (File này)
-```
-
----
-
-## 🛠️ Trình Tự Khởi Tạo & Vận Hành Hệ Thống
-
-Để tiến hành khởi chạy hoặc thử nghiệm hệ thống trong dự án này, thực hiện theo các bước cụ thể dưới đây:
-
-### 1. Cài đặt các thư viện liên quan
-Sử dụng công cụ quản lý gói npm để cài đặt đầy đủ các thư viện phụ thuộc của dự án:
+1. Cài đặt các gói phụ thuộc
+Mở Terminal hoặc Command Prompt tại thư mục dự án và chạy:
 ```bash
 npm install
 ```
 
-### 2. Khởi động môi trường phát triển (Development Mode)
-Khởi chạy máy chủ phát triển nội bộ để kiểm tra giao diện ứng dụng thời gian thực thích ứng trên cổng `3000`:
+2. Chạy ứng dụng chế độ Phát triển (Development)
+Khởi chạy cả backend và frontend đồng thời để chỉnh sửa mã nguồn:
 ```bash
 npm run dev
 ```
+Sau đó truy cập ứng dụng: `http://localhost:3000` trên trình duyệt web.
 
-### 3. Biên dịch dự án phục vụ triển khai (Production Build)
-Tiến hành đóng gói các tệp nguồn thành sản phẩm tĩnh tối ưu hóa cao chứa trong thư mục `dist`:
+3. Triển khai Production & Khởi chạy trực tiếp đầu cuối
+Kiểm tra hoạt động của app dưới dạng ứng dụng trọn vẹn:
+```bash
+npm run build
+npm start
+```
+
+📦 Hướng dẫn đóng gói ứng dụng Node.js & React
+Lệnh đóng gói tự động:
 ```bash
 npm run build
 ```
+Lưu ý: Quy trình này tự động chạy:
+- Biên dịch client-side của React thành các tập tin tĩnh trong thư mục `/dist`.
+- Bundles `server.ts` thành `/dist/server.cjs` thông qua phần mềm siêu tốc `esbuild` giảm thiểu gián đoạn module CommonJS.
 
-### 4. Kiểm tra tính toàn vẹn cú pháp (Linting)
-Sử dụng TypeScript Compiler để kiểm tra xem mã nguồn có bất kỳ lỗi khai báo kiểu hay lỗi cú pháp nghiêm trọng nào hay không:
-```bash
-npm run lint
-```
+🌐 Cách bắt đầu trải nghiệm (Cho Sinh viên)
+1. Bật ứng dụng lên (hoặc chạy app qua dòng lệnh `npm run dev`).
+2. Chọn màn hình Đăng ký / Trải nghiệm ngay bằng tài khoản trường Đại học mô phỏng của bạn. Bấm "Vào thẳng bằng Tài khoản Mẫu" nếu lười nhập liệu.
+3. Thiết lập Chu cấp Đầu tháng & Số tiền Kì vọng tiết kiệm. Bấm Tham gia.
+4. Chuyển sang thẻ Danh mục thiết lập trước các giới hạn ngân sách (như Tiền trọ, Đi lại).
+5. Cuối tháng, nhấn qua Tab "Báo Cáo & Phân Tích" bấm chọn Nút Xuất Báo Cáo PDF !
 
-### 5. Chạy các ca kiểm thử tự động (Unit Testing)
-Khởi chạy trình chạy kiểm thử Vitest để tự động rà soát hoạt động của các bộ tính toán logic tài chính:
-```bash
-npm run test
-```
-
----
-
-## 🧪 Hệ Thống Kiểm Thử Tự Động (Testing Suite)
-Chúng tôi đã tích hợp sẵn thư viện **Vitest** hỗ trợ thực hiện kiểm thử tự động tại thư mục `/tests/`. Lịch trình kiểm thử bao gồm việc rà soát:
-*   Độ chính xác của các biến tính toán phái sinh chỉ số trên Dashboard.
-*   Công thức dự báo số dư tích lũy cuối kì dựa trên xu hướng chi tiêu thực tế.
-*   Các quy tắc ràng buộc logic dữ liệu đầu vào khi thực hiện nhập giao dịch mới.
+📂 Các cổng kết nối & Thiết lập
+Mặc định ứng dụng chạy cấu hình Máy chủ Express & Vite HMR tại cùng cổng kết nối nội bộ: **3000**.
+Thư mục cơ sở dữ liệu `data/db.json` sẽ tự động phát sinh khi có giao dịch được thực hiện.
+Kiểm thử Unit (Vitest) có thể được tiến hành trực tiếp thông qua lệnh `npm run test` và kiểm tra cú pháp `npm run lint`.

@@ -62,15 +62,15 @@ export default function Navbar({
     <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-white/95 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* LOGO */}
-        <div className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-200">
-            <TrendingUp className="h-5 w-5" />
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-200 shrink-0">
+            <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
-          <div>
-            <h1 className="font-display text-lg font-bold tracking-tight text-slate-900">
+          <div className="flex flex-col justify-center">
+            <h1 className="font-display text-sm sm:text-lg font-bold tracking-tight text-slate-900 leading-tight">
               SemTietKiem
             </h1>
-            <p className="text-[10px] font-medium uppercase tracking-wider text-emerald-600 font-mono">
+            <p className="hidden sm:block text-[10px] font-medium uppercase tracking-wider text-emerald-600 font-mono leading-tight mt-0.5">
               Student Expense MVP
             </p>
           </div>
@@ -102,14 +102,14 @@ export default function Navbar({
         </nav>
 
         {/* RIGHT ACTION BUTTONS */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           {/* Quick Add Button */}
           <button
             id="quick-add-expense-btn"
             onClick={onOpenAddExpense}
-            className="flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-4 py-2 text-xs sm:text-sm font-semibold text-white shadow-sm transition-all inline-flex cursor-pointer"
+            className="flex items-center gap-1.5 sm:gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-3 sm:px-4 py-2 text-[11px] sm:text-sm font-semibold text-white shadow-sm transition-all inline-flex cursor-pointer whitespace-nowrap"
           >
-            <span className="font-bold">+</span> Nhập chi tiêu
+            <span className="font-bold">+</span> <span className="hidden sm:inline">Nhập chi tiêu</span><span className="inline sm:hidden">Nhập</span>
           </button>
 
           {/* Notification Bell */}
