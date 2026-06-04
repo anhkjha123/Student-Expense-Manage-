@@ -52,7 +52,7 @@ export default function Navbar({
       case 'alert':
         return <AlertTriangle className="h-5 w-5 text-amber-500" />;
       case 'success':
-        return <CheckCircle className="h-5 w-5 text-emerald-500" />;
+        return <CheckCircle className="h-5 w-5 text-emerald-400" />;
       default:
         return <Bell className="h-5 w-5 text-blue-500" />;
     }
@@ -87,7 +87,7 @@ export default function Navbar({
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 ${
                   isActive
-                    ? 'bg-emerald-50 text-emerald-700'
+                    ? 'bg-emerald-50 text-emerald-600'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
@@ -107,7 +107,7 @@ export default function Navbar({
           <button
             id="quick-add-expense-btn"
             onClick={onOpenAddExpense}
-            className="flex items-center gap-1.5 sm:gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 px-3 sm:px-4 py-2 text-[11px] sm:text-sm font-semibold text-white shadow-sm transition-all inline-flex cursor-pointer whitespace-nowrap"
+            className="flex items-center gap-1.5 sm:gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-500 px-3 sm:px-4 py-2 text-[11px] sm:text-sm font-semibold text-white shadow-sm transition-all inline-flex cursor-pointer whitespace-nowrap"
           >
             <span className="font-bold">+</span> <span className="hidden sm:inline">Nhập chi tiêu</span><span className="inline sm:hidden">Nhập</span>
           </button>

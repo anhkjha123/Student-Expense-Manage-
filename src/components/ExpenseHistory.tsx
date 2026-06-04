@@ -92,7 +92,7 @@ export default function ExpenseHistory({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white/60 backdrop-blur-md p-5 rounded-3xl border border-slate-200/50 shadow-sm">
         <div>
           <h2 className="font-display text-2xl font-bold text-slate-900 flex items-center gap-2 drop-shadow-sm">
-            <BookOpen className="h-6 w-6 text-emerald-500 drop-shadow-sm" /> Sổ chép chi tiêu sinh viên
+            <BookOpen className="h-6 w-6 text-emerald-400 drop-shadow-sm" /> Sổ chép chi tiêu sinh viên
           </h2>
           <p className="text-sm text-slate-500 mt-1 font-medium">
             Tổng quan và tra cứu chi tiết mọi giao dịch bạn đã lưu trữ vào hệ thống

@@ -204,7 +204,7 @@ export default function LoginRegister({
               id="try-demo-user-btn"
               onClick={handleDemoLogin}
               disabled={isLoading}
-              className="w-full mt-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 py-2.5 px-4 text-xs font-bold text-white transition-colors cursor-pointer text-center disabled:opacity-50"
+              className="w-full mt-1.5 rounded-xl bg-emerald-400 hover:bg-emerald-500 py-2.5 px-4 text-xs font-bold text-white transition-colors cursor-pointer text-center disabled:opacity-50"
             >
               🚀 Vào thẳng bằng Tài khoản Mẫu (Bách Khoa)
             </button>

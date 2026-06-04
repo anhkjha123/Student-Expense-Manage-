@@ -118,7 +118,7 @@ export default function BudgetSettings({
       {/* Title */}
       <div className="mb-6 bg-white/60 backdrop-blur-md p-5 rounded-3xl border border-slate-200/50 shadow-sm">
         <h2 className="font-display text-2xl font-bold text-slate-900 drop-shadow-sm flex items-center gap-2">
-          <Settings className="h-6 w-6 text-emerald-500" /> Thiết lập ngân sách tháng
+          <Settings className="h-6 w-6 text-emerald-400" /> Thiết lập ngân sách tháng
         </h2>
         <p className="text-sm text-slate-500 mt-1 font-medium">
           Phân bổ tiền chu cấp/làm thêm vào các phong bao chi tiêu hằng tháng để nắm chắc ví tiền
@@ -313,7 +313,7 @@ export default function BudgetSettings({
         <div className="flex justify-end pt-4 border-t border-slate-100">
           <button
             type="submit"
-            className="rounded-2xl bg-emerald-500 hover:bg-emerald-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-200 transition-all cursor-pointer"
+            className="rounded-2xl bg-emerald-500 hover:bg-emerald-500 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-200 transition-all cursor-pointer"
           >
             Lưu hạn mức chi tiêu mới
           </button>

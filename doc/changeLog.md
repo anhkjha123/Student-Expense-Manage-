@@ -45,7 +45,7 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
     *   `/doc/spec.md`: Tài liệu đặc tả kỹ thuật sản phẩm (SRS).
     *   `/doc/Architecture.md`: Tài liệu giải trình thiết kế và sơ đồ kiến trúc dữ liệu (ADR).
     *   `/doc/changeLog.md`: Nhật ký thay đổi phần mềm (File này).
-    *   `/readme.md`: Tài liệu hướng dẫn thiết lập dự án ở thư mục gốc.
+    *   `/README.md`: Tài liệu hướng dẫn thiết lập dự án ở thư mục gốc.
     *   `/env.example`: Bản mẫu cấu hình biến môi trường an toàn.
 
 #### 🔧 Sửa lỗi (Bug Fixes)

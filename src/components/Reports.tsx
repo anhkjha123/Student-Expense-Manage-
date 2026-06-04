@@ -123,7 +123,7 @@ export default function Reports({
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-3xl border border-slate-100 shadow-sm drop-shadow-sm">
         <div>
           <h2 className="font-display text-2xl font-bold text-slate-900 flex items-center gap-2 drop-shadow-sm">
-            <ChartIcon className="h-6 w-6 text-emerald-500 drop-shadow-sm" /> Báo cáo & Phân tích Tài chính
+            <ChartIcon className="h-6 w-6 text-emerald-400 drop-shadow-sm" /> Báo cáo & Phân tích Tài chính
           </h2>
           <p className="text-sm text-slate-500 font-medium mt-1">
             Học hỏi thói quen chi dùng thực tế qua đồ thị phân bổ tỷ lệ và cảnh báo chuyên sâu

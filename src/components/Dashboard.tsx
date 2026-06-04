@@ -151,7 +151,7 @@ export default function Dashboard({
       {/* Welcome Banner */}
       <motion.div 
         variants={itemVariants}
-        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-3xl p-6 text-white shadow-xl shadow-emerald-200 backdrop-blur-md"
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-emerald-400 to-emerald-400 rounded-3xl p-6 text-white shadow-xl shadow-emerald-200 backdrop-blur-md"
       >
         <div className="space-y-1">
           <span className="inline-block rounded-full bg-white/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider font-mono shadow-inner border border-white/30">
@@ -190,7 +190,7 @@ export default function Dashboard({
                 {new Intl.NumberFormat('vi-VN').format(totalIncome)}đ
               </div>
             </div>
-            <span className="p-3 bg-emerald-100 text-emerald-700 rounded-2xl shadow-inner border border-emerald-200">
+            <span className="p-3 bg-emerald-100 text-emerald-600 rounded-2xl shadow-inner border border-emerald-200">
               <Coins className="h-5 w-5" />
             </span>
           </div>
@@ -295,7 +295,7 @@ export default function Dashboard({
                 initial={{ width: 0 }}
                 animate={{ width: `${(currentDay / Math.max(daysInMonth, 1)) * 100}%` }}
                 transition={{ duration: 1, delay: 0.2 }}
-                className="absolute top-0 bottom-0 left-0 bg-emerald-600 rounded-full"
+                className="absolute top-0 bottom-0 left-0 bg-emerald-500 rounded-full"
               />
             </div>
               <motion.span 

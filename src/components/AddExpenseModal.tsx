@@ -140,7 +140,7 @@ export default function AddExpenseModal({
             <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
               Số tiền chi tiêu (VND) <span className="text-red-500">*</span>
             </label>
-            <div className="relative rounded-2xl border border-slate-200 focus-within:border-emerald-500 shadow-sm transition-all focus-within:ring-2 focus-within:ring-emerald-500/15 overflow-hidden">
+            <div className="relative rounded-2xl border border-slate-200 focus-within:border-emerald-400 shadow-sm transition-all focus-within:ring-2 focus-within:ring-emerald-500/15 overflow-hidden">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400 font-mono">
                 đ
               </span>
@@ -224,7 +224,7 @@ export default function AddExpenseModal({
                 onClick={() => setIsNecessary(true)}
                 className={`flex flex-col items-center justify-center rounded-2xl border p-2.5 sm:p-3 text-center transition-all cursor-pointer gap-0.5 ${
                   isNecessary
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700 ring-2 ring-emerald-500/10'
+                    ? 'border-emerald-500 bg-emerald-50 text-emerald-600 ring-2 ring-emerald-500/10'
                     : 'border-slate-200 hover:border-slate-300 text-slate-500'
                 }`}
               >
@@ -277,7 +277,7 @@ export default function AddExpenseModal({
             </button>
             <button
               type="submit"
-              className="rounded-xl bg-emerald-500 hover:bg-emerald-600 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-emerald-200 transition-all cursor-pointer"
+              className="rounded-xl bg-emerald-500 hover:bg-emerald-500 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-emerald-200 transition-all cursor-pointer"
             >
               Lưu chi tiêu
             </button>
