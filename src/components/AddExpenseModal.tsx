@@ -224,7 +224,7 @@ export default function AddExpenseModal({
                 onClick={() => setIsNecessary(true)}
                 className={`flex flex-col items-center justify-center rounded-2xl border p-2.5 sm:p-3 text-center transition-all cursor-pointer gap-0.5 ${
                   isNecessary
-                    ? 'border-emerald-600 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-500/10'
+                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700 ring-2 ring-emerald-500/10'
                     : 'border-slate-200 hover:border-slate-300 text-slate-500'
                 }`}
               >
@@ -277,7 +277,7 @@ export default function AddExpenseModal({
             </button>
             <button
               type="submit"
-              className="rounded-xl bg-emerald-600 hover:bg-emerald-700 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-emerald-200 transition-all cursor-pointer"
+              className="rounded-xl bg-emerald-500 hover:bg-emerald-600 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-emerald-200 transition-all cursor-pointer"
             >
               Lưu chi tiêu
             </button>

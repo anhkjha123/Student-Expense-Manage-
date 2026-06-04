@@ -13,6 +13,7 @@ import {
   BookOpen
 } from 'lucide-react';
 import { Expense, Category } from '../types';
+import { motion } from 'motion/react';
 
 interface ExpenseHistoryProps {
   expenses: Expense[];
@@ -82,54 +83,58 @@ export default function ExpenseHistory({
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6"
+    >
       {/* Title Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white/60 backdrop-blur-md p-5 rounded-3xl border border-slate-200/50 shadow-sm">
         <div>
-          <h2 className="font-display text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <BookOpen className="h-6 w-6 text-emerald-600" /> Sổ chép chi tiêu sinh viên
+          <h2 className="font-display text-2xl font-bold text-slate-900 flex items-center gap-2 drop-shadow-sm">
+            <BookOpen className="h-6 w-6 text-emerald-500 drop-shadow-sm" /> Sổ chép chi tiêu sinh viên
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 mt-1 font-medium">
             Tổng quan và tra cứu chi tiết mọi giao dịch bạn đã lưu trữ vào hệ thống
           </p>
         </div>
       </div>
 
       {/* Stats Summary Panel */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 rounded-3xl border border-slate-100 bg-slate-50/50 p-4.5">
-        <div className="rounded-2xl bg-white p-4 border border-slate-100 shadow-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <motion.div whileHover={{ y: -5 }} className="rounded-3xl bg-white p-5 border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
           <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
             Tổng chi tiêu lọc ra
           </span>
-          <span className="text-xl font-extrabold font-mono text-slate-800">
+          <span className="text-xl font-extrabold font-mono text-slate-800 drop-shadow-sm">
             {new Intl.NumberFormat('vi-VN').format(totalFilteredAmount)}đ
           </span>
           <p className="text-[10px] text-slate-400 mt-1">Trong các bộ lọc tìm kiếm hiện tại</p>
-        </div>
+        </motion.div>
 
-        <div className="rounded-2xl bg-white p-4 border border-slate-100 shadow-xs">
-          <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+        <motion.div whileHover={{ y: -5 }} className="rounded-3xl bg-gradient-to-br from-emerald-50/80 to-teal-50/50 p-5 border border-emerald-100/50 shadow-sm hover:shadow-md transition-shadow">
+          <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-500">
             Cần thiết (Needs)
           </span>
-          <span className="text-xl font-extrabold font-mono text-emerald-700">
+          <span className="text-xl font-extrabold font-mono text-emerald-600 drop-shadow-sm">
             {new Intl.NumberFormat('vi-VN').format(totalNeeds)}đ
           </span>
-          <p className="text-[10px] text-slate-400 mt-1">
+          <p className="text-[10px] text-emerald-500/70 mt-1 font-medium">
             Chiếm {totalFilteredAmount > 0 ? Math.round((totalNeeds / totalFilteredAmount) * 100) : 0}% tổng lọc
           </p>
-        </div>
+        </motion.div>
 
-        <div className="rounded-2xl bg-white p-4 border border-slate-100 shadow-xs">
+        <motion.div whileHover={{ y: -5 }} className="rounded-3xl bg-gradient-to-br from-amber-50/80 to-orange-50/50 p-5 border border-amber-100/50 shadow-sm hover:shadow-md transition-shadow">
           <span className="block text-[10px] font-bold uppercase tracking-wider text-amber-600">
             Sở thích / Mong muốn (Wants)
           </span>
-          <span className="text-xl font-extrabold font-mono text-amber-700">
+          <span className="text-xl font-extrabold font-mono text-amber-700 drop-shadow-sm">
             {new Intl.NumberFormat('vi-VN').format(totalWants)}đ
           </span>
-          <p className="text-[10px] text-slate-400 mt-1">
+          <p className="text-[10px] text-amber-600/70 mt-1 font-medium">
             Chiếm {totalFilteredAmount > 0 ? Math.round((totalWants / totalFilteredAmount) * 100) : 0}% tổng lọc
           </p>
-        </div>
+        </motion.div>
       </div>
 
       {/* FILTER CONTROLS */}
@@ -197,7 +202,7 @@ export default function ExpenseHistory({
             onClick={() => toggleSort('date')}
             className={`rounded-xl px-3 py-1.5 transition-colors cursor-pointer border flex items-center gap-1 ${
               sortField === 'date'
-                ? 'bg-emerald-50 border-emerald-100 text-emerald-700 font-bold'
+                ? 'bg-emerald-50 border-emerald-100 text-emerald-600 font-bold'
                 : 'bg-white border-slate-200 hover:bg-slate-50'
             }`}
           >
@@ -207,7 +212,7 @@ export default function ExpenseHistory({
             onClick={() => toggleSort('amount')}
             className={`rounded-xl px-3 py-1.5 transition-colors cursor-pointer border flex items-center gap-1 ${
               sortField === 'amount'
-                ? 'bg-emerald-50 border-emerald-100 text-emerald-700 font-bold'
+                ? 'bg-emerald-50 border-emerald-100 text-emerald-600 font-bold'
                 : 'bg-white border-slate-200 hover:bg-slate-50'
             }`}
           >
@@ -267,7 +272,7 @@ export default function ExpenseHistory({
                     </td>
                     <td className="px-6 py-4">
                       {exp.isNecessary ? (
-                        <span className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 border border-emerald-150 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                        <span className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 border border-emerald-150 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
                           🟢 Bắt buộc
                         </span>
                       ) : (
@@ -320,6 +325,6 @@ export default function ExpenseHistory({
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

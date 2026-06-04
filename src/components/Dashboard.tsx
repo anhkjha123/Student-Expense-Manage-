@@ -151,10 +151,10 @@ export default function Dashboard({
       {/* Welcome Banner */}
       <motion.div 
         variants={itemVariants}
-        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-emerald-700/90 rounded-3xl p-6 text-white shadow-xl shadow-emerald-200 backdrop-blur-md"
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-3xl p-6 text-white shadow-xl shadow-emerald-200 backdrop-blur-md"
       >
         <div className="space-y-1">
-          <span className="inline-block rounded-full bg-emerald-600 px-3 py-1 text-[10px] font-bold uppercase tracking-wider font-mono shadow-inner border border-emerald-500/30">
+          <span className="inline-block rounded-full bg-white/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider font-mono shadow-inner border border-white/30">
             Hôm nay: {currentDate.toLocaleDateString('vi-VN')}
           </span>
           <h2 className="font-display text-2xl font-extrabold tracking-tight drop-shadow-md">
@@ -168,7 +168,7 @@ export default function Dashboard({
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={onOpenAddExpense}
-          className="rounded-2xl bg-white hover:bg-emerald-50 px-6 py-3.5 text-center text-sm font-bold text-emerald-800 transition-all shadow-lg shrink-0 cursor-pointer border border-white/20"
+          className="rounded-2xl bg-white hover:bg-emerald-50 px-6 py-3.5 text-center text-sm font-bold text-emerald-600 transition-all shadow-lg shrink-0 cursor-pointer border border-white/20"
         >
           ✍️ Thêm một khoản chi ngay
         </motion.button>
@@ -179,69 +179,78 @@ export default function Dashboard({
         {/* Total Monthly Income Box */}
         <motion.div 
           whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
-          className="rounded-3xl border border-slate-100 bg-white p-5 shadow-md relative overflow-hidden transition-all duration-300"
+          className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-white to-emerald-50/30 p-5 shadow-sm relative overflow-hidden transition-all duration-300"
         >
-          <div className="flex justify-between items-start">
+          <div className="flex justify-between items-start relative z-10">
             <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
                 Chu cấp / Thu nhập
               </span>
               <div className="text-2xl font-black font-mono text-slate-900 drop-shadow-sm">
                 {new Intl.NumberFormat('vi-VN').format(totalIncome)}đ
               </div>
             </div>
-            <span className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl shadow-inner border border-emerald-100">
+            <span className="p-3 bg-emerald-100 text-emerald-700 rounded-2xl shadow-inner border border-emerald-200">
               <Coins className="h-5 w-5" />
             </span>
           </div>
-          <div className="text-[10px] text-slate-500 font-semibold mt-3 pt-3 border-t border-slate-50">
-            Duy trì mục tiêu tích lũy: <strong className="text-blue-600 font-mono">{new Intl.NumberFormat('vi-VN').format(savingGoal)}đ</strong>
+          <div className="absolute -bottom-4 -right-4 text-emerald-100/50 pointer-events-none transform -rotate-12">
+            <Coins className="h-24 w-24" />
+          </div>
+          <div className="text-[10px] text-slate-600 font-semibold mt-3 pt-3 border-t border-emerald-100/50 relative z-10">
+            Duy trì mục tiêu tích lũy: <strong className="text-emerald-700 font-mono">{new Intl.NumberFormat('vi-VN').format(savingGoal)}đ</strong>
           </div>
         </motion.div>
 
         {/* Total Spent Box */}
         <motion.div 
           whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
-          className="rounded-3xl border border-slate-100 bg-white p-5 shadow-md relative overflow-hidden transition-all duration-300"
+          className="rounded-3xl border border-amber-100 bg-gradient-to-br from-white to-amber-50/30 p-5 shadow-sm relative overflow-hidden transition-all duration-300"
         >
-          <div className="flex justify-between items-start">
+          <div className="flex justify-between items-start relative z-10">
             <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
                 Đã tiêu tháng này
               </span>
               <div className="text-2xl font-black font-mono text-slate-900 drop-shadow-sm">
                 {new Intl.NumberFormat('vi-VN').format(totalSpentThisMonth)}đ
               </div>
             </div>
-            <span className="p-3 bg-rose-50 text-rose-500 rounded-2xl shadow-inner border border-rose-100">
+            <span className="p-3 bg-rose-100 text-rose-600 rounded-2xl shadow-inner border border-rose-200">
               <TrendingDown className="h-5 w-5" />
             </span>
           </div>
-          <div className="text-[10px] text-slate-500 font-semibold mt-3 pt-3 border-t border-slate-50">
-            Còn lại chi tiêu khả dụng: <strong className="text-slate-800 font-mono">{new Intl.NumberFormat('vi-VN').format(Math.max(0, remainingBudget))}đ</strong>
+          <div className="absolute -bottom-4 -right-4 text-rose-100/40 pointer-events-none transform -rotate-12">
+            <TrendingDown className="h-24 w-24" />
+          </div>
+          <div className="text-[10px] text-slate-600 font-semibold mt-3 pt-3 border-t border-amber-100/50 relative z-10">
+            Còn lại chi tiêu khả dụng: <strong className="text-amber-700 font-mono">{new Intl.NumberFormat('vi-VN').format(Math.max(0, remainingBudget))}đ</strong>
           </div>
         </motion.div>
 
         {/* Projected Savings Box */}
         <motion.div 
           whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
-          className="rounded-3xl border border-slate-100 bg-white p-5 shadow-md relative overflow-hidden transition-all duration-300"
+          className="rounded-3xl border border-blue-100 bg-gradient-to-br from-white to-blue-50/30 p-5 shadow-sm relative overflow-hidden transition-all duration-300"
         >
-          <div className="flex justify-between items-start">
+          <div className="flex justify-between items-start relative z-10">
             <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
                 Dự kiến tích lũy cuối tháng
               </span>
-              <div className={`text-2xl font-black font-mono drop-shadow-sm ${remainingBudget + savingGoal < savingGoal ? 'text-amber-600' : 'text-emerald-700'}`}>
+              <div className={`text-2xl font-black font-mono drop-shadow-sm ${remainingBudget + savingGoal < savingGoal ? 'text-amber-600' : 'text-blue-700'}`}>
                 {new Intl.NumberFormat('vi-VN').format(Math.max(0, remainingBudget + savingGoal))}đ
               </div>
             </div>
-            <span className="p-3 bg-blue-50 text-blue-600 rounded-2xl shadow-inner border border-blue-100">
+            <span className="p-3 bg-blue-100 text-blue-600 rounded-2xl shadow-inner border border-blue-200">
               <PiggyBank className="h-5 w-5" />
             </span>
           </div>
-          <div className="text-[10px] text-slate-500 font-semibold mt-3 pt-3 border-t border-slate-50">
-            Mục tiêu tích lũy ban đầu: <strong className="text-slate-700 font-mono">{new Intl.NumberFormat('vi-VN').format(savingGoal)}đ</strong>
+          <div className="absolute -bottom-4 -right-4 text-blue-100/50 pointer-events-none transform -rotate-12">
+            <PiggyBank className="h-24 w-24" />
+          </div>
+          <div className="text-[10px] text-slate-600 font-semibold mt-3 pt-3 border-t border-blue-100/50 relative z-10">
+            Mục tiêu tích lũy ban đầu: <strong className="text-blue-700 font-mono">{new Intl.NumberFormat('vi-VN').format(savingGoal)}đ</strong>
           </div>
         </motion.div>
       </motion.div>
@@ -300,7 +309,7 @@ export default function Dashboard({
                 {currentDay}
               </motion.span>
             <p className="text-[10px] text-slate-400 text-center font-normal pt-2">
-              Bạn đang ở ngày <strong>{currentDay} / {daysInMonth}</strong> của tháng {currentMonthStr}. Quỹ chi phí biến đổi linh hoạt hợp lý là <strong>{new Intl.NumberFormat('vi-VN').format(variableSpent)}đ / {new Intl.NumberFormat('vi-VN').format(variableBudget)}đ</strong>.
+              Bạn đang ở ngày <strong>{currentDay} / {daysInMonth}</strong> của tháng {currentMonthStr}. Ngân sách an toàn đến hôm nay: <strong>{new Intl.NumberFormat('vi-VN').format(safeSpentUpToNow)}đ</strong> (Đã tiêu: {new Intl.NumberFormat('vi-VN').format(variableSpent)}đ / {new Intl.NumberFormat('vi-VN').format(variableBudget)}đ).
             </p>
           </div>
         </div>

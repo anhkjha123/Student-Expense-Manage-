@@ -1,55 +1,66 @@
-Student Expense Manager (SemTietKiem) 🎓💳
+# Student Expense Manager (SemTietKiem) 🎓💳
 Ứng dụng full-stack (React + Express) tinh gọn và mạnh mẽ giúp sinh viên dễ dàng ghi chép chi tiêu trong vòng dưới 10 giây, phân bổ dòng tiền thông minh theo mô hình Cần thiết vs Mong muốn (Needs/Wants) và đề phòng lạm phát cháy túi cuối tháng.
 
-Tích hợp tính năng Đồng bộ Thời gian thực (Real-time Sync): Thời gian trong ứng dụng sẽ luôn đi cùng với thời gian thực trên lịch để đảm bảo báo cáo, quỹ ngân sách và dự báo tương lai được lập trình chính xác nhất. Ngay cả giao diện trên máy tính bảng (Tablet) hay điện thoại cũng tự động tái thiết kế không gian linh hoạt mà không làm giảm trải nghiệm.
+Tích hợp tính năng Đồng bộ Thời gian thực (Real-time Sync): Thời gian trong ứng dụng sẽ luôn đi cùng với thời gian thực trên lịch sinh viên. Mỗi khi thêm một khoản chi, các chỉ số an toàn ví điện tử, quỹ ngân sách linh hoạt và các báo cáo sẽ được cập nhật ngay lập tức mà không cần tải lại trang.
 
 ✨ Tính năng chính
-Nhập Chi Tiêu Siêu Tốc: Form nhập chi tiêu trực quan, phân định danh mục rõ ràng, tự động định dạng số tiền VND thời gian thực, chống tràn màn hình trên mọi thiết bị di động.
-Kiểm soát Ngân Sách Điểm Ruồi (Budget Radar): Cảnh báo đỏ tức thời ngay khi một danh mục chi tiêu chạm ngưỡng 80% hoặc 100% giới hạn ngân sách tự đề ra hằng tháng.
-Dự Báo & Chỉ Số An Toàn Ví: Mô phỏng số tiền tích lũy thực tế dựa trên tốc độ và xu hướng tiêu xài hiện tại, biểu diễn dưới dạng đồng hồ đo tốc độ sinh động.
-Báo Cáo Tài Chính Chuyên Trách: Trích xuất báo cáo thu chi dưới dạng ấn phẩm PDF hoặc tải thẳng file Excel CSV cực kì chuyên nghiệp.
-Kiến Trúc Máy Chủ Full-Stack Độc Lập: Sử dụng API đồng bộ hóa lưu trữ cấu hình trên Node.js server cùng mô hình Offline-fallback giúp app vẫn hoạt động nội bộ trên thiết bị dù mạng có mất.
+Nhập Chi Tiêu Siêu Tốc (Fast Entry): Form nhập chi tiêu trực quan, phân định danh mục rõ ràng, tự động định dạng số tiền VND thời gian thực, các hiệu ứng hoạt ảnh xuất hiện của thông báo bằng Framer Motion (motion).
+Giám sát tốc độ Đồng bộ (Live Sync): Sử dụng API đồng bộ hóa lưu trữ cấu hình trên server, giúp màn hình Dashboard tự động cập nhật tốc độ chi tiêu tức thời mà không làm ảnh hưởng hay ngắt quãng trải nghiệm nhập liệu.
+Hỗ trợ Chỉ số An toàn Ví nổi bật: Tự động nhận diện thiết lập hạn mức và tô điểm màu sắc cảnh báo đỏ, vàng, xanh theo quy chuẩn của tình trạng tài chính thiết yếu.
+Báo Cáo Tài Chính Chuyên Trách: Đóng gói hoàn chỉnh thành một công cụ trích xuất PDF hoặc file Excel CSV chuyên nghiệp giúp sinh viên quản lý tài chính chuẩn mực mà không cần cấu hình phức tạp.
 
 🛠️ Hướng dẫn cài đặt & Chạy ứng dụng
-Yêu cầu máy tính của bạn đã cài đặt sẵn Node.js (phiên bản khuyến nghị v18 trở lên).
+Yêu cầu máy tính của bạn đã cài đặt sẵn Node.js LTS (phiên bản khuyến nghị v18 trở lên).
 
 1. Cài đặt các gói phụ thuộc
-Mở Terminal hoặc Command Prompt tại thư mục dự án và chạy:
+Giải nén mã nguồn, mở Terminal hoặc Command Prompt tại thư mục dự án và chạy:
+
 ```bash
 npm install
 ```
 
 2. Chạy ứng dụng chế độ Phát triển (Development)
-Khởi chạy cả backend và frontend đồng thời để chỉnh sửa mã nguồn:
+Khởi chạy cả backend và frontend (Vite) đồng thời để chỉnh sửa mã nguồn:
+
 ```bash
 npm run dev
 ```
-Sau đó truy cập ứng dụng: `http://localhost:3000` trên trình duyệt web.
 
-3. Triển khai Production & Khởi chạy trực tiếp đầu cuối
-Kiểm tra hoạt động của app dưới dạng ứng dụng trọn vẹn:
+Sau đó truy cập địa chỉ điều khiển: http://localhost:3000 trên trình duyệt web.
+
+3. Xem trước ứng dụng trên giao diện Sản phẩm (Production)
+Kiểm tra hoạt động của app dưới dạng phần mềm máy chủ:
+
 ```bash
 npm run build
 npm start
 ```
 
-📦 Hướng dẫn đóng gói ứng dụng Node.js & React
+📦 Hướng dẫn đóng gói ứng dụng React & Node.js
+Để biên dịch toàn bộ dự án thành trọn vẹn bản phát hành Production, hãy thực hiện:
+
 Lệnh đóng gói tự động:
 ```bash
 npm run build
 ```
-Lưu ý: Quy trình này tự động chạy:
-- Biên dịch client-side của React thành các tập tin tĩnh trong thư mục `/dist`.
-- Bundles `server.ts` thành `/dist/server.cjs` thông qua phần mềm siêu tốc `esbuild` giảm thiểu gián đoạn module CommonJS.
 
-🌐 Cách bắt đầu trải nghiệm (Cho Sinh viên)
+Lưu ý: Quy trình này tự động chạy:
+Biên dịch client-side của React thành các tập tin tĩnh trong `/dist`.
+Bundles `server.ts` thành `/dist/server.cjs` thông qua phần mềm siêu tốc esbuild.
+Khởi tạo File Engine cơ sở dữ liệu để ghi nhận nội dung vào `data/db.json` ổn định bên trong hệ thống.
+
+Sản phẩm thu được:
+Sau khi build hoàn tất, bạn sẽ nhận được mã nguồn chạy máy chủ hoàn chỉnh với Backend và Frontend hòa làm một nền tảng trên Express JS.
+
+🌐 Cách sử dụng & Thiết lập ban đầu
 1. Bật ứng dụng lên (hoặc chạy app qua dòng lệnh `npm run dev`).
-2. Chọn màn hình Đăng ký / Trải nghiệm ngay bằng tài khoản trường Đại học mô phỏng của bạn. Bấm "Vào thẳng bằng Tài khoản Mẫu" nếu lười nhập liệu.
-3. Thiết lập Chu cấp Đầu tháng & Số tiền Kì vọng tiết kiệm. Bấm Tham gia.
-4. Chuyển sang thẻ Danh mục thiết lập trước các giới hạn ngân sách (như Tiền trọ, Đi lại).
-5. Cuối tháng, nhấn qua Tab "Báo Cáo & Phân Tích" bấm chọn Nút Xuất Báo Cáo PDF !
+2. Nhập email, Tên trường Đại học và Khoản chu cấp hằng tháng của bạn.
+3. Bấm Đăng nhập / Bắt đầu trải nghiệm.
+4. Chuyển sang thẻ Danh mục thiết lập (Ngân sách) để căn chỉnh hạn mức tiền trọ, ăn uống theo layout chi tiêu của bạn.
+5. Nhấn nút màu Trắng (Thêm một khoản chi) để tạo lịch sử tiêu dùng.
+6. Nhấn vào phần Báo cáo -> Chọn xuất File PDF/Excel. 
+Mỗi khi bạn sửa ngân sách hoặc thêm khoản chi tiêu bằng Dashboard của app, chỉ cần quay về giao diện chính của bảng điều khiển. Các thanh progress và phần trăm sẽ cập nhật trực tiếp sau 1 giây!
 
 📂 Các cổng kết nối & Thiết lập
-Mặc định ứng dụng chạy cấu hình Máy chủ Express & Vite HMR tại cùng cổng kết nối nội bộ: **3000**.
-Thư mục cơ sở dữ liệu `data/db.json` sẽ tự động phát sinh khi có giao dịch được thực hiện.
-Kiểm thử Unit (Vitest) có thể được tiến hành trực tiếp thông qua lệnh `npm run test` và kiểm tra cú pháp `npm run lint`.
+Mặc định ứng dụng chạy trên cổng kết nối nội bộ: 3000.
+Nếu chia sẻ web cho điện thoại của mình ở mạng nội bộ, hãy thay localhost bằng địa chỉ IP máy tính nội mạng của bạn (Ví dụ: http://192.168.1.5:3000/sem-tiet-kiem).

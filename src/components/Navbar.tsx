@@ -59,18 +59,18 @@ export default function Navbar({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-white/95 backdrop-blur-md">
+    <header className="sticky top-0 z-40 w-full border-b border-white/40 bg-white/60 backdrop-blur-xl shadow-xs transition-colors">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* LOGO */}
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-200 shrink-0">
+          <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-md shadow-emerald-200 shrink-0">
             <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
           <div className="flex flex-col justify-center">
-            <h1 className="font-display text-sm sm:text-lg font-bold tracking-tight text-slate-900 leading-tight">
+            <h1 className="font-display text-sm sm:text-lg font-bold tracking-tight text-slate-900 leading-tight drop-shadow-sm">
               SemTietKiem
             </h1>
-            <p className="hidden sm:block text-[10px] font-medium uppercase tracking-wider text-emerald-600 font-mono leading-tight mt-0.5">
+            <p className="hidden sm:block text-[10px] font-bold uppercase tracking-wider text-emerald-600 font-mono leading-tight mt-0.5">
               Student Expense MVP
             </p>
           </div>
@@ -107,7 +107,7 @@ export default function Navbar({
           <button
             id="quick-add-expense-btn"
             onClick={onOpenAddExpense}
-            className="flex items-center gap-1.5 sm:gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-3 sm:px-4 py-2 text-[11px] sm:text-sm font-semibold text-white shadow-sm transition-all inline-flex cursor-pointer whitespace-nowrap"
+            className="flex items-center gap-1.5 sm:gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 px-3 sm:px-4 py-2 text-[11px] sm:text-sm font-semibold text-white shadow-sm transition-all inline-flex cursor-pointer whitespace-nowrap"
           >
             <span className="font-bold">+</span> <span className="hidden sm:inline">Nhập chi tiêu</span><span className="inline sm:hidden">Nhập</span>
           </button>
@@ -143,7 +143,7 @@ export default function Navbar({
                   >
                     <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
                       <span className="font-display font-semibold text-slate-800 text-sm flex items-center gap-1.5">
-                        <Bell className="h-4 w-4 text-emerald-600" /> Thông báo ({unreadCount})
+                        <Bell className="h-4 w-4 text-emerald-500" /> Thông báo ({unreadCount})
                       </span>
                       {notifications.length > 0 && (
                         <button
@@ -231,7 +231,7 @@ export default function Navbar({
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex flex-col items-center gap-1 py-1 text-[10px] font-semibold transition-all ${
-                isActive ? 'text-emerald-700 font-bold scale-105' : 'text-slate-500'
+                isActive ? 'text-emerald-600 font-bold scale-105' : 'text-slate-500'
               }`}
             >
               {tab.id === 'dashboard' && <Home className="h-4.5 w-4.5" />}

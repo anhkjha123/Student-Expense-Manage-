@@ -6,7 +6,8 @@ import {
   HelpCircle, 
   AlertTriangle,
   Coins,
-  DollarSign
+  DollarSign,
+  Settings
 } from 'lucide-react';
 import { User, Category, Budget } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -109,13 +110,17 @@ export default function BudgetSettings({
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8"
+    >
       {/* Title */}
-      <div className="mb-6">
-        <h2 className="font-display text-2xl font-bold text-slate-900">
-          Thiết lập ngân sách tháng
+      <div className="mb-6 bg-white/60 backdrop-blur-md p-5 rounded-3xl border border-slate-200/50 shadow-sm">
+        <h2 className="font-display text-2xl font-bold text-slate-900 drop-shadow-sm flex items-center gap-2">
+          <Settings className="h-6 w-6 text-emerald-500" /> Thiết lập ngân sách tháng
         </h2>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 mt-1 font-medium">
           Phân bổ tiền chu cấp/làm thêm vào các phong bao chi tiêu hằng tháng để nắm chắc ví tiền
         </p>
       </div>
@@ -128,7 +133,7 @@ export default function BudgetSettings({
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex items-center gap-2 rounded-2xl bg-emerald-50 border border-emerald-100 p-4 text-sm font-semibold text-emerald-800"
+              className="flex items-center gap-2 rounded-2xl bg-emerald-50 border border-emerald-100 p-4 text-sm font-semibold text-emerald-600"
             >
               <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0" />
               <span>{successMsg}</span>
@@ -140,7 +145,7 @@ export default function BudgetSettings({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
           <div className="space-y-4">
             <h3 className="font-display text-base font-bold text-slate-800 flex items-center gap-2">
-              <Coins className="h-5 w-5 text-emerald-600" /> 1. Tổng thu nhập hằng tháng
+              <Coins className="h-5 w-5 text-emerald-500" /> 1. Tổng thu nhập hằng tháng
             </h3>
             
             <div className="space-y-1.5">
@@ -167,7 +172,7 @@ export default function BudgetSettings({
 
           <div className="space-y-4">
             <h3 className="font-display text-base font-bold text-slate-800 flex items-center gap-2">
-              <PiggyBank className="h-5 w-5 text-emerald-600" /> 2. Tiết kiệm phòng thân
+              <PiggyBank className="h-5 w-5 text-emerald-500" /> 2. Tiết kiệm phòng thân
             </h3>
 
             <div className="space-y-1.5">
@@ -211,7 +216,7 @@ export default function BudgetSettings({
               <span className="block text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">
                 Tổng hạn mức mục chi đã phân chia
               </span>
-              <span className={`text-2xl font-black font-mono ${isOverAllocated ? 'text-red-500' : 'text-emerald-600'}`}>
+              <span className={`text-2xl font-black font-mono ${isOverAllocated ? 'text-red-500' : 'text-emerald-500'}`}>
                 {new Intl.NumberFormat('vi-VN').format(totalAllocated)}đ
               </span>
             </div>
@@ -308,12 +313,12 @@ export default function BudgetSettings({
         <div className="flex justify-end pt-4 border-t border-slate-100">
           <button
             type="submit"
-            className="rounded-2xl bg-emerald-600 hover:bg-emerald-700 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-200 transition-all cursor-pointer"
+            className="rounded-2xl bg-emerald-500 hover:bg-emerald-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-200 transition-all cursor-pointer"
           >
             Lưu hạn mức chi tiêu mới
           </button>
         </div>
       </form>
-    </div>
+    </motion.div>
   );
 }

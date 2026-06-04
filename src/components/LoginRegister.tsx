@@ -153,20 +153,25 @@ export default function LoginRegister({
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50/50 px-4 sm:px-6 py-12">
-      <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-3xl border border-slate-150 shadow-xl transition-all">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 sm:px-6 py-12 relative overflow-hidden">
+      
+      {/* Decorative Blobs for Login */}
+      <div className="absolute top-[-10%] left-[-20%] w-[70vw] h-[60vh] rounded-full bg-emerald-200/30 blur-[120px] pointer-events-none z-0 object-cover" />
+      <div className="absolute bottom-[-10%] right-[-20%] w-[60vw] h-[60vh] rounded-full bg-blue-200/30 blur-[130px] pointer-events-none z-0 object-cover" />
+
+      <div className="w-full max-w-md space-y-8 bg-white/80 backdrop-blur-xl p-8 rounded-[2rem] border border-white shadow-2xl relative z-10 transition-all">
         
         {/* APP LOGO SECTION */}
         <div className="text-center space-y-2">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-200 animate-pulse-subtle">
-            <TrendingUp className="h-7 w-7" />
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-lg shadow-emerald-200/50 animate-pulse-subtle">
+            <TrendingUp className="h-8 w-8" />
           </div>
-          <div>
-            <h2 className="font-display text-2xl font-extrabold tracking-tight text-slate-900">
-              Student Expense Manager
+          <div className="pt-2">
+            <h2 className="font-display text-3xl font-extrabold tracking-tight text-slate-900 drop-shadow-sm">
+              SemTietKiem
             </h2>
-            <p className="text-xs text-slate-500 max-w-[260px] mx-auto font-medium leading-relaxed">
-              Giải pháp tích lũy thông minh, thắt chặt tiền tiêu dưới 10 giây cho Sinh viên Việt Nam!
+            <p className="text-xs text-slate-500 max-w-[260px] mx-auto font-medium leading-relaxed mt-1">
+              Giải pháp tích lũy thông minh, thắt chặt tiền tiêu cho Sinh viên!
             </p>
           </div>
         </div>
@@ -199,7 +204,7 @@ export default function LoginRegister({
               id="try-demo-user-btn"
               onClick={handleDemoLogin}
               disabled={isLoading}
-              className="w-full mt-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 py-2.5 px-4 text-xs font-bold text-white transition-colors cursor-pointer text-center disabled:opacity-50"
+              className="w-full mt-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 py-2.5 px-4 text-xs font-bold text-white transition-colors cursor-pointer text-center disabled:opacity-50"
             >
               🚀 Vào thẳng bằng Tài khoản Mẫu (Bách Khoa)
             </button>
@@ -260,7 +265,7 @@ export default function LoginRegister({
               <button
                 type="button"
                 onClick={() => setIsRegistering(true)}
-                className="font-bold text-emerald-600 hover:underline cursor-pointer"
+                className="font-bold text-emerald-500 hover:underline cursor-pointer"
               >
                 Đăng ký thành viên mới
               </button>
@@ -371,7 +376,7 @@ export default function LoginRegister({
             <button
               id="student-register-submit"
               type="submit"
-              className="group relative flex w-full justify-center rounded-xl bg-emerald-600 hover:bg-emerald-700 py-3 text-sm font-bold text-white shadow-md transition-all cursor-pointer"
+              className="group relative flex w-full justify-center rounded-xl bg-emerald-500 hover:bg-emerald-600 py-3 text-sm font-bold text-white shadow-md transition-all cursor-pointer"
             >
               Hoàn tất Onboarding & Vào hệ thống
             </button>

@@ -123,7 +123,7 @@ export default function Reports({
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-3xl border border-slate-100 shadow-sm drop-shadow-sm">
         <div>
           <h2 className="font-display text-2xl font-bold text-slate-900 flex items-center gap-2 drop-shadow-sm">
-            <ChartIcon className="h-6 w-6 text-emerald-600 drop-shadow-sm" /> Báo cáo & Phân tích Tài chính
+            <ChartIcon className="h-6 w-6 text-emerald-500 drop-shadow-sm" /> Báo cáo & Phân tích Tài chính
           </h2>
           <p className="text-sm text-slate-500 font-medium mt-1">
             Học hỏi thói quen chi dùng thực tế qua đồ thị phân bổ tỷ lệ và cảnh báo chuyên sâu
@@ -160,7 +160,7 @@ export default function Reports({
               window.open(`/api/reports/export/pdf?token=${token}&month=${selectedMonth}`, '_blank');
             }}
             id="btn-export-pdf"
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-all border border-emerald-100 cursor-pointer shadow-sm hover:shadow-md"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-600 text-xs font-bold transition-all border border-emerald-100 cursor-pointer shadow-sm hover:shadow-md"
           >
             📄 Xuất PDF
           </motion.button>
@@ -193,7 +193,7 @@ export default function Reports({
           <span className="text-xl font-extrabold font-mono text-slate-900 drop-shadow-sm">
             {new Intl.NumberFormat('vi-VN').format(totalIncome)}đ
           </span>
-          <div className="flex items-center gap-1 text-[10px] text-emerald-600 font-bold mt-1.5">
+          <div className="flex items-center gap-1 text-[10px] text-emerald-500 font-bold mt-1.5">
             <CheckCircle2 className="h-3 w-3" /> Được cấp / Làm thêm đầu tháng
           </div>
         </motion.div>
@@ -214,7 +214,7 @@ export default function Reports({
           <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
             Mức dư tiết kiệm tích lũy
           </span>
-          <span className={`text-xl font-extrabold font-mono drop-shadow-sm ${savingPerformance < 0 ? 'text-red-500' : 'text-emerald-600'}`}>
+          <span className={`text-xl font-extrabold font-mono drop-shadow-sm ${savingPerformance < 0 ? 'text-red-500' : 'text-emerald-500'}`}>
             {new Intl.NumberFormat('vi-VN').format(savingPerformance)}đ
           </span>
           <div className="flex items-center gap-1 text-[10px] mt-1.5">
@@ -223,7 +223,7 @@ export default function Reports({
                 <ArrowDownRight className="h-3.5 w-3.5" /> Chạm vào tiền dự phòng!
               </span>
             ) : (
-              <span className="text-emerald-600 font-bold flex items-center gap-0.5">
+              <span className="text-emerald-500 font-bold flex items-center gap-0.5">
                 <ArrowUpRight className="h-3.5 w-3.5" /> Giữ mục tiêu an toàn
               </span>
             )}
@@ -251,7 +251,7 @@ export default function Reports({
         {/* CATEGORY BAR BREAKDOWN LIST (Visualizing biggest spendings) */}
         <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md space-y-4 lg:col-span-2 hover:shadow-lg transition-shadow duration-300">
           <h3 className="font-display text-base font-bold text-slate-800 flex items-center gap-2 drop-shadow-sm">
-            <Layers className="h-5 w-5 text-emerald-600" /> Phân chia chi tiêu theo từng hạng mục
+            <Layers className="h-5 w-5 text-emerald-500" /> Phân chia chi tiêu theo từng hạng mục
           </h3>
 
           <div className="space-y-4">
@@ -307,12 +307,12 @@ export default function Reports({
         {/* 50/30/20 RETRO-BUDGET EXPERT (Needs, Wants, Savings Rules) */}
         <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md space-y-4 hover:shadow-lg transition-shadow duration-300">
           <h3 className="font-display text-base font-bold text-slate-800 flex items-center gap-2 drop-shadow-sm">
-            <Award className="h-5 w-5 text-emerald-600" /> Tỷ lệ phân phối 50/30/20
+            <Award className="h-5 w-5 text-emerald-500" /> Tỷ lệ phân phối 50/30/20
           </h3>
 
           <div className="space-y-4.5">
             <p className="text-[11px] leading-relaxed text-slate-500">
-              Nguyên tắc tài chính tối ưu: Thắt chặt <strong className="text-emerald-700">Thiết yếu ≤ 50%</strong>, giới hạn <strong className="text-amber-600">Sở thích ≤ 30%</strong>, và tích lũy <strong className="text-blue-600">Tiết kiệm ≥ 20%</strong>.
+              Nguyên tắc tài chính tối ưu: Thắt chặt <strong className="text-emerald-600">Thiết yếu ≤ 50%</strong>, giới hạn <strong className="text-amber-600">Sở thích ≤ 30%</strong>, và tích lũy <strong className="text-blue-600">Tiết kiệm ≥ 20%</strong>.
             </p>
 
             {/* Combined Segment Bar representation */}

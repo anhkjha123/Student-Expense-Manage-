@@ -304,7 +304,7 @@ export default function App() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="text-center space-y-2">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-300 border-t-emerald-600" />
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-300 border-t-emerald-500" />
           <p className="text-xs font-bold text-slate-500 font-mono">Đang khởi tạo hệ thống ví...</p>
         </div>
       </div>
@@ -322,64 +322,71 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-emerald-200">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-emerald-200 relative overflow-x-hidden">
       
-      {/* Dynamic Header & Actions Bar */}
-      <Navbar
-        user={currentUser}
-        onLogout={handleLogout}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        notifications={notifications}
-        markNotificationAsRead={markNotificationAsRead}
-        clearNotifications={clearNotifications}
-        onOpenAddExpense={() => setIsAddExpenseOpen(true)}
-      />
+      {/* Decorative Modern Background Blobs */}
+      <div className="absolute top-[-5%] left-[-10%] w-[60%] h-[50%] rounded-full bg-emerald-200/20 blur-[100px] object-cover pointer-events-none z-0" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-200/20 blur-[120px] object-cover pointer-events-none z-0" />
+      <div className="absolute top-[30%] right-[10%] w-[30%] h-[40%] rounded-full bg-amber-100/30 blur-[100px] object-cover pointer-events-none z-0" />
 
-      {/* Main Content Render area */}
-      <main className="flex-1 pb-16">
-        {activeTab === 'dashboard' && (
-          <Dashboard
-            user={currentUser}
-            expenses={expenses}
-            categories={DEFAULT_CATEGORIES}
-            budgets={budgets}
-            notifications={notifications}
-            onOpenAddExpense={() => setIsAddExpenseOpen(true)}
-            setActiveTab={setActiveTab}
-          />
-        )}
+      <div className="relative z-10 flex-1 flex flex-col w-full h-full">
+        {/* Dynamic Header & Actions Bar */}
+        <Navbar
+          user={currentUser}
+          onLogout={handleLogout}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          notifications={notifications}
+          markNotificationAsRead={markNotificationAsRead}
+          clearNotifications={clearNotifications}
+          onOpenAddExpense={() => setIsAddExpenseOpen(true)}
+        />
 
-        {activeTab === 'history' && (
-          <ExpenseHistory
-            expenses={expenses}
-            categories={DEFAULT_CATEGORIES}
-            onDeleteExpense={handleDeleteExpense}
-          />
-        )}
+        {/* Main Content Render area */}
+        <main className="flex-1 pb-16">
+          {activeTab === 'dashboard' && (
+            <Dashboard
+              user={currentUser}
+              expenses={expenses}
+              categories={DEFAULT_CATEGORIES}
+              budgets={budgets}
+              notifications={notifications}
+              onOpenAddExpense={() => setIsAddExpenseOpen(true)}
+              setActiveTab={setActiveTab}
+            />
+          )}
 
-        {activeTab === 'budget' && (
-          <BudgetSettings
-            user={currentUser}
-            categories={DEFAULT_CATEGORIES}
-            budgets={budgets}
-            onUpdateBudget={handleUpdateBudget}
-          />
-        )}
+          {activeTab === 'history' && (
+            <ExpenseHistory
+              expenses={expenses}
+              categories={DEFAULT_CATEGORIES}
+              onDeleteExpense={handleDeleteExpense}
+            />
+          )}
 
-        {activeTab === 'reports' && (
-          <Reports
-            expenses={expenses}
-            categories={DEFAULT_CATEGORIES}
-            user={currentUser}
-          />
-        )}
-      </main>
+          {activeTab === 'budget' && (
+            <BudgetSettings
+              user={currentUser}
+              categories={DEFAULT_CATEGORIES}
+              budgets={budgets}
+              onUpdateBudget={handleUpdateBudget}
+            />
+          )}
 
-      {/* FOOTER */}
-      <footer className="py-6 border-t border-slate-200 bg-white text-center text-slate-400 text-xs font-medium">
-        <p>© 2026 Student Expense Manager (SemTietKiem) | MVP Cắt giảm lạm chi cho Sinh viên</p>
-      </footer>
+          {activeTab === 'reports' && (
+            <Reports
+              expenses={expenses}
+              categories={DEFAULT_CATEGORIES}
+              user={currentUser}
+            />
+          )}
+        </main>
+
+        {/* FOOTER */}
+        <footer className="py-6 border-t border-slate-200/60 bg-white/50 backdrop-blur-sm text-center text-slate-400 text-xs font-medium">
+          <p>© 2026 Student Expense Manager (SemTietKiem) | MVP Cắt giảm lạm chi cho Sinh viên</p>
+        </footer>
+      </div>
 
       {/* Quick Entry Dynamic Insertion Modal */}
       <AddExpenseModal
