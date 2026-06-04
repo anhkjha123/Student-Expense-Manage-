@@ -45,6 +45,8 @@ export default function LoginRegister({
       onLoginSuccess(user);
     } catch (err: any) {
       console.warn('Backend offline, dropping to localStorage demo mode', err);
+      // Giả lập token để qua bước check Xuất PDF
+      localStorage.setItem('sem_token', 'demo_offline_token_xyz');
       onLoginSuccess(mockStudent);
     } finally {
       setIsLoading(false);
@@ -68,6 +70,7 @@ export default function LoginRegister({
     } catch (err: any) {
       console.warn('Backend login error or offline, falling back directly:', err);
       // Fallback cho chế độ offline/client-only nếu backend chưa sẵn sàng hoàn toàn
+      localStorage.setItem('sem_token', 'demo_offline_token_xyz');
       if (email.toLowerCase() === mockStudent.email.toLowerCase()) {
         onLoginSuccess(mockStudent);
       } else {
@@ -119,6 +122,7 @@ export default function LoginRegister({
       onLoginSuccess(user);
     } catch (err: any) {
       console.warn('Backend register error or offline, falling back directly:', err);
+      localStorage.setItem('sem_token', 'demo_offline_token_xyz');
       const newUser: User = {
         id: `user_${Date.now()}`,
         email: regEmail,

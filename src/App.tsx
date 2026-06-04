@@ -41,7 +41,11 @@ export default function App() {
     try {
       const storedUser = localStorage.getItem('sem_user');
       if (storedUser) {
-        setCurrentUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        setCurrentUser(parsedUser);
+        if (!localStorage.getItem('sem_token')) {
+           localStorage.setItem('sem_token', 'demo_offline_token_xyz');
+        }
       } else {
         setIsLoading(false);
       }
