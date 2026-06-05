@@ -42,8 +42,10 @@ export default function App() {
   // --- INITIAL LOAD OF USER ON MOUNT ---
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
       if (firebaseUser) {
         setIsFirebaseSynced(true);
+        localStorage.setItem('sem_guest_mode', 'false');
         try {
           const profile = await ApiService.getUserProfile(firebaseUser.uid);
           if (profile) {
@@ -72,9 +74,23 @@ export default function App() {
         }
       } else {
         setIsFirebaseSynced(false);
-        localStorage.removeItem('sem_user');
-        setCurrentUser(null);
-        setIsLoading(false);
+        if (isGuest) {
+          const storedUser = localStorage.getItem('sem_user');
+          if (storedUser) {
+            try {
+              setCurrentUser(JSON.parse(storedUser));
+            } catch (err) {
+              setCurrentUser(null);
+            }
+          } else {
+            setCurrentUser(null);
+          }
+          setIsLoading(false);
+        } else {
+          localStorage.removeItem('sem_user');
+          setCurrentUser(null);
+          setIsLoading(false);
+        }
       }
     });
 
@@ -92,12 +108,56 @@ export default function App() {
 
     const loadData = async () => {
       setIsLoading(true);
-      try {
-        const userExpensesKey = `sem_${currentUser.id}_expenses`;
-        const userBudgetsKey = `sem_${currentUser.id}_budgets`;
-        const userProfileSyncedKey = `sem_${currentUser.id}_profile_synced`;
-        const userBudgetsSyncedKey = `sem_${currentUser.id}_budgets_synced`;
+      const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+      const userExpensesKey = `sem_${currentUser.id}_expenses`;
+      const userBudgetsKey = `sem_${currentUser.id}_budgets`;
+      const userProfileSyncedKey = `sem_${currentUser.id}_profile_synced`;
+      const userBudgetsSyncedKey = `sem_${currentUser.id}_budgets_synced`;
 
+      if (isGuest) {
+        // Tải hoàn toàn offline từ LocalStorage trong chế độ Khách Trải Nghiệm
+        const storedExpenses = localStorage.getItem(userExpensesKey);
+        const storedBudgets = localStorage.getItem(userBudgetsKey);
+        const userNotifsKey = `sem_${currentUser.id}_notifs`;
+        const storedNotifs = localStorage.getItem(userNotifsKey);
+
+        let finalExpenses: Expense[] = [];
+        let finalBudgets: Budget[] = [];
+        let finalNotifs: Notification[] = [];
+
+        if (storedExpenses) {
+          finalExpenses = JSON.parse(storedExpenses);
+        } else {
+          finalExpenses = INITIAL_EXPENSES.map(e => ({ ...e, id: `exp_init_${Math.random().toString(36).substr(2)}`, userId: currentUser.id }));
+          localStorage.setItem(userExpensesKey, JSON.stringify(finalExpenses));
+        }
+
+        if (storedBudgets) {
+          finalBudgets = JSON.parse(storedBudgets);
+        } else {
+          finalBudgets = INITIAL_BUDGETS.map(b => ({ ...b, userId: currentUser.id }));
+          localStorage.setItem(userBudgetsKey, JSON.stringify(finalBudgets));
+        }
+
+        if (storedNotifs) {
+          finalNotifs = JSON.parse(storedNotifs);
+        } else {
+          finalNotifs = INITIAL_NOTIFICATIONS.filter(n => n.userId === 'user_01').map(n => ({ 
+            ...n, 
+            id: `notif_init_${Math.random().toString(36).substr(2)}`, 
+            userId: currentUser.id 
+          }));
+          localStorage.setItem(userNotifsKey, JSON.stringify(finalNotifs));
+        }
+
+        setExpenses(finalExpenses);
+        setBudgets(finalBudgets);
+        setNotifications(finalNotifs);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
         // 1. Đồng bộ ngầm thông tin cá nhân lên Firestore nếu chưa đồng bộ thành công trước đó
         const profileSynced = localStorage.getItem(userProfileSyncedKey);
         if (profileSynced === 'false') {
@@ -193,9 +253,6 @@ export default function App() {
 
       } catch (e) {
         console.warn('API load failed, loading from LocalStorage instead:', e);
-        const userExpensesKey = `sem_${currentUser.id}_expenses`;
-        const userBudgetsKey = `sem_${currentUser.id}_budgets`;
-
         const storedExpenses = localStorage.getItem(userExpensesKey);
         const storedBudgets = localStorage.getItem(userBudgetsKey);
 
@@ -250,17 +307,26 @@ export default function App() {
   };
 
   // --- USER HANDLERS ---
-  const handleLoginSuccess = (user: User) => {
+  const handleLoginSuccess = (user: User, isGuest = false) => {
+    if (isGuest) {
+      localStorage.setItem('sem_guest_mode', 'true');
+    } else {
+      localStorage.setItem('sem_guest_mode', 'false');
+    }
     setCurrentUser(user);
     localStorage.setItem('sem_user', JSON.stringify(user));
   };
 
   const handleLogout = async () => {
-    try {
-      await auth.signOut();
-    } catch(err) {
-      console.warn("Logout error", err);
+    const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+    if (!isGuest) {
+      try {
+        await auth.signOut();
+      } catch(err) {
+        console.warn("Logout error", err);
+      }
     }
+    localStorage.removeItem('sem_guest_mode');
     setCurrentUser(null);
     localStorage.removeItem('sem_user');
     localStorage.removeItem('sem_token');
@@ -278,32 +344,35 @@ export default function App() {
     localStorage.setItem('sem_user', JSON.stringify(updatedUser));
     saveBudgets(budgetUpdates);
 
-    try {
-      // 1. Set flags synced to false indicating local has newer un-synced content until success
-      localStorage.setItem(`sem_${currentUser.id}_profile_synced`, 'false');
-      localStorage.setItem(`sem_${currentUser.id}_budgets_synced`, 'false');
+    const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+    if (!isGuest) {
+      try {
+        // 1. Set flags synced to false indicating local has newer un-synced content until success
+        localStorage.setItem(`sem_${currentUser.id}_profile_synced`, 'false');
+        localStorage.setItem(`sem_${currentUser.id}_budgets_synced`, 'false');
 
-      // 2. Run Firestore updates in parallel with independent error handling
-      // We send the FULL target user object to satisfy the Firestore Security Rule schemas validation.
-      const profilePromise = ApiService.updateUserProfile(currentUser.id, updatedUser)
-        .then(() => {
-          localStorage.setItem(`sem_${currentUser.id}_profile_synced`, 'true');
-        })
-        .catch(err => {
-          console.error("Failed to update user profile on database:", err);
-        });
+        // 2. Run Firestore updates in parallel with independent error handling
+        // We send the FULL target user object to satisfy the Firestore Security Rule schemas validation.
+        const profilePromise = ApiService.updateUserProfile(currentUser.id, updatedUser)
+          .then(() => {
+            localStorage.setItem(`sem_${currentUser.id}_profile_synced`, 'true');
+          })
+          .catch(err => {
+            console.error("Failed to update user profile on database:", err);
+          });
 
-      const budgetsPromise = ApiService.saveBudgets(budgetUpdates)
-        .then(() => {
-          localStorage.setItem(`sem_${currentUser.id}_budgets_synced`, 'true');
-        })
-        .catch(err => {
-          console.error("Failed to save budgets on database:", err);
-        });
+        const budgetsPromise = ApiService.saveBudgets(budgetUpdates)
+          .then(() => {
+            localStorage.setItem(`sem_${currentUser.id}_budgets_synced`, 'true');
+          })
+          .catch(err => {
+            console.error("Failed to save budgets on database:", err);
+          });
 
-      await Promise.all([profilePromise, budgetsPromise]);
-    } catch (e) {
-      console.warn('Could not save to API server, updated locally:', e);
+        await Promise.all([profilePromise, budgetsPromise]);
+      } catch (e) {
+        console.warn('Could not save to API server, updated locally:', e);
+      }
     }
 
     // Phát sinh thông báo thành công hằng tháng
@@ -325,15 +394,25 @@ export default function App() {
     if (!currentUser) return;
 
     let createdExpense: Expense;
-    try {
-      createdExpense = await ApiService.createExpense(newExpenseData);
-    } catch (e) {
-      console.warn('API create expense failed, writing locally:', e);
+    const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+    
+    if (isGuest) {
       createdExpense = {
         ...newExpenseData,
         id: `exp_added_${Date.now()}`,
         userId: currentUser.id
       };
+    } else {
+      try {
+        createdExpense = await ApiService.createExpense(newExpenseData);
+      } catch (e) {
+        console.warn('API create expense failed, writing locally:', e);
+        createdExpense = {
+          ...newExpenseData,
+          id: `exp_added_${Date.now()}`,
+          userId: currentUser.id
+        };
+      }
     }
 
     const nextExpensesList = [createdExpense, ...expenses];
@@ -389,10 +468,13 @@ export default function App() {
     const updated = expenses.filter(exp => exp.id !== id);
     saveExpenses(updated);
 
-    try {
-      await ApiService.deleteExpense(id);
-    } catch (e) {
-      console.warn('API delete expense failed:', e);
+    const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+    if (!isGuest) {
+      try {
+        await ApiService.deleteExpense(id);
+      } catch (e) {
+        console.warn('API delete expense failed:', e);
+      }
     }
   };
 

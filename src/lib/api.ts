@@ -14,7 +14,9 @@ import {
 } from 'firebase/firestore';
 import { 
   signInWithPopup,
-  GoogleAuthProvider
+  GoogleAuthProvider,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
 } from 'firebase/auth';
 
 enum OperationType {
@@ -55,6 +57,80 @@ function generateRandomId(): string {
 
 export class ApiService {
   // --- AUTHENTICATION ---
+  public static async loginWithEmail(email: string, password: string): Promise<{ token: string; user: User }> {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      const userDocRef = doc(db, 'users', userCredential.user.uid);
+      const userDoc = await getDoc(userDocRef);
+      
+      let finalUser: User;
+      
+      if (!userDoc.exists()) {
+         const newUserProfile: Omit<User, 'id'> = {
+           email: userCredential.user.email || email,
+           name: email.split('@')[0] || 'User',
+           school: 'Chưa cập nhật',
+           monthlyIncome: 4000000,
+           savingGoal: 500000,
+           joinedDate: new Date().toISOString().split('T')[0]
+         };
+         
+         await setDoc(userDocRef, newUserProfile);
+         finalUser = { ...newUserProfile, id: userCredential.user.uid };
+      } else {
+         const userData = userDoc.data() as User;
+         finalUser = { ...userData, id: userCredential.user.uid };
+      }
+      
+      localStorage.setItem('sem_user', JSON.stringify(finalUser));
+      localStorage.setItem('sem_token', await userCredential.user.getIdToken());
+      
+      return { token: localStorage.getItem('sem_token')!, user: finalUser };
+    } catch (err: any) {
+      console.error(err);
+      throw new Error(err.message || 'Lỗi đăng nhập qua Email/Mật khẩu');
+    }
+  }
+
+  public static async registerWithEmail(
+    email: string, 
+    password: string, 
+    profile: { name: string; school: string; monthlyIncome: number; savingGoal: number }
+  ): Promise<{ token: string; user: User }> {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      const userDocRef = doc(db, 'users', userCredential.user.uid);
+      const finalUser: User = {
+        id: userCredential.user.uid,
+        email: email,
+        name: profile.name,
+        school: profile.school || 'Chưa cập nhật',
+        monthlyIncome: Number(profile.monthlyIncome) || 4000000,
+        savingGoal: Number(profile.savingGoal) || 500000,
+        joinedDate: new Date().toISOString().split('T')[0]
+      };
+      
+      await setDoc(userDocRef, {
+        email: finalUser.email,
+        name: finalUser.name,
+        school: finalUser.school,
+        monthlyIncome: finalUser.monthlyIncome,
+        savingGoal: finalUser.savingGoal,
+        joinedDate: finalUser.joinedDate
+      });
+      
+      localStorage.setItem('sem_user', JSON.stringify(finalUser));
+      localStorage.setItem('sem_token', await userCredential.user.getIdToken());
+      
+      return { token: localStorage.getItem('sem_token')!, user: finalUser };
+    } catch (err: any) {
+      console.error(err);
+      throw new Error(err.message || 'Lỗi đăng ký tài khoản');
+    }
+  }
+
   public static async loginWithGoogle(): Promise<{ token: string; user: User }> {
     try {
       const provider = new GoogleAuthProvider();

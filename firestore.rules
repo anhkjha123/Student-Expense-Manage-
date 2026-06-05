@@ -6,48 +6,44 @@ service cloud.firestore {
     }
 
     function isValidId(id) { 
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_-]+$'); 
+      return id is string && id.size() <= 128 && id.size() > 0; 
     }
     function incoming() { return request.resource.data; }
     function existing() { return resource.data; }
     function isSignedIn() { return request.auth != null; }
 
     function isValidUserProfile(data) {
-      return data.keys().hasAll(['email', 'name', 'school', 'monthlyIncome', 'savingGoal', 'joinedDate'])
-          && data.email is string && data.email.size() <= 256
-          && data.name is string && data.name.size() <= 256
-          && data.school is string && data.school.size() <= 256
-          && data.monthlyIncome is number
-          && data.savingGoal is number
-          && data.joinedDate is string && data.joinedDate.size() <= 64;
+      return (!('email' in data) || (data.email is string && data.email.size() <= 256))
+          && (!('name' in data) || (data.name is string && data.name.size() <= 256))
+          && (!('school' in data) || (data.school is string && data.school.size() <= 256))
+          && (!('monthlyIncome' in data) || (data.monthlyIncome is number))
+          && (!('savingGoal' in data) || (data.savingGoal is number))
+          && (!('joinedDate' in data) || (data.joinedDate is string && data.joinedDate.size() <= 64));
     }
 
     function isValidExpense(data) {
-      return data.keys().hasAll(['amount', 'categoryId', 'title', 'date', 'isNecessary', 'userId'])
-          && data.amount is number 
-          && data.categoryId is string && data.categoryId.size() <= 128
-          && data.title is string && data.title.size() <= 256
-          && data.date is string && data.date.size() <= 64
-          && data.isNecessary is bool
-          && data.userId is string && data.userId.size() <= 128 && data.userId == request.auth.uid
+      return (!('amount' in data) || (data.amount is number))
+          && (!('categoryId' in data) || (data.categoryId is string && data.categoryId.size() <= 128))
+          && (!('title' in data) || (data.title is string && data.title.size() <= 256))
+          && (!('date' in data) || (data.date is string && data.date.size() <= 64))
+          && (!('isNecessary' in data) || (data.isNecessary is bool))
+          && (!('userId' in data) || (data.userId is string && data.userId.size() <= 128))
           && (!('note' in data) || (data.note is string && data.note.size() <= 1024));
     }
 
     function isValidBudget(data) {
-      return data.keys().hasAll(['categoryId', 'amount', 'userId'])
-          && data.categoryId is string && data.categoryId.size() <= 128
-          && data.amount is number
-          && data.userId is string && data.userId.size() <= 128 && data.userId == request.auth.uid;
+      return (!('categoryId' in data) || (data.categoryId is string && data.categoryId.size() <= 128))
+          && (!('amount' in data) || (data.amount is number))
+          && (!('userId' in data) || (data.userId is string && data.userId.size() <= 128));
     }
 
     function isValidNotification(data) {
-      return data.keys().hasAll(['type', 'title', 'message', 'date', 'read', 'userId'])
-          && data.type is string && data.type.size() <= 64
-          && data.title is string && data.title.size() <= 256
-          && data.message is string && data.message.size() <= 2048
-          && data.date is string && data.date.size() <= 64
-          && data.read is bool
-          && data.userId is string && data.userId.size() <= 128 && data.userId == request.auth.uid;
+      return (!('type' in data) || (data.type is string && data.type.size() <= 64))
+          && (!('title' in data) || (data.title is string && data.title.size() <= 256))
+          && (!('message' in data) || (data.message is string && data.message.size() <= 2048))
+          && (!('date' in data) || (data.date is string && data.date.size() <= 64))
+          && (!('read' in data) || (data.read is bool))
+          && (!('userId' in data) || (data.userId is string && data.userId.size() <= 128));
     }
 
     match /users/{userId} {
@@ -65,42 +61,45 @@ service cloud.firestore {
     }
 
     match /expenses/{expenseId} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow read: if isSignedIn() && ('userId' in resource.data) && resource.data.userId == request.auth.uid;
       allow create: if isSignedIn() 
                     && isValidId(expenseId) 
-                    && isValidExpense(incoming());
+                    && isValidExpense(incoming())
+                    && ('userId' in incoming()) && incoming().userId == request.auth.uid;
       allow update: if isSignedIn() 
                     && isValidId(expenseId) 
-                    && existing().userId == request.auth.uid
+                    && ('userId' in existing()) && existing().userId == request.auth.uid
                     && isValidExpense(incoming())
-                    && incoming().userId == existing().userId; 
-      allow delete: if isSignedIn() && isValidId(expenseId) && existing().userId == request.auth.uid;
+                    && ('userId' in incoming()) && incoming().userId == existing().userId; 
+      allow delete: if isSignedIn() && isValidId(expenseId) && ('userId' in existing()) && existing().userId == request.auth.uid;
     }
 
     match /budgets/{budgetId} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow read: if isSignedIn() && ('userId' in resource.data) && resource.data.userId == request.auth.uid;
       allow create: if isSignedIn() 
                     && isValidId(budgetId) 
-                    && isValidBudget(incoming());
+                    && isValidBudget(incoming())
+                    && ('userId' in incoming()) && incoming().userId == request.auth.uid;
       allow update: if isSignedIn() 
                     && isValidId(budgetId) 
-                    && existing().userId == request.auth.uid
+                    && ('userId' in existing()) && existing().userId == request.auth.uid
                     && isValidBudget(incoming())
-                    && incoming().userId == existing().userId;
-      allow delete: if isSignedIn() && isValidId(budgetId) && existing().userId == request.auth.uid;
+                    && ('userId' in incoming()) && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && isValidId(budgetId) && ('userId' in existing()) && existing().userId == request.auth.uid;
     }
 
     match /notifications/{notificationId} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow read: if isSignedIn() && ('userId' in resource.data) && resource.data.userId == request.auth.uid;
       allow create: if isSignedIn() 
                     && isValidId(notificationId) 
-                    && isValidNotification(incoming());
+                    && isValidNotification(incoming())
+                    && ('userId' in incoming()) && incoming().userId == request.auth.uid;
       allow update: if isSignedIn() 
                     && isValidId(notificationId) 
-                    && existing().userId == request.auth.uid
+                    && ('userId' in existing()) && existing().userId == request.auth.uid
                     && isValidNotification(incoming())
-                    && incoming().userId == existing().userId;
-      allow delete: if isSignedIn() && isValidId(notificationId) && existing().userId == request.auth.uid;
+                    && ('userId' in incoming()) && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && isValidId(notificationId) && ('userId' in existing()) && existing().userId == request.auth.uid;
     }
   }
 }
