@@ -5,6 +5,16 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
 
 ---
 
+### [v3.0.0] - 2026-06-05
+#### 🔥 Chuyển đổi Cơ sở dữ liệu Cloud (Firebase Integration)
+*   **Chuyển đổi từ JSON Database sang Firebase:** Khắc phục triệt để rủi ro mất dữ liệu và thiếu đồng bộ đa thiết bị của phiên bản trước (sử dụng file `data/db.json` local). Hệ thống nay được trang bị **Firebase Firestore**, cho phép:
+    *   Đồng bộ dữ liệu thời gian thực (Real-time sync) trên mọi thiết bị máy tính và điện thoại.
+    *   Hỗ trợ chế độ Offline (Offline Persistence) bẩm sinh của Firestore dành cho môi trường sóng yếu.
+*   **Bảo mật:** Triển khai quy tắc bảo mật `firestore.rules` cực kỳ nghiêm ngặt, chỉ cho phép người dùng đã xác thực (Firebase Auth) đọc/ghi biên lai chi tiêu của chính họ.
+*   **Chuẩn hoá Dữ liệu:** Khởi tạo `firebase-blueprint.json` xác định schema chặt chẽ cho Profile, Expense, Budget và Notification.
+
+---
+
 ### [v2.1.0] - 2026-06-04
 #### 🌟 Nâng cấp Trải nghiệm Người dùng (UX & Animations)
 *   **Hoạt ảnh & Tương tác (Framer Motion):** Tích hợp thư viện `motion/react` vào các Dashboard Cards, danh sách chi tiêu và Add Expense Modal. 

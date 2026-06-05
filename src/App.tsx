@@ -14,6 +14,8 @@ import {
   INITIAL_NOTIFICATIONS 
 } from './mockData';
 import { ApiService } from './lib/api';
+import { auth } from './lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 // import components
 import Navbar from './components/Navbar';
@@ -38,21 +40,42 @@ export default function App() {
 
   // --- INITIAL LOAD OF USER ON MOUNT ---
   useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem('sem_user');
-      if (storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        setCurrentUser(parsedUser);
-        if (!localStorage.getItem('sem_token')) {
-           localStorage.setItem('sem_token', 'demo_offline_token_xyz');
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const profile = await ApiService.getUserProfile(firebaseUser.uid);
+          if (profile) {
+            setCurrentUser(profile);
+            localStorage.setItem('sem_user', JSON.stringify(profile));
+          } else {
+            const storedUser = localStorage.getItem('sem_user');
+            if (storedUser) {
+              setCurrentUser(JSON.parse(storedUser));
+            } else {
+              setCurrentUser({
+                id: firebaseUser.uid,
+                email: firebaseUser.email || '',
+                name: firebaseUser.email?.split('@')[0] || 'Unknown',
+                school: 'Updating...',
+                monthlyIncome: 0,
+                savingGoal: 0,
+                joinedDate: new Date().toISOString().split('T')[0]
+              });
+            }
+          }
+        } catch (e) {
+          console.error("Firebase auth processing error", e);
+        } finally {
+          setIsLoading(false);
         }
       } else {
+        localStorage.removeItem('sem_user');
+        setCurrentUser(null);
         setIsLoading(false);
       }
-    } catch (e) {
-      console.error('Error parsing stored user', e);
-      setIsLoading(false);
-    }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   // --- LOAD USER-SCOPED DATA WHEN USER CHANGES ---
@@ -67,19 +90,14 @@ export default function App() {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        const token = localStorage.getItem('sem_token');
-        if (token) {
-          // Tải từ live server API!
-          const apiExpenses = await ApiService.getExpenses();
-          const apiBudgets = await ApiService.getBudgets();
-          
-          setExpenses(apiExpenses);
-          setBudgets(apiBudgets);
-        } else {
-          throw new Error('No api token, falling back');
-        }
+        // Tải dữ liệu từ Firestore qua ApiService
+        const apiExpenses = await ApiService.getExpenses();
+        const apiBudgets = await ApiService.getBudgets();
+        
+        setExpenses(apiExpenses);
+        setBudgets(apiBudgets);
       } catch (e) {
-        console.warn('API load failed or offline, loading from LocalStorage instead:', e);
+        console.warn('API load failed, loading from LocalStorage instead:', e);
         const userExpensesKey = `sem_${currentUser.id}_expenses`;
         const userBudgetsKey = `sem_${currentUser.id}_budgets`;
 
@@ -89,35 +107,8 @@ export default function App() {
         let finalExpenses: Expense[] = [];
         let finalBudgets: Budget[] = [];
 
-        const isDemoUser = currentUser.id === 'user_01' || currentUser.email === 'sinhvien@hust.edu.vn';
-
-        if (storedExpenses) {
-          finalExpenses = JSON.parse(storedExpenses);
-        } else {
-          if (isDemoUser) {
-            finalExpenses = INITIAL_EXPENSES.map(exp => ({
-              ...exp,
-              userId: currentUser.id
-            }));
-          } else {
-            finalExpenses = [];
-          }
-          localStorage.setItem(userExpensesKey, JSON.stringify(finalExpenses));
-        }
-
-        if (storedBudgets) {
-          finalBudgets = JSON.parse(storedBudgets);
-        } else {
-          if (isDemoUser) {
-            finalBudgets = INITIAL_BUDGETS;
-          } else {
-            finalBudgets = DEFAULT_CATEGORIES.map(cat => ({
-              categoryId: cat.id,
-              amount: 0
-            }));
-          }
-          localStorage.setItem(userBudgetsKey, JSON.stringify(finalBudgets));
-        }
+        if (storedExpenses) finalExpenses = JSON.parse(storedExpenses);
+        if (storedBudgets) finalBudgets = JSON.parse(storedBudgets);
 
         setExpenses(finalExpenses);
         setBudgets(finalBudgets);
@@ -126,19 +117,11 @@ export default function App() {
         const userNotifsKey = `sem_${currentUser.id}_notifs`;
         const storedNotifs = localStorage.getItem(userNotifsKey);
         let finalNotifs: Notification[] = [];
-        const isDemoUser = currentUser.id === 'user_01' || currentUser.email === 'sinhvien@hust.edu.vn';
 
         if (storedNotifs) {
           finalNotifs = JSON.parse(storedNotifs);
         } else {
-          if (isDemoUser) {
-            finalNotifs = INITIAL_NOTIFICATIONS.map(notif => ({
-              ...notif,
-              userId: currentUser.id
-            }));
-          } else {
-            finalNotifs = [];
-          }
+          finalNotifs = INITIAL_NOTIFICATIONS.filter(n => n.userId === currentUser.id);
           localStorage.setItem(userNotifsKey, JSON.stringify(finalNotifs));
         }
         setNotifications(finalNotifs);
@@ -177,7 +160,12 @@ export default function App() {
     localStorage.setItem('sem_user', JSON.stringify(user));
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+    } catch(err) {
+      console.warn("Logout error", err);
+    }
     setCurrentUser(null);
     localStorage.removeItem('sem_user');
     localStorage.removeItem('sem_token');
@@ -196,9 +184,10 @@ export default function App() {
     saveBudgets(budgetUpdates);
 
     try {
+      await ApiService.updateUserProfile(currentUser.id, userUpdates);
       await ApiService.saveBudgets(budgetUpdates);
     } catch (e) {
-      console.warn('Could not save budgets to API server, updated locally:', e);
+      console.warn('Could not save to API server, updated locally:', e);
     }
 
     // Phát sinh thông báo thành công hằng tháng

@@ -1,0 +1,76 @@
+{
+  "entities": {
+    "userProfile": {
+      "title": "User Profile",
+      "description": "Public and private information for a user.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "school": { "type": "string" },
+        "monthlyIncome": { "type": "number" },
+        "savingGoal": { "type": "number" },
+        "joinedDate": { "type": "string" }
+      },
+      "required": ["email", "name", "school", "monthlyIncome", "savingGoal", "joinedDate"]
+    },
+    "expense": {
+      "title": "Expense",
+      "description": "A single expense record.",
+      "type": "object",
+      "properties": {
+        "amount": { "type": "number" },
+        "categoryId": { "type": "string" },
+        "title": { "type": "string" },
+        "date": { "type": "string" },
+        "note": { "type": "string" },
+        "isNecessary": { "type": "boolean" },
+        "userId": { "type": "string" }
+      },
+      "required": ["amount", "categoryId", "title", "date", "isNecessary", "userId"]
+    },
+    "budget": {
+      "title": "Budget",
+      "description": "User's budget for a category.",
+      "type": "object",
+      "properties": {
+        "categoryId": { "type": "string" },
+        "amount": { "type": "number" },
+        "userId": { "type": "string" }
+      },
+      "required": ["categoryId", "amount", "userId"]
+    },
+    "notification": {
+      "title": "Notification",
+      "description": "Notifications for the user.",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["warning", "info", "success", "alert"] },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "date": { "type": "string" },
+        "read": { "type": "boolean" },
+        "userId": { "type": "string" }
+      },
+      "required": ["type", "title", "message", "date", "read", "userId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/userProfile" },
+      "description": "Stores user profiles. The document ID must strictly match the Firebase Auth UID."
+    },
+    "/expenses/{expenseId}": {
+      "schema": { "$ref": "#/entities/expense" },
+      "description": "Stores all expenses. Expenses belong to a specific user via the userId field."
+    },
+    "/budgets/{budgetId}": {
+      "schema": { "$ref": "#/entities/budget" },
+      "description": "Stores all budgets. Budgets belong to a specific user via the userId field."
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/notification" },
+      "description": "Stores all notifications. Notifications belong to a specific user via the userId field."
+    }
+  }
+}

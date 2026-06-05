@@ -14,7 +14,7 @@ Tài liệu này mô tả chi tiết các quyết định kiến trúc, cơ ch�
 | **Build & Dev Tool** | Vite + esbuild | Tốc độ biên dịch cực kỳ nhanh gọn. Kết hợp Vite middleware (dev) và esbuild bundle độc lập (production) cho trải nghiệm Full-stack. |
 | **Styling Engine** | Tailwind CSS v4 | Thiết kế giao diện hiện đại chỉ sử dụng các lớp tiện ích (utility-first). Hỗ trợ sẵn các cơ chế tương thích di động ưu việt (`sm`, `md`, `lg`) bẩm sinh. |
 | **Animation library** | Motion (`motion/react`) | Đảm bảo tính sinh động, mượt mà trong các chuyển động chuyển đổi tab, mở modal và trải nghiệm người dùng (UX Sparkles). |
-| **Cơ sở dữ liệu** | Server JSON File DB | Dữ liệu được lưu trữ tập trung trên server Node.js với mô hình JSON nhẹ (data/db.json). Chế độ Offline-fallback sử dụng Client-side LocalStorage. |
+| **Cơ sở dữ liệu** | **Firebase Firestore & Auth** | *(Mới nâng cấp)* Thay thế JSON file local để cho phép **đồng bộ đa thiết bị (Real-time Sync)** và hỗ trợ **chế độ ngoại tuyến (Offline Persistence)** an toàn. |
 | **Testing** | Vitest | Thư viện kiểm thử tiến bộ thế hệ mới tích hợp trực tiếp vào cấu hình Vite, hoạt động cực nhanh phục vụ quá trình TDD (Test-Driven Development). |
 
 ---

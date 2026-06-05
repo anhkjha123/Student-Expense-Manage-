@@ -1,0 +1,120 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isSignedIn() { return request.auth != null; }
+
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['email', 'name', 'school', 'monthlyIncome', 'savingGoal', 'joinedDate'])
+          && data.keys().size() <= 6
+          && data.email is string && data.email.size() <= 128
+          && data.name is string && data.name.size() <= 128
+          && data.school is string && data.school.size() <= 128
+          && data.monthlyIncome is number
+          && data.savingGoal is number
+          && data.joinedDate is string && data.joinedDate.size() <= 32;
+    }
+
+    function isValidExpense(data) {
+      return data.keys().hasAll(['amount', 'categoryId', 'title', 'date', 'isNecessary', 'userId'])
+          && data.keys().size() <= 7 // allowing 'note'
+          && data.amount is number 
+          && data.categoryId is string && data.categoryId.size() <= 64
+          && data.title is string && data.title.size() <= 128
+          && data.date is string && data.date.size() <= 32
+          && data.isNecessary is bool
+          && data.userId is string && data.userId == request.auth.uid
+          && (!('note' in data) || (data.note is string && data.note.size() <= 500));
+    }
+
+    function isValidBudget(data) {
+      return data.keys().hasAll(['categoryId', 'amount', 'userId'])
+          && data.keys().size() <= 3
+          && data.categoryId is string && data.categoryId.size() <= 64
+          && data.amount is number
+          && data.userId is string && data.userId == request.auth.uid;
+    }
+
+    function isValidNotification(data) {
+      return data.keys().hasAll(['type', 'title', 'message', 'date', 'read', 'userId'])
+          && data.keys().size() <= 6
+          && data.type is string && data.type.matches('^(warning|info|success|alert)$')
+          && data.title is string && data.title.size() <= 128
+          && data.message is string && data.message.size() <= 500
+          && data.date is string && data.date.size() <= 32
+          && data.read is bool
+          && data.userId is string && data.userId == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && userId == request.auth.uid;
+      allow list: if false; // No blanket listing of users
+      allow create: if isSignedIn() 
+                    && isValidId(userId) 
+                    && userId == request.auth.uid 
+                    && isValidUserProfile(incoming());
+      allow update: if isSignedIn() 
+                    && isValidId(userId) 
+                    && userId == request.auth.uid 
+                    && isValidUserProfile(incoming())
+                    && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'school', 'monthlyIncome', 'savingGoal', 'joinedDate']); // Email cannot be updated
+      allow delete: if false; // Prevent accidental deletion of profiles
+    }
+
+    match /expenses/{expenseId} {
+      allow get: if isSignedIn() && isValidId(expenseId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() 
+                    && isValidId(expenseId) 
+                    && isValidExpense(incoming())
+                    && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+      allow update: if isSignedIn() 
+                    && isValidId(expenseId) 
+                    && existing().userId == request.auth.uid
+                    && isValidExpense(incoming())
+                    && incoming().diff(existing()).affectedKeys().hasOnly(['amount', 'categoryId', 'title', 'date', 'isNecessary', 'note'])
+                    && incoming().userId == existing().userId; // Immutable Owner
+      allow delete: if isSignedIn() && isValidId(expenseId) && existing().userId == request.auth.uid;
+    }
+
+    match /budgets/{budgetId} {
+      allow get: if isSignedIn() && isValidId(budgetId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() 
+                    && isValidId(budgetId) 
+                    && isValidBudget(incoming())
+                    && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+      allow update: if isSignedIn() 
+                    && isValidId(budgetId) 
+                    && existing().userId == request.auth.uid
+                    && isValidBudget(incoming())
+                    && incoming().diff(existing()).affectedKeys().hasOnly(['amount', 'categoryId'])
+                    && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && isValidId(budgetId) && existing().userId == request.auth.uid;
+    }
+
+    match /notifications/{notificationId} {
+      allow get: if isSignedIn() && isValidId(notificationId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() 
+                    && isValidId(notificationId) 
+                    && isValidNotification(incoming())
+                    && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+      allow update: if isSignedIn() 
+                    && isValidId(notificationId) 
+                    && existing().userId == request.auth.uid
+                    && isValidNotification(incoming())
+                    && incoming().diff(existing()).affectedKeys().hasOnly(['read'])
+                    && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && isValidId(notificationId) && existing().userId == request.auth.uid;
+    }
+  }
+}
