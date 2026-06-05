@@ -96,7 +96,6 @@ export class ApiService {
 
   public static async getUserProfile(userId: string): Promise<User | null> {
     try {
-      const { getDoc, doc } = await import('firebase/firestore');
       const userDoc = await getDoc(doc(db, 'users', userId));
       if (userDoc.exists()) {
         return { id: userDoc.id, ...userDoc.data() } as User;
@@ -110,9 +109,8 @@ export class ApiService {
 
   public static async updateUserProfile(userId: string, data: Partial<User>): Promise<void> {
     try {
-      const { updateDoc, doc } = await import('firebase/firestore');
       const { id, ...updateData } = data as any;
-      await updateDoc(doc(db, 'users', userId), updateData);
+      await setDoc(doc(db, 'users', userId), updateData, { merge: true });
     } catch (err) {
       console.error('Failed to update user:', err);
       throw err;
@@ -197,7 +195,13 @@ export class ApiService {
     try {
       const q = query(collection(db, 'budgets'), where('userId', '==', userId));
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Budget));
+      return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          categoryId: data.categoryId || '',
+          amount: Number(data.amount || 0)
+        } as Budget;
+      });
     } catch (err) {
       handleFirestoreError(err, OperationType.LIST, 'budgets');
       return [];

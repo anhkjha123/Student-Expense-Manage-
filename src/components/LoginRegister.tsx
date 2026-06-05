@@ -54,8 +54,36 @@ export default function LoginRegister({
         </div>
 
         {errorMsg && (
-          <div className="rounded-xl bg-rose-50 border border-rose-100 p-3 text-xs font-semibold text-rose-700 leading-normal text-center">
-            ⚠️ {errorMsg}
+          <div className="rounded-2xl bg-rose-50 border border-rose-100 p-4 text-xs text-rose-800 leading-relaxed space-y-3 shadow-sm select-none">
+            <div className="font-bold text-center text-rose-700 text-[13px] flex items-center justify-center gap-1.5">
+              ⚠️ Lỗi Tên Miền Firebase Chưa Được Cấp Quyền
+            </div>
+            {errorMsg.toLowerCase().includes('unauthorized-domain') ? (
+              <div className="space-y-2.5">
+                <p className="text-slate-600">
+                  Tên miền trang này chưa được khai báo cho phép truy cập Firebase Authentication của dự án <strong>thuctap-3c0d8</strong>.
+                </p>
+                <div className="bg-white/95 p-3 rounded-xl border border-rose-200/50 text-[11px] space-y-1.5 text-slate-700">
+                  <p className="font-bold text-slate-800 text-[11.5px]">👉 Cách sửa đổi cực dễ trong 1 phút:</p>
+                  <ol className="list-decimal pl-4.5 space-y-1 text-slate-600">
+                    <li>Mở <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="text-emerald-600 font-bold hover:underline">Firebase Console</a>.</li>
+                    <li>Tìm và chọn dự án <strong>thuctap-3c0d8</strong>.</li>
+                    <li>Ở thanh bên trái, chọn <strong>Authentication</strong>, qua tab <strong>Settings</strong> ở trên cùng.</li>
+                    <li>Chọn mục <strong>Authorized domains</strong> (Miền được ủy quyền).</li>
+                    <li>Nhấp <strong>Add domain</strong> và nhập tên miền này vào:
+                      <div className="mt-1 flex items-center gap-1">
+                        <code className="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded font-mono text-emerald-600 font-bold break-all select-all text-[11.5px]">
+                          {window.location.hostname}
+                        </code>
+                      </div>
+                    </li>
+                  </ol>
+                </div>
+                <p className="text-slate-500 text-[10.5px] text-center pt-0.5 italic">Sau khi thêm xong ngoài console, quý khách hãy F5 (tải lại) trang này rồi nhấn Đăng nhập lại nhé!</p>
+              </div>
+            ) : (
+              <p className="text-center font-medium">{errorMsg}</p>
+            )}
           </div>
         )}
 

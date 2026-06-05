@@ -37,11 +37,13 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isFirebaseSynced, setIsFirebaseSynced] = useState<boolean>(false);
 
   // --- INITIAL LOAD OF USER ON MOUNT ---
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        setIsFirebaseSynced(true);
         try {
           const profile = await ApiService.getUserProfile(firebaseUser.uid);
           if (profile) {
@@ -69,6 +71,7 @@ export default function App() {
           setIsLoading(false);
         }
       } else {
+        setIsFirebaseSynced(false);
         localStorage.removeItem('sem_user');
         setCurrentUser(null);
         setIsLoading(false);
@@ -90,12 +93,104 @@ export default function App() {
     const loadData = async () => {
       setIsLoading(true);
       try {
+        const userExpensesKey = `sem_${currentUser.id}_expenses`;
+        const userBudgetsKey = `sem_${currentUser.id}_budgets`;
+        const userProfileSyncedKey = `sem_${currentUser.id}_profile_synced`;
+        const userBudgetsSyncedKey = `sem_${currentUser.id}_budgets_synced`;
+
+        // 1. Đồng bộ ngầm thông tin cá nhân lên Firestore nếu chưa đồng bộ thành công trước đó
+        const profileSynced = localStorage.getItem(userProfileSyncedKey);
+        if (profileSynced === 'false') {
+          try {
+            const storedUser = localStorage.getItem('sem_user');
+            if (storedUser) {
+              const parsedUser = JSON.parse(storedUser);
+              await ApiService.updateUserProfile(currentUser.id, parsedUser);
+              localStorage.setItem(userProfileSyncedKey, 'true');
+              console.log("[Ok] Silent sync successful for user profile");
+            }
+          } catch (profileSyncErr) {
+            console.warn("Silent sync failed for user profile:", profileSyncErr);
+          }
+        }
+
         // Tải dữ liệu từ Firestore qua ApiService
         const apiExpenses = await ApiService.getExpenses();
         const apiBudgets = await ApiService.getBudgets();
         
-        setExpenses(apiExpenses);
-        setBudgets(apiBudgets);
+        let finalExpenses = [...apiExpenses];
+        
+        // Tránh ghi đè mất mát các bản ghi offline chưa kịp đồng bộ (có ID bắt đầu bằng exp_added_)
+        const storedExpenses = localStorage.getItem(userExpensesKey);
+        if (storedExpenses) {
+          try {
+            const localEst = JSON.parse(storedExpenses) as Expense[];
+            const unsavedLocal = localEst.filter(le => 
+              le && le.id && typeof le.id === 'string' &&
+              le.id.startsWith('exp_added_') && 
+              !apiExpenses.some(ae => ae.id === le.id)
+            );
+            if (unsavedLocal.length > 0) {
+              finalExpenses = [...unsavedLocal, ...finalExpenses];
+              // Đẩy đồng bộ ngầm các khoản chi chưa đồng bộ lên Firestore
+              for (const unsaved of unsavedLocal) {
+                const { id, userId, ...cleanData } = unsaved as any;
+                ApiService.createExpense(cleanData)
+                  .then(synced => {
+                    console.log("[Ok] Silent sync successful for local expense:", synced);
+                  })
+                  .catch(err => {
+                    console.warn("Silent sync failed for expense:", err);
+                  });
+              }
+            }
+          } catch (jsonErr) {
+            console.error("Error parsing local expenses:", jsonErr);
+          }
+        }
+
+        // Tối ưu hóa nạp hạn mức (nhập chỉ tiêu)
+        let finalBudgets = [...apiBudgets];
+        const storedBudgets = localStorage.getItem(userBudgetsKey);
+        const budgetsSynced = localStorage.getItem(userBudgetsSyncedKey);
+
+        if (budgetsSynced === 'false' && storedBudgets) {
+          try {
+            const localB = JSON.parse(storedBudgets);
+            if (localB && localB.length > 0) {
+              finalBudgets = localB;
+              // Đồng bộ ngầm toàn bộ hạn mức lên Firestore
+              await ApiService.saveBudgets(localB);
+              localStorage.setItem(userBudgetsSyncedKey, 'true');
+              console.log("[Ok] Silent sync successful for budget settings");
+            }
+          } catch (budgetSyncErr) {
+            console.warn("Silent sync failed for budget settings:", budgetSyncErr);
+          }
+        } else if (apiBudgets.length === 0 && storedBudgets) {
+          try {
+            const localB = JSON.parse(storedBudgets);
+            if (localB && localB.length > 0) {
+              finalBudgets = localB;
+              // Đồng bộ ngầm toàn bộ hạn mức lên Firestore nếu Firestore trống nhưng client có lưu
+              ApiService.saveBudgets(localB).then(() => {
+                localStorage.setItem(userBudgetsSyncedKey, 'true');
+              }).catch(err => {
+                console.warn("Silent sync failed for empty budgets case:", err);
+              });
+            }
+          } catch (jsonErr) {
+            console.error("Error parsing local budgets:", jsonErr);
+          }
+        }
+        
+        setExpenses(finalExpenses);
+        setBudgets(finalBudgets);
+        
+        // Lưu lại dữ liệu hợp nhất vào LocalStorage
+        localStorage.setItem(userExpensesKey, JSON.stringify(finalExpenses));
+        localStorage.setItem(userBudgetsKey, JSON.stringify(finalBudgets));
+
       } catch (e) {
         console.warn('API load failed, loading from LocalStorage instead:', e);
         const userExpensesKey = `sem_${currentUser.id}_expenses`;
@@ -130,7 +225,7 @@ export default function App() {
     };
 
     loadData();
-  }, [currentUser]);
+  }, [currentUser?.id]);
 
   // --- SAVE TO USER-SCOPED LOCALSTORAGE ON UPDATES ---
   const saveExpenses = (newExpenses: Expense[]) => {
@@ -184,8 +279,29 @@ export default function App() {
     saveBudgets(budgetUpdates);
 
     try {
-      await ApiService.updateUserProfile(currentUser.id, userUpdates);
-      await ApiService.saveBudgets(budgetUpdates);
+      // 1. Set flags synced to false indicating local has newer un-synced content until success
+      localStorage.setItem(`sem_${currentUser.id}_profile_synced`, 'false');
+      localStorage.setItem(`sem_${currentUser.id}_budgets_synced`, 'false');
+
+      // 2. Run Firestore updates in parallel with independent error handling
+      // We send the FULL target user object to satisfy the Firestore Security Rule schemas validation.
+      const profilePromise = ApiService.updateUserProfile(currentUser.id, updatedUser)
+        .then(() => {
+          localStorage.setItem(`sem_${currentUser.id}_profile_synced`, 'true');
+        })
+        .catch(err => {
+          console.error("Failed to update user profile on database:", err);
+        });
+
+      const budgetsPromise = ApiService.saveBudgets(budgetUpdates)
+        .then(() => {
+          localStorage.setItem(`sem_${currentUser.id}_budgets_synced`, 'true');
+        })
+        .catch(err => {
+          console.error("Failed to save budgets on database:", err);
+        });
+
+      await Promise.all([profilePromise, budgetsPromise]);
     } catch (e) {
       console.warn('Could not save to API server, updated locally:', e);
     }
@@ -332,6 +448,7 @@ export default function App() {
           markNotificationAsRead={markNotificationAsRead}
           clearNotifications={clearNotifications}
           onOpenAddExpense={() => setIsAddExpenseOpen(true)}
+          isFirebaseOffline={!isFirebaseSynced}
         />
 
         {/* Main Content Render area */}

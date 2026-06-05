@@ -24,6 +24,7 @@ interface NavbarProps {
   markNotificationAsRead: (id: string) => void;
   clearNotifications: () => void;
   onOpenAddExpense: () => void;
+  isFirebaseOffline?: boolean;
 }
 
 export default function Navbar({
@@ -34,7 +35,8 @@ export default function Navbar({
   notifications,
   markNotificationAsRead,
   clearNotifications,
-  onOpenAddExpense
+  onOpenAddExpense,
+  isFirebaseOffline = false
 }: NavbarProps) {
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -60,6 +62,14 @@ export default function Navbar({
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-white/40 bg-white/60 backdrop-blur-xl shadow-xs transition-colors">
+      {isFirebaseOffline && (
+        <div id="firebase-offline-alert-strip" className="bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[11px] sm:text-xs font-semibold py-2 px-4 flex items-center justify-center gap-2 text-center shadow-inner relative z-50">
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0 animate-pulse" />
+          <span>
+            <strong>Chế độ Ngoại tuyến (Offline Mode):</strong> Tên miền <strong>{window.location.hostname}</strong> chưa được ủy quyền trên Firebase. Dữ liệu chi tiêu hiện tại chỉ lưu trữ tạm thời trên trình duyệt này!
+          </span>
+        </div>
+      )}
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* LOGO */}
         <div className="flex items-center gap-1.5 sm:gap-2">

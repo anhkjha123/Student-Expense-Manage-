@@ -6,7 +6,7 @@ service cloud.firestore {
     }
 
     function isValidId(id) { 
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_-]+$'); 
     }
     function incoming() { return request.resource.data; }
     function existing() { return resource.data; }
@@ -14,40 +14,40 @@ service cloud.firestore {
 
     function isValidUserProfile(data) {
       return data.keys().hasAll(['email', 'name', 'school', 'monthlyIncome', 'savingGoal', 'joinedDate'])
-          && data.email is string 
-          && data.name is string 
-          && data.school is string 
+          && data.email is string && data.email.size() <= 256
+          && data.name is string && data.name.size() <= 256
+          && data.school is string && data.school.size() <= 256
           && data.monthlyIncome is number
           && data.savingGoal is number
-          && data.joinedDate is string;
+          && data.joinedDate is string && data.joinedDate.size() <= 64;
     }
 
     function isValidExpense(data) {
       return data.keys().hasAll(['amount', 'categoryId', 'title', 'date', 'isNecessary', 'userId'])
           && data.amount is number 
-          && data.categoryId is string 
-          && data.title is string 
-          && data.date is string 
+          && data.categoryId is string && data.categoryId.size() <= 128
+          && data.title is string && data.title.size() <= 256
+          && data.date is string && data.date.size() <= 64
           && data.isNecessary is bool
-          && data.userId is string && data.userId == request.auth.uid
-          && (!('note' in data) || data.note is string);
+          && data.userId is string && data.userId.size() <= 128 && data.userId == request.auth.uid
+          && (!('note' in data) || (data.note is string && data.note.size() <= 1024));
     }
 
     function isValidBudget(data) {
       return data.keys().hasAll(['categoryId', 'amount', 'userId'])
-          && data.categoryId is string 
+          && data.categoryId is string && data.categoryId.size() <= 128
           && data.amount is number
-          && data.userId is string && data.userId == request.auth.uid;
+          && data.userId is string && data.userId.size() <= 128 && data.userId == request.auth.uid;
     }
 
     function isValidNotification(data) {
       return data.keys().hasAll(['type', 'title', 'message', 'date', 'read', 'userId'])
-          && data.type is string 
-          && data.title is string 
-          && data.message is string 
-          && data.date is string 
+          && data.type is string && data.type.size() <= 64
+          && data.title is string && data.title.size() <= 256
+          && data.message is string && data.message.size() <= 2048
+          && data.date is string && data.date.size() <= 64
           && data.read is bool
-          && data.userId is string && data.userId == request.auth.uid;
+          && data.userId is string && data.userId.size() <= 128 && data.userId == request.auth.uid;
     }
 
     match /users/{userId} {
@@ -65,7 +65,7 @@ service cloud.firestore {
     }
 
     match /expenses/{expenseId} {
-      allow read: if isSignedIn();
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow create: if isSignedIn() 
                     && isValidId(expenseId) 
                     && isValidExpense(incoming());
@@ -78,7 +78,7 @@ service cloud.firestore {
     }
 
     match /budgets/{budgetId} {
-      allow read: if isSignedIn();
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow create: if isSignedIn() 
                     && isValidId(budgetId) 
                     && isValidBudget(incoming());
@@ -91,7 +91,7 @@ service cloud.firestore {
     }
 
     match /notifications/{notificationId} {
-      allow read: if isSignedIn();
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow create: if isSignedIn() 
                     && isValidId(notificationId) 
                     && isValidNotification(incoming());
