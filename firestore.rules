@@ -61,45 +61,45 @@ service cloud.firestore {
     }
 
     match /expenses/{expenseId} {
-      allow read: if isSignedIn() && ('userId' in resource.data) && resource.data.userId == request.auth.uid;
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow create: if isSignedIn() 
                     && isValidId(expenseId) 
                     && isValidExpense(incoming())
-                    && ('userId' in incoming()) && incoming().userId == request.auth.uid;
+                    && incoming().userId == request.auth.uid;
       allow update: if isSignedIn() 
                     && isValidId(expenseId) 
-                    && ('userId' in existing()) && existing().userId == request.auth.uid
+                    && existing().userId == request.auth.uid
                     && isValidExpense(incoming())
-                    && ('userId' in incoming()) && incoming().userId == existing().userId; 
-      allow delete: if isSignedIn() && isValidId(expenseId) && ('userId' in existing()) && existing().userId == request.auth.uid;
+                    && incoming().userId == existing().userId; 
+      allow delete: if isSignedIn() && isValidId(expenseId) && existing().userId == request.auth.uid;
     }
 
     match /budgets/{budgetId} {
-      allow read: if isSignedIn() && ('userId' in resource.data) && resource.data.userId == request.auth.uid;
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow create: if isSignedIn() 
                     && isValidId(budgetId) 
                     && isValidBudget(incoming())
-                    && ('userId' in incoming()) && incoming().userId == request.auth.uid;
+                    && incoming().userId == request.auth.uid;
       allow update: if isSignedIn() 
                     && isValidId(budgetId) 
-                    && ('userId' in existing()) && existing().userId == request.auth.uid
+                    && existing().userId == request.auth.uid
                     && isValidBudget(incoming())
-                    && ('userId' in incoming()) && incoming().userId == existing().userId;
-      allow delete: if isSignedIn() && isValidId(budgetId) && ('userId' in existing()) && existing().userId == request.auth.uid;
+                    && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && isValidId(budgetId) && existing().userId == request.auth.uid;
     }
 
     match /notifications/{notificationId} {
-      allow read: if isSignedIn() && ('userId' in resource.data) && resource.data.userId == request.auth.uid;
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow create: if isSignedIn() 
                     && isValidId(notificationId) 
                     && isValidNotification(incoming())
-                    && ('userId' in incoming()) && incoming().userId == request.auth.uid;
+                    && incoming().userId == request.auth.uid;
       allow update: if isSignedIn() 
                     && isValidId(notificationId) 
-                    && ('userId' in existing()) && existing().userId == request.auth.uid
+                    && existing().userId == request.auth.uid
                     && isValidNotification(incoming())
-                    && ('userId' in incoming()) && incoming().userId == existing().userId;
-      allow delete: if isSignedIn() && isValidId(notificationId) && ('userId' in existing()) && existing().userId == request.auth.uid;
+                    && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && isValidId(notificationId) && existing().userId == request.auth.uid;
     }
   }
 }

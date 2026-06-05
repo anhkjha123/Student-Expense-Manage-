@@ -75,7 +75,11 @@ export default function Dashboard({
   let walletStatusDescription = '';
 
   // Chấm điểm
-  if (remainingBudget < 0) {
+  if (totalIncome <= 0) {
+    walletStatus = 'warning';
+    walletStatusText = '⚙️ Chưa cấu hình đầy đủ tài chính tháng này';
+    walletStatusDescription = 'Hệ thống chưa nhận diện được mức thu nhập hằng tháng của bạn. Hãy sang tab "Cấu hình" thiết lập thu nhập và ngân sách chi tiêu khả dụng để kích hoạt tính năng đo lường chiếc ví nhé!';
+  } else if (remainingBudget < 0) {
     walletStatus = 'danger';
     walletStatusText = '🚨 BÁO ĐỘNG ĐỎ: Vỡ ngân sách tháng!';
     walletStatusDescription = 'Bạn đã chi tiêu vượt quá mức thu nhập khả dụng cho phép của tháng này. Hãy lập tức dừng việc mua sắm không thiết yếu.';
