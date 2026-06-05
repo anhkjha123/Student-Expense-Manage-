@@ -14,5 +14,11 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+
+// If using a custom project (like 'thuctap-3c0d8'), the standard "(default)" database 
+// should be used instead of the AI Studio sandbox's custom database ID, unless explicitly overridden.
+const isStudioProject = firebaseConfig.projectId === 'snappy-lexicon-xtpfc';
+const actualDatabaseId = import.meta.env.VITE_FIREBASE_DATABASE_ID || (isStudioProject ? firebaseConfig.firestoreDatabaseId : undefined);
+
+export const db = actualDatabaseId ? getFirestore(app, actualDatabaseId) : getFirestore(app);
 export const auth = getAuth(app);
