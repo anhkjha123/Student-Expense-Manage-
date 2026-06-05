@@ -55,55 +55,6 @@ function generateRandomId(): string {
 
 export class ApiService {
   // --- AUTHENTICATION ---
-  public static async login(email: string, pass: string): Promise<{ token: string; user: User }> {
-    try {
-      const { signInWithEmailAndPassword } = await import('firebase/auth');
-      const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-      const userDocRef = doc(db, 'users', userCredential.user.uid);
-      const userDoc = await getDoc(userDocRef);
-      let finalUser: User;
-      if (userDoc.exists()) {
-        finalUser = { id: userDoc.id, ...userDoc.data() } as User;
-      } else {
-        finalUser = {
-          id: userCredential.user.uid,
-          email: email,
-          name: email.split('@')[0],
-          school: 'Chưa cập nhật',
-          monthlyIncome: 0,
-          savingGoal: 0,
-          joinedDate: new Date().toISOString().split('T')[0]
-        };
-        await setDoc(userDocRef, finalUser);
-      }
-      return { token: await userCredential.user.getIdToken(), user: finalUser };
-    } catch (err: any) {
-      throw new Error(err.message || 'Login failed');
-    }
-  }
-
-  public static async register(data: Omit<User, 'id' | 'joinedDate'> & { password?: string }): Promise<{ token: string; user: User }> {
-    try {
-      const { createUserWithEmailAndPassword } = await import('firebase/auth');
-      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password || '123456');
-      
-      const newUser: User = {
-        id: userCredential.user.uid,
-        email: data.email,
-        name: data.name,
-        school: data.school,
-        monthlyIncome: data.monthlyIncome,
-        savingGoal: data.savingGoal,
-        joinedDate: new Date().toISOString().split('T')[0]
-      };
-      
-      await setDoc(doc(db, 'users', userCredential.user.uid), newUser);
-      return { token: await userCredential.user.getIdToken(), user: newUser };
-    } catch (err: any) {
-      throw new Error(err.message || 'Registration failed');
-    }
-  }
-
   public static async loginWithGoogle(): Promise<{ token: string; user: User }> {
     try {
       const provider = new GoogleAuthProvider();

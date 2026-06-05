@@ -309,7 +309,6 @@ export default function App() {
     return (
       <LoginRegister 
         onLoginSuccess={handleLoginSuccess}
-        mockStudent={MOCK_USERS[0]}
       />
     );
   }
