@@ -5,6 +5,30 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
 
 ---
 
+### [v3.2.0] - 2026-06-07
+#### ✍️ Bổ sung Tính năng Chỉnh sửa Chi tiêu (Edit Expense Support)
+*   **Chỉnh sửa đa điểm (Multi-entry Point Editing):**
+    *   Cung cấp biểu tượng cây bút chì (Edit button) trực tiếp tại cả hai màn hình: Màn hình chính Dashboard (Danh sách giao dịch gần đây) và Sổ chép chi tiêu (Bảng thống kê lịch sử toàn diện).
+    *   Nhấp vào nút sửa sẽ kích hoạt phương thức nạp dữ liệu cũ vào biểu mẫu `AddExpenseModal` thông minh, tự động đổi danh mục, lượng tiền, phân loại và ngày tháng.
+    *   Modal chỉnh sửa tự động thay đổi tiêu đề ("Chỉnh sửa khoản chi tiêu") và thay thế nhãn hành động thành "Lưu thay đổi", bảo đảm giao tiếp trực quan.
+*   **Đồng cập nhật Thời gian thực & Ngân sách (Real-time Budget Recalculation):**
+    *   Khi có bất kỳ hành động sửa đổi chi dùng nào, điểm số ví, biểu đồ tiến trình Needs/Wants và hạn mức ngân sách tháng tương ứng lập tức tự động tính toán lại mà không cần tải lại trang.
+    *   Thừa hưởng hoàn toàn cơ chế Đua thời gian (Race timeout 1.5s) và đồng bộ offline mạnh mẽ giúp giữ an toàn dữ liệu trên Firestore.
+
+---
+
+### [v3.1.0] - 2026-06-05
+#### 🔌 Khả năng Kháng Đứt Mạng (Offline Resiliency) & Sửa lỗi Cảnh báo Ngân sách
+*   **Chế độ Ngoại tuyến & Đua thời gian (Offline Resiliency & Race Timeout):** 
+    *   Bọc tất cả các yêu cầu gọi API từ xa vào một cơ chế đua thời gian (Race timeout từ 1.5s - 2.5s) hoặc kiểm tra trạng thái thiết bị ngoại tuyến chủ động `navigator.onLine`. 
+    *   Khi mất mạng đột ngột hoặc mạng lag/unstable, ứng dụng sẽ ngay lập tức chuyển sang chế độ lưu trữ và cập nhật hiển thị tương tác offline lên trang chính qua `localStorage` cục bộ, loại bỏ hoàn toàn hiện tượng treo hay nghẽn UI khi nhấn nút lưu chi tiêu.
+    *   Khi mạng khôi phục thành công, toàn bộ giao dịch mới tạo offline sẽ tự động đồng bộ ngầm lên Firestore với cơ chế đối chiếu thông tin sâu (Duplication/Shadow records guard) giữ an toàn dữ liệu, chống ghi lặp hóa đơn.
+*   **Khắc phục Cảnh báo Sai lệch Ngân sách (Budget False Alarm Fixed):**
+    *   Xử lý dứt điểm "Báo động đỏ" cảnh báo tràn ngân sách luôn hiển thị không đúng lúc người dùng mới đăng nhập hoặc chưa kịp cấu hình xong thu nhập của chu kỳ tháng.
+    *   Thay thế bằng một thông báo hướng dẫn dịu dàng (⚙️ Chưa cấu hình đầy đủ tài chính tháng này) để hướng dẫn sinh viên sang tab "Cấu hình" nhằm kích hoạt tính năng đo lường sức khỏe tài chính.
+
+---
+
 ### [v3.0.0] - 2026-06-05
 #### 🔥 Chuyển đổi Cơ sở dữ liệu Cloud (Firebase Integration)
 *   **Chuyển đổi từ JSON Database sang Firebase:** Khắc phục triệt để rủi ro mất dữ liệu và thiếu đồng bộ đa thiết bị của phiên bản trước (sử dụng file `data/db.json` local). Hệ thống nay được trang bị **Firebase Firestore**, cho phép:

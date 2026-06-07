@@ -37,10 +37,14 @@ Student Expense Manager là một ứng dụng web cấp tiến, gọn nhẹ và
 #### 3.3 Bảng điều khiển Đa chiều (Interactive Dashboard)
 *   **Chỉ số An toàn Ví sinh viên:** Biểu đồ đo tiến trình (Gauge) chấm điểm tốc độ chi tiêu trên số ngày khả dụng, cảnh báo nếu tốc độ tiêu tiền đang nhanh hơn mức cho phép.
 *   **Biểu đồ Cấu trúc Needs/Wants:** Minh họa thanh tiến trình 50/30/20. Cảnh báo thông minh khi tỷ lệ giải trí vượt quá mức trần.
+*   **Bộ Lọc Cảnh báo Thông minh (Smart Setup Warning):** Tránh các cảnh báo vô nghĩa. Chỉ số trạng thái Báo Động Đỏ vỡ ngân sách chỉ kích hoạt khi người dùng đã cấu hình đầy đủ thu nhập tháng. Đối với tài khoản trống, hệ thống hiển thị hướng dẫn người dùng thiết lập ngân sách ban đầu linh hoạt.
 
 #### 3.4 Backend Security & Hạn mức (API Control)
 *   **Cơ chế xác thực JWT Auth:** Đăng nhập hệ thống bảo vệ thông qua server Express. 
-*   **Database Lưu trữ & Offline-Fallback:** Ghi nhớ thông tin an toàn trên Express Server (`data/db.json`), luôn luôn có Demo mode qua `LocalStorage` dành cho các bối cảnh hệ thống sập/không truy cập mạng.
+*   **Database Lưu trữ & Kháng đứt mạng tối tân (Cloud Firestore + Cache Resilience):**
+    *   Học tập từ mô hình Mobile-First Offline, thiết lập kiểm chứng mạng thời gian thực qua `navigator.onLine` kết hợp cơ chế Đua thời gian (Race timeout 1500ms - 2500ms) để không gây đứng UI khi kết nối chập chờn.
+    *   Hỗ trợ lưu trữ tạm thời giao dịch & ngân sách tự động vào `localStorage` cục bộ khi mất mạng và đồng bộ ngầm khi kết nối phục hồi.
+    *   Sở hữu thuật toán đối chiếu dữ liệu (Duplication Protection Guard) để chống lại hiện tượng ghi lặp (duplicate items) do trùng lặp gói tin mạng kém ổn định.
 *   **Thông báo Vượt hạn mức:** Cảnh báo đỏ tại giao diện khi mục tiêu chi tiêu bị vượt ngưỡng 90%.
 
 ---

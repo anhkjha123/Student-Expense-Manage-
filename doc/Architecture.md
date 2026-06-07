@@ -75,3 +75,18 @@ Trong bản cập nhật mới nhất, chúng tôi đã giải quyết dứt đi
     *   Trên di động, các khoảng đệm thưa thừa được lược bỏ bớt giúp tăng tối đa diện tích hiển thị hữu ích, các nút lựa chọn phân loại "Needs vs Wants" được chuyển đổi cấu trúc grid một cột dọc nhịp nhàng hoặc thu gọn văn bản giải thích.
 *   **Bảo vệ Trải nghiệm Nhập dữ liệu di động:**
     *   Bảo đảm nút "Lưu chi tiêu" luôn bám sát ở đáy màn hình hoặc cuộn mượt mà hiển hiện rõ ràng, loại bỏ lỗi gián đoạn trải nghiệm người dùng lúc nhập dòng tiền.
+
+---
+
+### 5. Kháng Đứt Mạng & Đồng bộ Ngoại tuyến Tối ưu (Offline Resiliency & Dynamic Background Sync)
+
+Để ứng dụng luôn khả dụng cho sinh viên trong mọi hoàn cảnh sóng di động 4G yếu hoặc đứt kết nối mạng đột ngột tại giảng đường, kiến trúc đồng bộ đã được nâng cấp chuyên sâu:
+
+*   **Chính sách Đua thời gian (Connection Race Timeout Controller):**
+    *   Mọi yêu cầu gửi/nhận dữ liệu từ xa (giao dịch, cấu hình ngân sách) và ghi nhận chi tiêu được bọc trong một hàm điều khiển đua thời gian (`Promise.race`) với ngưỡng tối ưu 1.5s - 2.5s. Nếu máy chủ phản hồi chậm hoặc nghẽn mạng, luồng Offline-first sẽ tự động kích hoạt để tiếp quản trải nghiệm người dùng ngay tức khắc.
+*   **Tiếp quản Lưu trữ Ngoại tuyến tương thích (Optimistic Offline Local Storage):**
+    *   Hệ thống đánh giá trạng thái `navigator.onLine`. Nếu mất mạng vật lý, các cập nhật cấu hình ngân sách hoặc thêm mới hóa đơn được lưu trực tiếp vào cơ sở dữ liệu `localStorage` cục bộ, cập nhật UI tức thời, đồng thời đánh dấu cờ chưa đồng bộ (`profile_synced = 'false'`, `budgets_synced = 'false'`).
+*   **Đồng bộ Ngầm Chống Trùng lặp (Duplication Guard Background Sync Queue):**
+    *   Khi thiết bị trực tuyến trở lại, tiến trình kiểm tra kiểm soát ngầm tại `App.tsx` sẽ tự động kích hoạt, quét hàng đợi các giao dịch ngoại tuyến bắt đầu bằng tiền tố `exp_added_` để chuyển đổi đồng bộ lên Firestore.
+    *   Hệ thống thực hiện kiểm định trùng khớp cực kỳ nghiêm ngặt đối chiếu các thực thể trên Cloud Server (so sánh số tiền, danh mục, tiêu đề, ngày chi, kiểu Needs/Wants) nhằm triệt tiêu hoàn toàn rủi ro ghi trùng lặp dữ liệu do tình trạng mất mạng tạm thời trước đó.
+

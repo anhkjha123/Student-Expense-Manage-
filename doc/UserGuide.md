@@ -63,6 +63,15 @@ Cuối tháng là lúc tổng kết lại dòng tiền của kỳ vừa rồi:
 ---
 
 ## Mẹo sử dụng Nâng cao (Tips)
+*   **🔌 Cách kiểm thử Chế độ Ngoại tuyến (Offline Test):** 
+    *   Bạn muốn thử nghiệm xem chiếc ví hoạt động thế nào khi "mất mạng" đột ngột trên giảng đường? Hãy thử làm theo các bước sau:
+    1.  Mở bảng điều khiển DevTools của trình duyệt (Nhấn `F12` hoặc click chuột phải chọn `Inspect`).
+    2.  Chuyển sang tab **Network** (Mạng).
+    3.  Tại thanh cấu hình trạng thái (mặc định là *No throttling*), nhấn chọn **Offline**. (Hoặc đơn giản là tắt Wifi/ngắt kết nối internet dây trên laptop/điện thoại của bạn).
+    4.  Bây giờ, hãy thử nhấn nút màu trắng **"✍️ Thêm một khoản chi ngay"**, điền số tiền, chọn phân loại thiết yếu/giải trí rồi nhấn **Lưu khoản chi**.
+    5.  Hệ thống sẽ không bị đơ hoặc treo xoay tròn. Thay vào đó, nó phản hồi siêu tốc, lưu ngay lập tức vào cơ sở dữ liệu đệm và cập nhật thẳng lên bảng Dashboard trực quan của bạn.
+    6.  Quay trở lại DevTools, bật lại Wifi hoặc đổi trạng thái Network về **No throttling** (Trực tuyến trở lại).
+    7.  Ứng dụng sẽ tự động phát hiện kết nối mạng phục hồi và đồng bộ ngầm (background sync) khoản chi offline đó lên Cloud Firestore an toàn mà không sinh ra hóa đơn trùng lặp.
 *   **Theo dõi Real-time:** Mọi thiết lập, chi tiêu, báo cáo trên ứng dụng sẽ tự động nhảy số theo thời gian thực (Live Sync). Bạn không cần tải lại biểu mẫu vẫn có thể theo dõi tốc độ trừ tiền của ví mình ngay lập tức!
 *   **Trải nghiệm Mobile:** Ứng dụng hiển thị tuyệt vời trên điện thoại của bạn, hãy bookmark link lên màn hình chính (Add to Home Screen) để dùng lướt như một chiếc App di động độc lập.
 

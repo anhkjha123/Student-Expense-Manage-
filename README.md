@@ -4,10 +4,11 @@
 Tích hợp tính năng Đồng bộ Thời gian thực (Real-time Sync): Thời gian trong ứng dụng sẽ luôn đi cùng với thời gian thực trên lịch sinh viên. Mỗi khi thêm một khoản chi, các chỉ số an toàn ví điện tử, quỹ ngân sách linh hoạt và các báo cáo sẽ được cập nhật ngay lập tức mà không cần tải lại trang.
 
 ✨ Tính năng chính
-Nhập Chi Tiêu Siêu Tốc (Fast Entry): Form nhập chi tiêu trực quan, phân định danh mục rõ ràng, tự động định dạng số tiền VND thời gian thực, các hiệu ứng hoạt ảnh xuất hiện của thông báo bằng Framer Motion (motion).
-Giám sát tốc độ Đồng bộ (Live Sync): Sử dụng API đồng bộ hóa lưu trữ cấu hình trên server, giúp màn hình Dashboard tự động cập nhật tốc độ chi tiêu tức thời mà không làm ảnh hưởng hay ngắt quãng trải nghiệm nhập liệu.
-Hỗ trợ Chỉ số An toàn Ví nổi bật: Tự động nhận diện thiết lập hạn mức và tô điểm màu sắc cảnh báo đỏ, vàng, xanh theo quy chuẩn của tình trạng tài chính thiết yếu.
-Báo Cáo Tài Chính Chuyên Trách: Đóng gói hoàn chỉnh thành một công cụ trích xuất PDF hoặc file Excel CSV chuyên nghiệp giúp sinh viên quản lý tài chính chuẩn mực mà không cần cấu hình phức tạp.
+*   **🔌 Kháng đứt mạng tối ưu & Ngoại tuyến mượt mà:** Khả năng ghi nhận chi tiêu & chỉnh hạn mức ngân sách mượt mà ngay cả khi ngắt kết nối mạng vật lý. Tự động chuyển đổi chế độ lưu trữ đệm `localStorage` nhờ cơ chế Đua thời gian (`Promise.race` 1.5s - 2.5s), đồng bộ hóa ngược lên Cloud Firestore khi có mạng trở lại kèm thuật toán chống trùng lặp hóa đơn.
+*   **Nhập Chi Tiêu Siêu Tốc (Fast Entry):** Form nhập chi tiêu trực quan, phân định danh mục rõ ràng, tự động định dạng số tiền VND thời gian thực, các hiệu ứng hoạt ảnh xuất hiện của thông báo bằng Framer Motion (motion).
+*   **Giám sát tốc độ Đồng bộ (Live Sync):** Sử dụng API đồng bộ hóa lưu trữ cấu hình trên server, giúp màn hình Dashboard tự động cập nhật tốc độ chi tiêu tức thời mà không làm ảnh hưởng hay ngắt quãng trải nghiệm nhập liệu.
+*   **Hỗ trợ Chỉ số An toàn Ví nổi bật:** Tự động nhận diện thiết lập hạn mức và tô điểm màu sắc cảnh báo đỏ, vàng, xanh theo quy chuẩn của tình trạng tài chính thiết yếu. Tránh báo động giả lập khi tài khoản trống hoặc chưa cấu hình đầy đủ.
+*   **Báo Cáo Tài Chính Chuyên Trách:** Đóng gói hoàn chỉnh thành một công cụ trích xuất PDF hoặc file Excel CSV chuyên nghiệp giúp sinh viên quản lý tài chính chuẩn mực mà không cần cấu hình phức tạp.
 
 🛠️ Hướng dẫn cài đặt & Chạy ứng dụng
 Yêu cầu máy tính của bạn đã cài đặt sẵn Node.js LTS (phiên bản khuyến nghị v18 trở lên).

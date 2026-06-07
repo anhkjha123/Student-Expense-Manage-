@@ -36,6 +36,7 @@ export default function App() {
   // App views & UI Controls
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState<boolean>(false);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isFirebaseSynced, setIsFirebaseSynced] = useState<boolean>(false);
 
@@ -158,6 +159,14 @@ export default function App() {
       }
 
       try {
+        if (!navigator.onLine) {
+          throw new Error('Network offline');
+        }
+
+        const timeoutPromise = new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Fetch timeout')), 2500)
+        );
+
         // 1. Đồng bộ ngầm thông tin cá nhân lên Firestore nếu chưa đồng bộ thành công trước đó
         const profileSynced = localStorage.getItem(userProfileSyncedKey);
         if (profileSynced === 'false') {
@@ -174,9 +183,11 @@ export default function App() {
           }
         }
 
-        // Tải dữ liệu từ Firestore qua ApiService
-        const apiExpenses = await ApiService.getExpenses();
-        const apiBudgets = await ApiService.getBudgets();
+        // Tải dữ liệu từ Firestore qua ApiService (bọc trong timeout)
+        const [apiExpenses, apiBudgets] = await Promise.race([
+          Promise.all([ApiService.getExpenses(), ApiService.getBudgets()]),
+          timeoutPromise
+        ]);
         
         let finalExpenses = [...apiExpenses];
         
@@ -185,11 +196,20 @@ export default function App() {
         if (storedExpenses) {
           try {
             const localEst = JSON.parse(storedExpenses) as Expense[];
-            const unsavedLocal = localEst.filter(le => 
-              le && le.id && typeof le.id === 'string' &&
-              le.id.startsWith('exp_added_') && 
-              !apiExpenses.some(ae => ae.id === le.id)
-            );
+            const unsavedLocal = localEst.filter(le => {
+              if (!le || !le.id || typeof le.id !== 'string' || !le.id.startsWith('exp_added_')) {
+                return false;
+              }
+              // Kiểm tra trùng lặp thông tin trên server để tránh upload trùng
+              const alreadyExistsOnServer = apiExpenses.some(ae => 
+                Number(ae.amount) === Number(le.amount) &&
+                ae.categoryId === le.categoryId &&
+                ae.title?.trim() === le.title?.trim() &&
+                ae.date === le.date &&
+                ae.isNecessary === le.isNecessary
+              );
+              return !alreadyExistsOnServer;
+            });
             if (unsavedLocal.length > 0) {
               finalExpenses = [...unsavedLocal, ...finalExpenses];
               // Đẩy đồng bộ ngầm các khoản chi chưa đồng bộ lên Firestore
@@ -351,6 +371,10 @@ export default function App() {
         localStorage.setItem(`sem_${currentUser.id}_profile_synced`, 'false');
         localStorage.setItem(`sem_${currentUser.id}_budgets_synced`, 'false');
 
+        if (!navigator.onLine) {
+          throw new Error('Network offline');
+        }
+
         // 2. Run Firestore updates in parallel with independent error handling
         // We send the FULL target user object to satisfy the Firestore Security Rule schemas validation.
         const profilePromise = ApiService.updateUserProfile(currentUser.id, updatedUser)
@@ -369,7 +393,12 @@ export default function App() {
             console.error("Failed to save budgets on database:", err);
           });
 
-        await Promise.all([profilePromise, budgetsPromise]);
+        // Set a timeout of 1500ms to avoid blocking UI updates if internet is slow/unstable
+        const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 1500));
+        await Promise.race([
+          Promise.all([profilePromise, budgetsPromise]),
+          timeoutPromise
+        ]);
       } catch (e) {
         console.warn('Could not save to API server, updated locally:', e);
       }
@@ -403,10 +432,42 @@ export default function App() {
         userId: currentUser.id
       };
     } else {
+      const createPromise = ApiService.createExpense(newExpenseData);
+      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
+
       try {
-        createdExpense = await ApiService.createExpense(newExpenseData);
+        if (!navigator.onLine) {
+          throw new Error('Network offline');
+        }
+
+        const result = await Promise.race([createPromise, timeoutPromise]);
+
+        if (result === null) {
+          console.warn("API write timed out, treating as offline write");
+          const tempId = `exp_added_${Date.now()}`;
+          createdExpense = {
+            ...newExpenseData,
+            id: tempId,
+            userId: currentUser.id
+          };
+
+          createPromise.then((syncedExpense) => {
+            console.log("[Ok] Background write completed successfully:", syncedExpense);
+            setExpenses(prev => {
+              const updated = prev.map(exp => exp.id === tempId ? syncedExpense : exp);
+              if (currentUser) {
+                localStorage.setItem(`sem_${currentUser.id}_expenses`, JSON.stringify(updated));
+              }
+              return updated;
+            });
+          }).catch(err => {
+            console.warn("Background write failed eventually:", err);
+          });
+        } else {
+          createdExpense = result;
+        }
       } catch (e) {
-        console.warn('API create expense failed, writing locally:', e);
+        console.warn('API create expense failed or offline, writing locally:', e);
         createdExpense = {
           ...newExpenseData,
           id: `exp_added_${Date.now()}`,
@@ -478,6 +539,90 @@ export default function App() {
     }
   };
 
+  // --- UPDATE EXPENSE HANDLER (OPTIMISTIC & OFFLINE PRE-VALIDATIVE) ---
+  const handleUpdateExpense = async (id: string, updatedExpenseData: Omit<Expense, 'id' | 'userId'>) => {
+    if (!currentUser) return;
+
+    // Update locally first for instant, lag-free UI update
+    const updatedLocally: Expense = {
+      ...updatedExpenseData,
+      id,
+      userId: currentUser.id
+    };
+
+    const nextExpensesList = expenses.map(exp => exp.id === id ? updatedLocally : exp);
+    saveExpenses(nextExpensesList);
+
+    const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+    if (!isGuest) {
+      const updatePromise = ApiService.updateExpense(id, updatedExpenseData);
+      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
+
+      try {
+        if (!navigator.onLine) {
+          throw new Error('Network offline');
+        }
+
+        const result = await Promise.race([updatePromise, timeoutPromise]);
+        
+        if (result === null) {
+          console.warn("API update timed out, relying on client-side state, syncing background in progress");
+        } else {
+          console.log("[Ok] API update completed successfully:", result);
+          const serverSynced = result as Expense;
+          setExpenses(prev => {
+            const updated = prev.map(exp => exp.id === id ? serverSynced : exp);
+            localStorage.setItem(`sem_${currentUser.id}_expenses`, JSON.stringify(updated));
+            return updated;
+          });
+        }
+      } catch (e) {
+        console.warn('API update expense failed or offline, kept changes locally:', e);
+      }
+    }
+
+    // --- RE-CHECK TARGET LIMIT IN REAL-TIME ---
+    const categoryId = updatedExpenseData.categoryId;
+    const catObject = DEFAULT_CATEGORIES.find(c => c.id === categoryId);
+    
+    const catBudgetObj = budgets.find(b => b.categoryId === categoryId);
+    const catBudgetLimit = catBudgetObj ? catBudgetObj.amount : 0;
+
+    const currentYearMonth = updatedExpenseData.date.substring(0, 7);
+    const currentMonthExpenses = nextExpensesList.filter(
+      e => e.categoryId === categoryId && e.date.startsWith(currentYearMonth)
+    );
+    const totalSpentInCat = currentMonthExpenses.reduce((sum, item) => sum + item.amount, 0);
+
+    if (catBudgetLimit > 0 && catObject) {
+      const parentPercent = (totalSpentInCat / catBudgetLimit) * 100;
+
+      if (parentPercent >= 100) {
+        const warningNotif: Notification = {
+          id: `notif_${Date.now()}_limit`,
+          userId: currentUser.id,
+          type: 'alert',
+          title: `VỢT HẠN MỨC: ${catObject.name}!`,
+          message: `Ứng dụng khuyên giảm: Bạn đã tiêu quá ${new Intl.NumberFormat('vi-VN').format(totalSpentInCat)}đ trên mức giới hạn ${new Intl.NumberFormat('vi-VN').format(catBudgetLimit)}đ của mục ${catObject.name}.`,
+          date: new Date().toISOString().replace('T', ' ').substring(0, 19),
+          read: false
+        };
+        saveNotifications([warningNotif, ...notifications]);
+      } else if (parentPercent >= 80) {
+        const warningNotif: Notification = {
+          id: `notif_${Date.now()}_almost`,
+          userId: currentUser.id,
+          type: 'warning',
+          title: `Sắp chạm trần: ${catObject.name}`,
+          message: `Khoản chi vừa cập nhật đẩy danh mục ${catObject.name} chạm ngưỡng ${Math.round(parentPercent)}% ngân sách tháng này.`,
+          date: new Date().toISOString().replace('T', ' ').substring(0, 19),
+          read: false
+        };
+        saveNotifications([warningNotif, ...notifications]);
+      }
+    }
+  };
+
   // --- NOTIFICATION UTILS ---
   const markNotificationAsRead = (id: string) => {
     const updated = notifications.map(n => {
@@ -544,6 +689,7 @@ export default function App() {
               notifications={notifications}
               onOpenAddExpense={() => setIsAddExpenseOpen(true)}
               setActiveTab={setActiveTab}
+              onEditExpense={(expense) => setEditingExpense(expense)}
             />
           )}
 
@@ -552,6 +698,7 @@ export default function App() {
               expenses={expenses}
               categories={DEFAULT_CATEGORIES}
               onDeleteExpense={handleDeleteExpense}
+              onEditExpense={(expense) => setEditingExpense(expense)}
             />
           )}
 
@@ -581,10 +728,15 @@ export default function App() {
 
       {/* Quick Entry Dynamic Insertion Modal */}
       <AddExpenseModal
-        isOpen={isAddExpenseOpen}
-        onClose={() => setIsAddExpenseOpen(false)}
+        isOpen={isAddExpenseOpen || !!editingExpense}
+        onClose={() => {
+          setIsAddExpenseOpen(false);
+          setEditingExpense(null);
+        }}
         categories={DEFAULT_CATEGORIES}
         onAddExpense={handleAddExpense}
+        editingExpense={editingExpense}
+        onEditExpense={handleUpdateExpense}
       />
     </div>
   );

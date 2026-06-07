@@ -17,7 +17,8 @@ import {
   Utensils,
   Car,
   Home,
-  Coffee
+  Coffee,
+  Pencil
 } from 'lucide-react';
 import { User as UserType, Expense, Category, Budget, Notification } from '../types';
 import { motion } from 'motion/react';
@@ -30,6 +31,7 @@ interface DashboardProps {
   notifications: Notification[];
   onOpenAddExpense: () => void;
   setActiveTab: (tab: string) => void;
+  onEditExpense?: (expense: Expense) => void;
 }
 
 export default function Dashboard({
@@ -39,7 +41,8 @@ export default function Dashboard({
   budgets,
   notifications,
   onOpenAddExpense,
-  setActiveTab
+  setActiveTab,
+  onEditExpense
 }: DashboardProps) {
   
   const currentDate = new Date();
@@ -509,14 +512,26 @@ export default function Dashboard({
                         </div>
                       </div>
 
-                      <div className="text-right">
-                        <span className="block text-xs font-black text-slate-900 font-mono drop-shadow-sm">
-                          {new Intl.NumberFormat('vi-VN').format(exp.amount)}đ
-                        </span>
-                        {exp.isNecessary ? (
-                          <span className="text-[8px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded shadow-sm">Cần thiết</span>
-                        ) : (
-                          <span className="text-[8px] font-bold text-amber-700 bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded shadow-sm">Sở thích</span>
+                      <div className="flex items-center gap-2.5">
+                        <div className="text-right">
+                          <span className="block text-xs font-black text-slate-900 font-mono drop-shadow-sm">
+                            {new Intl.NumberFormat('vi-VN').format(exp.amount)}đ
+                          </span>
+                          {exp.isNecessary ? (
+                            <span className="text-[8px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded shadow-sm">Cần thiết</span>
+                          ) : (
+                            <span className="text-[8px] font-bold text-amber-700 bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded shadow-sm">Sở thích</span>
+                          )}
+                        </div>
+                        {onEditExpense && (
+                          <button
+                            onClick={() => onEditExpense(exp)}
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600 transition-colors cursor-pointer inline-flex shrink-0"
+                            title="Sửa giao dịch"
+                            id={`recent-edit-btn-${exp.id}`}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
                         )}
                       </div>
                     </motion.div>

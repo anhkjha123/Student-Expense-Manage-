@@ -15,13 +15,17 @@ interface AddExpenseModalProps {
   onClose: () => void;
   categories: Category[];
   onAddExpense: (expense: Omit<Expense, 'id' | 'userId'>) => void;
+  editingExpense?: Expense | null;
+  onEditExpense?: (id: string, expense: Omit<Expense, 'id' | 'userId'>) => void;
 }
 
 export default function AddExpenseModal({
   isOpen,
   onClose,
   categories,
-  onAddExpense
+  onAddExpense,
+  editingExpense,
+  onEditExpense
 }: AddExpenseModalProps) {
   const [amount, setAmount] = useState<string>('');
   const [categoryId, setCategoryId] = useState<string>('');
@@ -34,10 +38,27 @@ export default function AddExpenseModal({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (categories.length > 0 && !categoryId) {
-      setCategoryId(categories[0].id);
+    if (isOpen) {
+      if (editingExpense) {
+        setAmount(new Intl.NumberFormat('en-US').format(editingExpense.amount));
+        setCategoryId(editingExpense.categoryId);
+        setTitle(editingExpense.title);
+        setDate(editingExpense.date);
+        setNote(editingExpense.note || '');
+        setIsNecessary(editingExpense.isNecessary);
+      } else {
+        setAmount('');
+        if (categories.length > 0) {
+          setCategoryId(categories[0].id);
+        }
+        setTitle('');
+        setDate(new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
+        setNote('');
+        setIsNecessary(true);
+      }
+      setError(null);
     }
-  }, [categories, categoryId]);
+  }, [editingExpense, isOpen, categories]);
 
   if (!isOpen) return null;
 
@@ -66,20 +87,28 @@ export default function AddExpenseModal({
       return;
     }
 
-    onAddExpense({
+    const payload = {
       amount: valAmount,
       categoryId,
       title: title.trim(),
       date,
       note: note.trim() || undefined,
       isNecessary
-    });
+    };
+
+    if (editingExpense && onEditExpense) {
+      onEditExpense(editingExpense.id, payload);
+    } else {
+      onAddExpense(payload);
+    }
 
     // Reset Form
-    setAmount('');
-    setTitle('');
-    setNote('');
-    setIsNecessary(true);
+    if (!editingExpense) {
+      setAmount('');
+      setTitle('');
+      setNote('');
+      setIsNecessary(true);
+    }
     setError(null);
     onClose();
   };
@@ -112,10 +141,10 @@ export default function AddExpenseModal({
         <div className="flex items-center justify-between border-b border-slate-100 bg-emerald-50/50 px-5 sm:px-6 py-3.5 sm:py-4.5 shrink-0 animate-fade-in">
           <div>
             <h3 className="font-display text-base sm:text-lg font-bold text-slate-900">
-              Nhập chi tiêu mới
+              {editingExpense ? 'Chỉnh sửa khoản chi tiêu' : 'Nhập chi tiêu mới'}
             </h3>
             <p className="text-[11px] sm:text-xs text-slate-500">
-              Nhập nhanh chi tiêu trong dưới 10 giây để kiểm soát dòng tiền
+              {editingExpense ? 'Cập nhật lại thông tin dòng tiền chính xác hơn' : 'Nhập nhanh chi tiêu trong dưới 10 giây để kiểm soát dòng tiền'}
             </p>
           </div>
           <button
@@ -279,7 +308,7 @@ export default function AddExpenseModal({
               type="submit"
               className="rounded-xl bg-emerald-500 hover:bg-emerald-500 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-emerald-200 transition-all cursor-pointer"
             >
-              Lưu chi tiêu
+              {editingExpense ? 'Lưu thay đổi' : 'Lưu chi tiêu'}
             </button>
           </div>
         </form>

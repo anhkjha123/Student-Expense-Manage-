@@ -10,7 +10,8 @@ import {
   ThumbsDown,
   ChevronDown,
   ArrowUpDown,
-  BookOpen
+  BookOpen,
+  Pencil
 } from 'lucide-react';
 import { Expense, Category } from '../types';
 import { motion } from 'motion/react';
@@ -19,6 +20,7 @@ interface ExpenseHistoryProps {
   expenses: Expense[];
   categories: Category[];
   onDeleteExpense: (id: string) => void;
+  onEditExpense: (expense: Expense) => void;
 }
 
 type SortField = 'date' | 'amount';
@@ -27,7 +29,8 @@ type SortOrder = 'asc' | 'desc';
 export default function ExpenseHistory({
   expenses,
   categories,
-  onDeleteExpense
+  onDeleteExpense,
+  onEditExpense
 }: ExpenseHistoryProps) {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -244,7 +247,7 @@ export default function ExpenseHistory({
                   <th className="px-6 py-4">Thời gian</th>
                   <th className="px-6 py-4">Phân loại</th>
                   <th className="px-6 py-4 text-right">Số tiền</th>
-                  <th className="px-6 py-4 text-center">Xóa</th>
+                  <th className="px-6 py-4 text-center">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
@@ -285,38 +288,49 @@ export default function ExpenseHistory({
                       {new Intl.NumberFormat('vi-VN').format(exp.amount)}đ
                     </td>
                     <td className="px-6 py-4 text-center">
-                      {deleteConfirmId === exp.id ? (
-                        <div className="flex items-center justify-center gap-1.5">
-                          <button
-                            onClick={() => {
-                              onDeleteExpense(exp.id);
-                              setDeleteConfirmId(null);
-                            }}
-                            className="rounded-lg bg-rose-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-rose-700 transition-colors cursor-pointer"
-                            title="Xác nhận xóa"
-                            id={`confirm-delete-btn-${exp.id}`}
-                          >
-                            Xóa?
-                          </button>
-                          <button
-                            onClick={() => setDeleteConfirmId(null)}
-                            className="rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
-                            title="Hủy bỏ"
-                            id={`cancel-delete-btn-${exp.id}`}
-                          >
-                            Hủy
-                          </button>
-                        </div>
-                      ) : (
+                      <div className="flex items-center justify-center gap-1.5">
                         <button
-                          onClick={() => setDeleteConfirmId(exp.id)}
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors cursor-pointer inline-flex"
-                          title="Xóa giao dịch"
-                          id={`delete-btn-${exp.id}`}
+                          onClick={() => onEditExpense(exp)}
+                          className="rounded-lg p-1.5 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600 transition-colors cursor-pointer inline-flex"
+                          title="Sửa giao dịch"
+                          id={`edit-btn-${exp.id}`}
                         >
-                          <Trash2 className="h-4.5 w-4.5" />
+                          <Pencil className="h-4 w-4" />
                         </button>
-                      )}
+
+                        {deleteConfirmId === exp.id ? (
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              onClick={() => {
+                                onDeleteExpense(exp.id);
+                                setDeleteConfirmId(null);
+                              }}
+                              className="rounded-lg bg-rose-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-rose-700 transition-colors cursor-pointer"
+                              title="Xác nhận xóa"
+                              id={`confirm-delete-btn-${exp.id}`}
+                            >
+                              Xóa?
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirmId(null)}
+                              className="rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+                              title="Hủy bỏ"
+                              id={`cancel-delete-btn-${exp.id}`}
+                            >
+                              Hủy
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setDeleteConfirmId(exp.id)}
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors cursor-pointer inline-flex"
+                            title="Xóa giao dịch"
+                            id={`delete-btn-${exp.id}`}
+                          >
+                            <Trash2 className="h-4.5 w-4.5" />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
