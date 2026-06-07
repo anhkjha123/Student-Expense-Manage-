@@ -53,3 +53,6 @@ export const db = actualDatabaseId
     });
 
 export const auth = getAuth(app);
+
+console.log(`[Firebase Init] Active Project: ${firebaseConfig.projectId}, Database ID: ${actualDatabaseId || '(default)'}`);
+
