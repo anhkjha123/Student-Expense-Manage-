@@ -46,34 +46,6 @@ service cloud.firestore {
           && (!('userId' in data) || (data.userId is string && data.userId.size() <= 128));
     }
 
-    function isValidSavingGoal(data) {
-      return (!('name' in data) || (data.name is string && data.name.size() <= 256))
-          && (!('targetAmount' in data) || (data.targetAmount is number))
-          && (!('currentAmount' in data) || (data.currentAmount is number))
-          && (!('deadline' in data) || (data.deadline is string && data.deadline.size() <= 64))
-          && (!('status' in data) || (data.status is string && data.status.size() <= 64))
-          && (!('userId' in data) || (data.userId is string && data.userId.size() <= 128));
-    }
-
-    function isValidIncome(data) {
-      return (!('amount' in data) || (data.amount is number))
-          && (!('source' in data) || (data.source is string && data.source.size() <= 64))
-          && (!('date' in data) || (data.date is string && data.date.size() <= 64))
-          && (!('note' in data) || (data.note is string && data.note.size() <= 1024))
-          && (!('userId' in data) || (data.userId is string && data.userId.size() <= 128));
-    }
-
-    function isValidRecurringExpense(data) {
-      return (!('amount' in data) || (data.amount is number))
-          && (!('categoryId' in data) || (data.categoryId is string && data.categoryId.size() <= 128))
-          && (!('title' in data) || (data.title is string && data.title.size() <= 256))
-          && (!('cycle' in data) || (data.cycle is string && data.cycle.size() <= 64))
-          && (!('startDate' in data) || (data.startDate is string && data.startDate.size() <= 64))
-          && (!('nextDate' in data) || (data.nextDate is string && data.nextDate.size() <= 64))
-          && (!('isActive' in data) || (data.isActive is bool))
-          && (!('userId' in data) || (data.userId is string && data.userId.size() <= 128));
-    }
-
     match /users/{userId} {
       allow get: if isSignedIn() && isValidId(userId) && userId == request.auth.uid;
       allow list: if false; 
@@ -128,27 +100,6 @@ service cloud.firestore {
                     && isValidNotification(incoming())
                     && incoming().userId == existing().userId;
       allow delete: if isSignedIn() && isValidId(notificationId) && existing().userId == request.auth.uid;
-    }
-
-    match /saving_goals/{id} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && isValidId(id) && isValidSavingGoal(incoming()) && incoming().userId == request.auth.uid;
-      allow update: if isSignedIn() && isValidId(id) && existing().userId == request.auth.uid && isValidSavingGoal(incoming()) && incoming().userId == existing().userId;
-      allow delete: if isSignedIn() && isValidId(id) && existing().userId == request.auth.uid;
-    }
-
-    match /incomes/{id} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && isValidId(id) && isValidIncome(incoming()) && incoming().userId == request.auth.uid;
-      allow update: if isSignedIn() && isValidId(id) && existing().userId == request.auth.uid && isValidIncome(incoming()) && incoming().userId == existing().userId;
-      allow delete: if isSignedIn() && isValidId(id) && existing().userId == request.auth.uid;
-    }
-
-    match /recurring_expenses/{id} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && isValidId(id) && isValidRecurringExpense(incoming()) && incoming().userId == request.auth.uid;
-      allow update: if isSignedIn() && isValidId(id) && existing().userId == request.auth.uid && isValidRecurringExpense(incoming()) && incoming().userId == existing().userId;
-      allow delete: if isSignedIn() && isValidId(id) && existing().userId == request.auth.uid;
     }
   }
 }

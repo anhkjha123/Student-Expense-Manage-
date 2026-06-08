@@ -18,10 +18,9 @@ import {
   Car,
   Home,
   Coffee,
-  Pencil,
-  Wallet
+  Pencil
 } from 'lucide-react';
-import { User as UserType, Expense, Category, Budget, Notification, Income, SpendingInsight } from '../types';
+import { User as UserType, Expense, Category, Budget, Notification } from '../types';
 import { motion } from 'motion/react';
 
 interface DashboardProps {
@@ -30,8 +29,6 @@ interface DashboardProps {
   categories: Category[];
   budgets: Budget[];
   notifications: Notification[];
-  incomes: Income[];
-  insights: SpendingInsight[];
   onOpenAddExpense: () => void;
   setActiveTab: (tab: string) => void;
   onEditExpense?: (expense: Expense) => void;
@@ -43,8 +40,6 @@ export default function Dashboard({
   categories,
   budgets,
   notifications,
-  incomes,
-  insights,
   onOpenAddExpense,
   setActiveTab,
   onEditExpense
@@ -55,17 +50,7 @@ export default function Dashboard({
   const currentMonthExpenses = expenses.filter(exp => exp.date.startsWith(currentMonthStr));
 
   const totalSpentThisMonth = currentMonthExpenses.reduce((sum, item) => sum + item.amount, 0);
-  
-  // SPRINT 4: TÍNH TOÁN SỐ DƯ VÍ TỪ INCOMES
-  const currentMonthIncomes = (incomes || []).filter(i => i.date.startsWith(currentMonthStr));
-  const totalIncomeThisMonth = currentMonthIncomes.reduce((sum, i) => sum + i.amount, 0);
-  const totalIncome = Math.max(user.monthlyIncome, totalIncomeThisMonth); // Ưu tiên thu nhập thực tế nếu có
-
-  // Tổng số dư ví (Lifetime)
-  const lifetimeIncome = (incomes || []).reduce((sum, i) => sum + i.amount, 0);
-  const lifetimeExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
-  const walletBalance = lifetimeIncome - lifetimeExpense;
-
+  const totalIncome = user.monthlyIncome;
   const savingGoal = user.savingGoal;
   const availableToSpend = totalIncome - savingGoal; // Số tiền khả dụng cho chi tiêu
   const remainingBudget = availableToSpend - totalSpentThisMonth;
@@ -195,55 +180,6 @@ export default function Dashboard({
           ✍️ Thêm một khoản chi ngay
         </motion.button>
       </motion.div>
-
-      {/* SPRINT 4: WALLET BALANCE & CASHFLOW */}
-      <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-6 text-white shadow-xl flex flex-col justify-between overflow-hidden relative">
-          <div className="absolute -right-4 -top-4 opacity-10 pointer-events-none rotate-12">
-            <Wallet className="w-32 h-32" />
-          </div>
-          <div className="relative z-10">
-            <span className="text-slate-400 text-sm font-medium uppercase tracking-wider">Số dư ví hiện tại</span>
-            <h3 className="text-3xl font-bold font-mono mt-2">{new Intl.NumberFormat('vi-VN').format(walletBalance)}đ</h3>
-          </div>
-          <div className="mt-6 flex gap-3 text-sm relative z-10">
-            <div className="bg-white/10 rounded-xl p-3 flex-1 backdrop-blur-sm">
-              <span className="text-slate-400 block mb-1 text-xs uppercase">Thu (Tháng)</span>
-              <span className="font-bold text-emerald-400 text-base">+{new Intl.NumberFormat('vi-VN').format(totalIncomeThisMonth)}</span>
-            </div>
-            <div className="bg-white/10 rounded-xl p-3 flex-1 backdrop-blur-sm">
-              <span className="text-slate-400 block mb-1 text-xs uppercase">Chi (Tháng)</span>
-              <span className="font-bold text-rose-400 text-base">-{new Intl.NumberFormat('vi-VN').format(totalSpentThisMonth)}</span>
-            </div>
-          </div>
-        </div>
-        
-        {/* Cashflow Chart Placeholder */}
-        <div className="md:col-span-2 bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col">
-          <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-emerald-500" /> Biểu đồ dòng tiền (Cash Flow)
-          </h3>
-          <div className="flex-1 bg-slate-50 rounded-2xl border border-dashed border-slate-200 flex items-center justify-center text-slate-400 relative overflow-hidden min-h-[120px]">
-             {/* Simple visual representation using SVG string */}
-             <div className="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHByZXNlcnZlQXNwZWN0UmF0aW89Im5vbmUiPjxwYXRoIGQ9Ik0wLDEwMCBDMjAsODAgNDAsMTAwIDYwLDYwIEM4MCwyMCAxMDAsNTAgMTIwLDgwIEwxMjAsMTAwIFoiIGZpbGw9IiMxMGI5ODEiLz48L3N2Zz4=')] bg-bottom bg-no-repeat bg-cover"></div>
-             <span className="relative z-10 font-medium text-sm">Dữ liệu biểu đồ đang được thu thập...</span>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* SPRINT 4: SPENDING INSIGHTS */}
-      {insights && insights.length > 0 && (
-        <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {insights.map(ins => (
-            <div key={ins.id} className={`p-4 rounded-2xl border shadow-sm transition-transform hover:scale-[1.02] ${ins.type === 'warning' ? 'bg-amber-50 border-amber-200' : ins.type === 'success' ? 'bg-emerald-50 border-emerald-200' : 'bg-blue-50 border-blue-200'}`}>
-              <h4 className={`font-bold text-sm mb-1 flex items-center gap-1.5 ${ins.type === 'warning' ? 'text-amber-800' : ins.type === 'success' ? 'text-emerald-800' : 'text-blue-800'}`}>
-                {ins.type === 'warning' ? '⚠️' : ins.type === 'success' ? '🌟' : '💡'} {ins.title}
-              </h4>
-              <p className="text-xs text-slate-600 leading-relaxed">{ins.description}</p>
-            </div>
-          ))}
-        </motion.div>
-      )}
 
       {/* CORE FINANCIAL OVERVIEW CARDS */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-3 gap-6">

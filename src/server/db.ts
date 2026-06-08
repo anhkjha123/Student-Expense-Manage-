@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { User, Expense, Budget, Notification, SavingGoal, Income, RecurringExpense } from '../types';
+import { User, Expense, Budget, Notification } from '../types';
 
 export interface DBUser extends User {
   passwordHash: string;
@@ -15,9 +15,6 @@ export interface Schema {
   expenses: Expense[];
   budgets: DBBudget[];
   notifications: Notification[];
-  savingGoals: SavingGoal[];
-  incomes: Income[];
-  recurringExpenses: RecurringExpense[];
 }
 
 const DB_DIR = path.join(process.cwd(), 'data');
@@ -258,10 +255,7 @@ function initDB() {
           date: '2026-06-01 09:15:00',
           read: false
         }
-      ],
-      savingGoals: [],
-      incomes: [],
-      recurringExpenses: []
+      ]
     };
     fs.writeFileSync(DB_FILE, JSON.stringify(initialSchema, null, 2), 'utf-8');
   }
@@ -278,7 +272,7 @@ export class Database {
       return JSON.parse(data) as Schema;
     } catch (e) {
       console.error('Lỗi khi đọc file database:', e);
-      return { users: [], expenses: [], budgets: [], notifications: [], savingGoals: [], incomes: [], recurringExpenses: [] };
+      return { users: [], expenses: [], budgets: [], notifications: [] };
     }
   }
 
@@ -371,78 +365,6 @@ export class Database {
     const schema = this.read();
     schema.notifications = notifs;
     this.write(schema);
-  }
-
-  // --- SAVING GOALS ---
-  public getSavingGoals(): SavingGoal[] {
-    return this.read().savingGoals || [];
-  }
-  public saveSavingGoal(goal: SavingGoal): void {
-    const schema = this.read();
-    if (!schema.savingGoals) schema.savingGoals = [];
-    const idx = schema.savingGoals.findIndex(g => g.id === goal.id);
-    if (idx >= 0) schema.savingGoals[idx] = goal;
-    else schema.savingGoals.push(goal);
-    this.write(schema);
-  }
-  public deleteSavingGoal(id: string): boolean {
-    const schema = this.read();
-    if (!schema.savingGoals) return false;
-    const len = schema.savingGoals.length;
-    schema.savingGoals = schema.savingGoals.filter(g => g.id !== id);
-    if (schema.savingGoals.length !== len) {
-      this.write(schema);
-      return true;
-    }
-    return false;
-  }
-
-  // --- INCOMES ---
-  public getIncomes(): Income[] {
-    return this.read().incomes || [];
-  }
-  public saveIncome(income: Income): void {
-    const schema = this.read();
-    if (!schema.incomes) schema.incomes = [];
-    const idx = schema.incomes.findIndex(i => i.id === income.id);
-    if (idx >= 0) schema.incomes[idx] = income;
-    else schema.incomes.push(income);
-    this.write(schema);
-  }
-  public deleteIncome(id: string): boolean {
-    const schema = this.read();
-    if (!schema.incomes) return false;
-    const len = schema.incomes.length;
-    schema.incomes = schema.incomes.filter(i => i.id !== id);
-    if (schema.incomes.length !== len) {
-      this.write(schema);
-      return true;
-    }
-    return false;
-  }
-
-  // --- RECURRING EXPENSES ---
-  public getRecurringExpenses(): RecurringExpense[] {
-    return this.read().recurringExpenses || [];
-  }
-  public saveRecurringExpense(recurring: RecurringExpense): void {
-    const schema = this.read();
-    if (!schema.recurringExpenses) schema.recurringExpenses = [];
-    const idx = schema.recurringExpenses.findIndex(r => r.id === recurring.id);
-    if (idx >= 0) schema.recurringExpenses[idx] = recurring;
-    else schema.recurringExpenses.push(recurring);
-    this.write(schema);
-  }
-  public deleteRecurringExpense(id: string): boolean {
-    const schema = this.read();
-    if (!schema.recurringExpenses) return false;
-    const len = schema.recurringExpenses.length;
-    schema.recurringExpenses = schema.recurringExpenses.filter(r => r.id !== id);
-    if (schema.recurringExpenses.length !== len) {
-      this.write(schema);
-      return true;
-    }
-    return false;
   }
 }
 
