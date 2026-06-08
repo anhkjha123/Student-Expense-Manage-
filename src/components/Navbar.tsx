@@ -10,7 +10,11 @@ import {
   BookOpen,
   Home,
   CheckCircle,
-  HelpCircle
+  HelpCircle,
+  Wallet,
+  Calendar,
+  Target,
+  Repeat
 } from 'lucide-react';
 import { User, Notification } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -43,8 +47,12 @@ export default function Navbar({
 
   const tabs = [
     { id: 'dashboard', name: 'Dashboard', icon: 'Activity' },
-    { id: 'history', name: 'Sổ Chi Tiêu', icon: 'List' },
+    { id: 'incomes', name: 'Thu Nhập', icon: 'Wallet' },
+    { id: 'history', name: 'Lịch Sử', icon: 'List' },
+    { id: 'calendar', name: 'Lịch', icon: 'Calendar' },
     { id: 'budget', name: 'Ngân Sách', icon: 'Settings' },
+    { id: 'goals', name: 'Mục Tiêu', icon: 'Target' },
+    { id: 'recurring', name: 'Định Kỳ', icon: 'Repeat' },
     { id: 'reports', name: 'Báo Cáo', icon: 'PieChart' },
   ];
 
@@ -102,10 +110,14 @@ export default function Navbar({
                 }`}
               >
                 {tab.id === 'dashboard' && <Home className="h-4 w-4" />}
+                {tab.id === 'incomes' && <Wallet className="h-4 w-4" />}
                 {tab.id === 'history' && <BookOpen className="h-4 w-4" />}
+                {tab.id === 'calendar' && <Calendar className="h-4 w-4" />}
                 {tab.id === 'budget' && <Settings className="h-4 w-4" />}
+                {tab.id === 'goals' && <Target className="h-4 w-4" />}
+                {tab.id === 'recurring' && <Repeat className="h-4 w-4" />}
                 {tab.id === 'reports' && <PieChart className="h-4 w-4" />}
-                {tab.name}
+                <span className="whitespace-nowrap">{tab.name}</span>
               </button>
             );
           })}
@@ -233,7 +245,7 @@ export default function Navbar({
       </div>
 
       {/* NAVIGATION MOBILE ROW */}
-      <div className="flex md:hidden border-t border-slate-100 bg-slate-50/50 justify-around py-1">
+      <div className="flex md:hidden border-t border-slate-100 bg-slate-50/50 overflow-x-auto gap-4 px-4 py-2 shrink-0">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
@@ -244,11 +256,15 @@ export default function Navbar({
                 isActive ? 'text-emerald-600 font-bold scale-105' : 'text-slate-500'
               }`}
             >
-              {tab.id === 'dashboard' && <Home className="h-4.5 w-4.5" />}
-              {tab.id === 'history' && <BookOpen className="h-4.5 w-4.5" />}
-              {tab.id === 'budget' && <Settings className="h-4.5 w-4.5" />}
-              {tab.id === 'reports' && <PieChart className="h-4.5 w-4.5" />}
-              <span>{tab.name}</span>
+              {tab.id === 'dashboard' && <Home className="h-4.5 w-4.5 shrink-0" />}
+              {tab.id === 'incomes' && <Wallet className="h-4.5 w-4.5 shrink-0" />}
+              {tab.id === 'history' && <BookOpen className="h-4.5 w-4.5 shrink-0" />}
+              {tab.id === 'calendar' && <Calendar className="h-4.5 w-4.5 shrink-0" />}
+              {tab.id === 'budget' && <Settings className="h-4.5 w-4.5 shrink-0" />}
+              {tab.id === 'goals' && <Target className="h-4.5 w-4.5 shrink-0" />}
+              {tab.id === 'recurring' && <Repeat className="h-4.5 w-4.5 shrink-0" />}
+              {tab.id === 'reports' && <PieChart className="h-4.5 w-4.5 shrink-0" />}
+              <span className="whitespace-nowrap">{tab.name}</span>
             </button>
           );
         })}

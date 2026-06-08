@@ -6,6 +6,11 @@ import { authController, authMiddleware } from './src/server/auth';
 import { expensesController } from './src/server/expenses';
 import { budgetsController } from './src/server/budgets';
 import { reportsController } from './src/server/reports';
+import { savingGoalsController } from './src/server/savingGoals';
+import { incomesController } from './src/server/incomes';
+import { walletController } from './src/server/wallet';
+import { insightsController } from './src/server/insights';
+import { recurringController } from './src/server/recurring';
 
 async function startServer() {
   const app = express();
@@ -39,6 +44,29 @@ async function startServer() {
   // 5. PDF & Excel Exports (Sprint 3)
   app.get('/api/reports/export/pdf', authMiddleware as any, reportsController.exportPDF);     // S3-15
   app.get('/api/reports/export/excel', authMiddleware as any, reportsController.exportExcel); // S3-16
+
+  // 6. Sprint 4 APIs
+  app.get('/api/saving-goals', authMiddleware as any, savingGoalsController.getSavingGoals);
+  app.post('/api/saving-goals', authMiddleware as any, savingGoalsController.createSavingGoal);
+  app.put('/api/saving-goals/:id', authMiddleware as any, savingGoalsController.updateSavingGoal);
+  app.delete('/api/saving-goals/:id', authMiddleware as any, savingGoalsController.deleteSavingGoal);
+  app.get('/api/saving-goals/:id/progress', authMiddleware as any, savingGoalsController.getProgress);
+
+  app.get('/api/incomes', authMiddleware as any, incomesController.getIncomes);
+  app.post('/api/incomes', authMiddleware as any, incomesController.createIncome);
+  app.put('/api/incomes/:id', authMiddleware as any, incomesController.updateIncome);
+  app.delete('/api/incomes/:id', authMiddleware as any, incomesController.deleteIncome);
+
+  app.get('/api/wallet/balance', authMiddleware as any, walletController.getBalance);
+  app.get('/api/wallet/cashflow', authMiddleware as any, walletController.getCashFlow);
+
+  app.get('/api/insights', authMiddleware as any, insightsController.getInsights);
+
+  app.get('/api/recurring-expenses', authMiddleware as any, recurringController.getRecurringExpenses);
+  app.post('/api/recurring-expenses', authMiddleware as any, recurringController.createRecurringExpense);
+  app.put('/api/recurring-expenses/:id', authMiddleware as any, recurringController.updateRecurringExpense);
+  app.delete('/api/recurring-expenses/:id', authMiddleware as any, recurringController.deleteRecurringExpense);
+  app.post('/api/recurring-expenses/process', authMiddleware as any, recurringController.processRecurring);
 
   // Bộ định tuyến kiểm tra tình trạng máy chủ
   app.get('/api/health', (req: Request, res: Response) => {

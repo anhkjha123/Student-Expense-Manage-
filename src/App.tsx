@@ -4,7 +4,11 @@ import {
   Expense, 
   Category, 
   Budget, 
-  Notification 
+  Notification,
+  Income,
+  SavingGoal,
+  RecurringExpense,
+  SpendingInsight
 } from './types';
 import { 
   DEFAULT_CATEGORIES, 
@@ -25,6 +29,10 @@ import BudgetSettings from './components/BudgetSettings';
 import Reports from './components/Reports';
 import AddExpenseModal from './components/AddExpenseModal';
 import LoginRegister from './components/LoginRegister';
+import SavingGoals from './components/SavingGoals';
+import Incomes from './components/Incomes';
+import CalendarView from './components/CalendarView';
+import RecurringExpenses from './components/RecurringExpenses';
 
 export default function App() {
   // --- CORE STATE ---
@@ -32,6 +40,10 @@ export default function App() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [incomes, setIncomes] = useState<Income[]>([]);
+  const [savingGoals, setSavingGoals] = useState<SavingGoal[]>([]);
+  const [recurringExpenses, setRecurringExpenses] = useState<RecurringExpense[]>([]);
+  const [insights, setInsights] = useState<SpendingInsight[]>([]);
   
   // App views & UI Controls
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -267,6 +279,17 @@ export default function App() {
         setExpenses(finalExpenses);
         setBudgets(finalBudgets);
         
+        // SPRINT 4: Load additional entities
+        Promise.all([
+          ApiService.getIncomes(),
+          ApiService.getSavingGoals(),
+          ApiService.getRecurringExpenses()
+        ]).then(([incs, goals, recurrings]) => {
+          setIncomes(incs || []);
+          setSavingGoals(goals || []);
+          setRecurringExpenses(recurrings || []);
+        }).catch(err => console.warn("Failed to load aux data:", err));
+
         // Lưu lại dữ liệu hợp nhất vào LocalStorage
         localStorage.setItem(userExpensesKey, JSON.stringify(finalExpenses));
         localStorage.setItem(userBudgetsKey, JSON.stringify(finalBudgets));
@@ -687,9 +710,97 @@ export default function App() {
               categories={DEFAULT_CATEGORIES}
               budgets={budgets}
               notifications={notifications}
+              incomes={incomes}
+              insights={insights}
               onOpenAddExpense={() => setIsAddExpenseOpen(true)}
               setActiveTab={setActiveTab}
               onEditExpense={(expense) => setEditingExpense(expense)}
+            />
+          )}
+
+          {activeTab === 'incomes' && (
+            <Incomes
+              user={currentUser}
+              incomes={incomes}
+              onAddIncome={async (inc) => {
+                const tempId = `inc_added_${Date.now()}`;
+                const localInc = { ...inc, id: tempId, userId: currentUser.id };
+                setIncomes([localInc, ...incomes]);
+                if (localStorage.getItem('sem_guest_mode') !== 'true') {
+                  try {
+                    const created = await ApiService.createIncome(inc);
+                    setIncomes(prev => prev.map(i => i.id === tempId ? created : i));
+                  } catch (e) { console.warn('Failed to sync income', e); }
+                }
+              }}
+              onDeleteIncome={async (id) => {
+                setIncomes(incomes.filter(i => i.id !== id));
+                if (localStorage.getItem('sem_guest_mode') !== 'true') {
+                  try { await ApiService.deleteIncome(id); } catch(e) {}
+                }
+              }}
+            />
+          )}
+
+          {activeTab === 'goals' && (
+            <SavingGoals
+              user={currentUser}
+              savingGoals={savingGoals}
+              onAddGoal={async (goal) => {
+                const tempId = `sg_added_${Date.now()}`;
+                const localGoal = { ...goal, id: tempId, userId: currentUser.id };
+                setSavingGoals([localGoal, ...savingGoals]);
+                if (localStorage.getItem('sem_guest_mode') !== 'true') {
+                  try {
+                    const created = await ApiService.createSavingGoal(goal);
+                    setSavingGoals(prev => prev.map(g => g.id === tempId ? created : g));
+                  } catch (e) { console.warn('Failed to sync goal', e); }
+                }
+              }}
+              onDeleteGoal={async (id) => {
+                setSavingGoals(savingGoals.filter(g => g.id !== id));
+                if (localStorage.getItem('sem_guest_mode') !== 'true') {
+                  try { await ApiService.deleteSavingGoal(id); } catch(e) {}
+                }
+              }}
+            />
+          )}
+
+          {activeTab === 'calendar' && (
+            <CalendarView
+              expenses={expenses}
+              categories={DEFAULT_CATEGORIES}
+            />
+          )}
+
+          {activeTab === 'recurring' && (
+            <RecurringExpenses
+              user={currentUser}
+              categories={DEFAULT_CATEGORIES}
+              recurringExpenses={recurringExpenses}
+              onAddRecurring={async (rec) => {
+                const tempId = `rec_added_${Date.now()}`;
+                const localRec = { ...rec, id: tempId, userId: currentUser.id };
+                setRecurringExpenses([localRec, ...recurringExpenses]);
+                if (localStorage.getItem('sem_guest_mode') !== 'true') {
+                  try {
+                    const created = await ApiService.createRecurringExpense(rec);
+                    setRecurringExpenses(prev => prev.map(r => r.id === tempId ? created : r));
+                  } catch (e) { console.warn('Failed to sync recurring expense', e); }
+                }
+              }}
+              onDeleteRecurring={async (id) => {
+                setRecurringExpenses(recurringExpenses.filter(r => r.id !== id));
+                if (localStorage.getItem('sem_guest_mode') !== 'true') {
+                  try { await ApiService.deleteRecurringExpense(id); } catch(e) {}
+                }
+              }}
+              onToggleActive={async (id, currentStatus) => {
+                setRecurringExpenses(recurringExpenses.map(r => r.id === id ? { ...r, isActive: !currentStatus } : r));
+                if (localStorage.getItem('sem_guest_mode') !== 'true') {
+                  try { await ApiService.updateRecurringExpense(id, { isActive: !currentStatus }); } catch(e) {}
+                }
+              }}
             />
           )}
 
