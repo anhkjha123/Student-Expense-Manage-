@@ -274,7 +274,7 @@ export default function Dashboard({
         {/* Wallet Balance Box */}
         <motion.div 
           whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
-          className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-500 to-teal-600 p-5 shadow-sm relative overflow-hidden transition-all duration-300 text-white"
+          className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-500 to-teal-600 p-5 shadow-sm relative transition-all duration-300 text-white"
         >
           <div className="flex justify-between items-start relative z-10">
             <div className="space-y-1">
@@ -295,7 +295,7 @@ export default function Dashboard({
 
           {/* Thu / Chi row with hover tooltips */}
           <div className="flex justify-between text-[10px] text-emerald-50 font-semibold mt-4 pt-3 border-t border-emerald-400/50 relative z-10 gap-2">
-            {/* THU tooltip */}
+            {/* THU tooltip - simplified: 2 operands only */}
             <div
               className="relative cursor-help flex items-center gap-0.5"
               onMouseEnter={() => setTooltipVisible('income')}
@@ -304,32 +304,28 @@ export default function Dashboard({
               <span>Thu: +{new Intl.NumberFormat('vi-VN').format(totalIncome)}đ</span>
               <Info className="h-2.5 w-2.5 text-emerald-200" />
               {tooltipVisible === 'income' && (
-                <div className="absolute bottom-full left-0 mb-2 w-64 bg-slate-900/95 backdrop-blur-sm text-white rounded-xl p-3 shadow-2xl border border-white/10 text-[10px] leading-relaxed z-50 pointer-events-none">
-                  <div className="font-bold text-emerald-300 mb-2 text-xs">📥 Phân tích Thu nhập tháng</div>
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between">
-                      <span className="text-slate-300">Thu nhập cố định (ngân sách):</span>
-                      <span className="font-mono text-emerald-400">+{new Intl.NumberFormat('vi-VN').format(user.monthlyIncome)}đ</span>
+                <div className="absolute bottom-full left-0 mb-3 w-72 bg-slate-900 text-white rounded-2xl p-4 shadow-2xl border border-white/10 text-[11px] leading-relaxed z-[999] pointer-events-none">
+                  <div className="font-bold text-emerald-300 mb-3 text-xs tracking-wide">📥 Phân tích Thu tháng này</div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-300">Thu nhập hàng tháng (cố định):</span>
+                      <span className="font-mono font-bold text-emerald-400">+{new Intl.NumberFormat('vi-VN').format(user.monthlyIncome)}đ</span>
                     </div>
-                    {variableIncomes.length > 0 ? variableIncomes.map(inc => (
-                      <div key={inc.id} className="flex justify-between">
-                        <span className="text-slate-300 truncate max-w-[140px]">{inc.note || (inc.source === 'SCHOLARSHIP' ? 'Học bổng' : inc.source === 'PART_TIME' ? 'Làm thêm' : inc.source === 'FAMILY' ? 'Gia đình' : 'Khác')}:</span>
-                        <span className="font-mono text-emerald-400">+{new Intl.NumberFormat('vi-VN').format(inc.amount)}đ</span>
-                      </div>
-                    )) : (
-                      <div className="text-slate-400 italic">Không có thu nhập biến động tháng này</div>
-                    )}
-                    <div className="border-t border-white/10 pt-1.5 flex justify-between font-bold">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-300">Khoản thu không cố định:</span>
+                      <span className="font-mono font-bold text-emerald-400">+{new Intl.NumberFormat('vi-VN').format(variableIncomeTotal)}đ</span>
+                    </div>
+                    <div className="border-t border-slate-700 pt-2 flex justify-between items-center font-bold text-sm">
                       <span className="text-white">= Tổng thu:</span>
                       <span className="font-mono text-emerald-300">+{new Intl.NumberFormat('vi-VN').format(totalIncome)}đ</span>
                     </div>
                   </div>
-                  <div className="absolute bottom-[-4px] left-4 w-2 h-2 bg-slate-900 rotate-45 border-r border-b border-white/10" />
+                  <div className="absolute -bottom-[5px] left-4 w-2.5 h-2.5 bg-slate-900 rotate-45 border-r border-b border-white/10" />
                 </div>
               )}
             </div>
 
-            {/* CHI tooltip */}
+            {/* CHI tooltip - simplified: 2 operands only */}
             <div
               className="relative cursor-help flex items-center gap-0.5"
               onMouseEnter={() => setTooltipVisible('expense')}
@@ -338,32 +334,23 @@ export default function Dashboard({
               <Info className="h-2.5 w-2.5 text-emerald-200" />
               <span>Chi: -{new Intl.NumberFormat('vi-VN').format(totalSpentThisMonth)}đ</span>
               {tooltipVisible === 'expense' && (
-                <div className="absolute bottom-full right-0 mb-2 w-64 bg-slate-900/95 backdrop-blur-sm text-white rounded-xl p-3 shadow-2xl border border-white/10 text-[10px] leading-relaxed z-50 pointer-events-none">
-                  <div className="font-bold text-red-300 mb-2 text-xs">📤 Phân tích Chi tiêu tháng</div>
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between">
+                <div className="absolute bottom-full right-0 mb-3 w-72 bg-slate-900 text-white rounded-2xl p-4 shadow-2xl border border-white/10 text-[11px] leading-relaxed z-[999] pointer-events-none">
+                  <div className="font-bold text-red-300 mb-3 text-xs tracking-wide">📤 Phân tích Chi tháng này</div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
                       <span className="text-slate-300">Chi tiêu thông thường:</span>
-                      <span className="font-mono text-red-400">-{new Intl.NumberFormat('vi-VN').format(loggedExpenseTotal)}đ</span>
+                      <span className="font-mono font-bold text-red-400">-{new Intl.NumberFormat('vi-VN').format(loggedExpenseTotal)}đ</span>
                     </div>
-                    {recurringThisMonth.items.length > 0 ? (
-                      <>
-                        <div className="text-slate-400 text-[9px] pt-0.5">Chi tiêu định kỳ:</div>
-                        {recurringThisMonth.items.map((item, idx) => (
-                          <div key={idx} className="flex justify-between pl-2">
-                            <span className="text-slate-300 truncate max-w-[140px]">🔄 {item.title}:</span>
-                            <span className="font-mono text-red-400">-{new Intl.NumberFormat('vi-VN').format(item.amount)}đ</span>
-                          </div>
-                        ))}
-                      </>
-                    ) : (
-                      <div className="text-slate-400 italic">Không có chi tiêu định kỳ tháng này</div>
-                    )}
-                    <div className="border-t border-white/10 pt-1.5 flex justify-between font-bold">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-300">Chi tiêu định kỳ:</span>
+                      <span className="font-mono font-bold text-red-400">-{new Intl.NumberFormat('vi-VN').format(recurringThisMonth.total)}đ</span>
+                    </div>
+                    <div className="border-t border-slate-700 pt-2 flex justify-between items-center font-bold text-sm">
                       <span className="text-white">= Tổng chi:</span>
                       <span className="font-mono text-red-300">-{new Intl.NumberFormat('vi-VN').format(totalSpentThisMonth)}đ</span>
                     </div>
                   </div>
-                  <div className="absolute bottom-[-4px] right-4 w-2 h-2 bg-slate-900 rotate-45 border-r border-b border-white/10" />
+                  <div className="absolute -bottom-[5px] right-4 w-2.5 h-2.5 bg-slate-900 rotate-45 border-r border-b border-white/10" />
                 </div>
               )}
             </div>
