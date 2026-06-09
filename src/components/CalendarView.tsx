@@ -31,8 +31,9 @@ export default function CalendarView({ expenses, categories }: CalendarViewProps
     return expenses.filter(e => e.date === dateStr);
   };
 
-  const getDayColor = (totalAmount: number) => {
+  const getDayColor = (totalAmount: number, hasRecurring: boolean) => {
     if (totalAmount === 0) return 'bg-white border-slate-100 hover:border-slate-300';
+    if (hasRecurring) return 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100';
     if (totalAmount < 100000) return 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100';
     if (totalAmount <= 500000) return 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100';
     return 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100';
@@ -74,6 +75,7 @@ export default function CalendarView({ expenses, categories }: CalendarViewProps
             
             {days.map(day => {
               const dayExpenses = getExpensesForDay(day);
+              const hasRecurring = dayExpenses.some(e => e.note?.includes('recurring cycle') || e.title.includes('(Auto)'));
               const totalAmount = dayExpenses.reduce((sum, e) => sum + e.amount, 0);
               const isSelected = selectedDateStr === `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
               
@@ -81,9 +83,14 @@ export default function CalendarView({ expenses, categories }: CalendarViewProps
                 <div 
                   key={day} 
                   onClick={() => handleDayClick(day)}
-                  className={`aspect-square rounded-xl border p-1 cursor-pointer transition-all flex flex-col justify-between ${getDayColor(totalAmount)} ${isSelected ? 'ring-2 ring-emerald-500 ring-offset-2' : ''}`}
+                  className={`aspect-square rounded-xl border p-1 cursor-pointer transition-all flex flex-col justify-between ${getDayColor(totalAmount, hasRecurring)} ${isSelected ? (hasRecurring ? 'ring-2 ring-blue-500 ring-offset-2' : 'ring-2 ring-emerald-500 ring-offset-2') : ''}`}
                 >
-                  <span className="text-xs font-bold pl-1">{day}</span>
+                  <div className="flex justify-between items-center w-full px-1">
+                    <span className="text-xs font-bold">{day}</span>
+                    {hasRecurring && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse animate-duration-1000" title="Có chi tiêu định kỳ"></span>
+                    )}
+                  </div>
                   {totalAmount > 0 && (
                     <span className="text-[9px] font-semibold text-center leading-tight truncate px-0.5 pb-0.5">
                       {totalAmount >= 1000000 ? `${(totalAmount/1000000).toFixed(1)}M` : `${totalAmount/1000}k`}
@@ -98,6 +105,7 @@ export default function CalendarView({ expenses, categories }: CalendarViewProps
             <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-emerald-100 border border-emerald-200"></div> &lt; 100k</div>
             <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-amber-100 border border-amber-200"></div> 100k - 500k</div>
             <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-red-100 border border-red-200"></div> &gt; 500k</div>
+            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-blue-100 border border-blue-200"></div> Định kỳ</div>
           </div>
         </div>
 
@@ -113,8 +121,9 @@ export default function CalendarView({ expenses, categories }: CalendarViewProps
                 <div className="space-y-4">
                   {selectedExpenses.map(exp => {
                     const cat = categories.find(c => c.id === exp.categoryId);
+                    const isRecurring = exp.note?.includes('recurring cycle') || exp.title.includes('(Auto)');
                     return (
-                      <div key={exp.id} className="flex justify-between items-start border-l-2 border-emerald-500 pl-3">
+                      <div key={exp.id} className={`flex justify-between items-start border-l-2 ${isRecurring ? 'border-blue-500' : 'border-emerald-500'} pl-3`}>
                         <div>
                           <p className="text-sm font-semibold text-slate-800">{exp.title}</p>
                           <p className="text-[10px] text-slate-500">{cat?.name || 'Khác'} {exp.note ? `- ${exp.note}` : ''}</p>

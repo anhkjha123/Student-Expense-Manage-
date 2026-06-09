@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Target, Plus, TrendingUp, Calendar, AlertTriangle, CheckCircle } from 'lucide-react';
 import { SavingGoal, User } from '../types';
 import { ApiService } from '../lib/api';
+import { motion } from 'motion/react';
 
 interface SavingGoalsProps {
   user: User;
@@ -139,7 +140,11 @@ export default function SavingGoals({ user }: SavingGoalsProps) {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8"
+    >
       <div className="flex justify-between items-end mb-8">
         <div>
           <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
@@ -233,6 +238,6 @@ export default function SavingGoals({ user }: SavingGoalsProps) {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

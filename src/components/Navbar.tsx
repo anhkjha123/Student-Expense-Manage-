@@ -112,8 +112,8 @@ export default function Navbar({
                         : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }`}
                   >
-                    {activeTab === 'recurring' ? <Repeat className="h-4 w-4" /> : <BookOpen className="h-4 w-4" />}
-                    {activeTab === 'recurring' ? 'Chi Định Kỳ' : tab.name}
+                    <BookOpen className="h-4 w-4" />
+                    {tab.name}
                   </button>
                   {/* Dropdown Menu on Hover */}
                   <div className="absolute left-0 mt-1 hidden group-hover:block bg-white border border-slate-100 rounded-xl shadow-lg p-2 min-w-[150px] z-50">
@@ -309,15 +309,13 @@ export default function Navbar({
               }`}
             >
               {tab.id === 'dashboard' && <Home className="h-4.5 w-4.5" />}
-              {tab.id === 'history' && (
-                activeTab === 'recurring' ? <Repeat className="h-4.5 w-4.5" /> : <BookOpen className="h-4.5 w-4.5" />
-              )}
+              {tab.id === 'history' && <BookOpen className="h-4.5 w-4.5" />}
               {tab.id === 'budget' && <Settings className="h-4.5 w-4.5" />}
               {tab.id === 'reports' && <PieChart className="h-4.5 w-4.5" />}
               {tab.id === 'incomes' && <DollarSign className="h-4.5 w-4.5" />}
               {tab.id === 'saving-goals' && <Target className="h-4.5 w-4.5" />}
               {tab.id === 'calendar' && <Calendar className="h-4.5 w-4.5" />}
-              <span>{tab.id === 'history' && activeTab === 'recurring' ? 'Định kỳ' : tab.name}</span>
+              <span>{tab.name}</span>
             </button>
           );
         })}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DollarSign, Plus, Download, Filter } from 'lucide-react';
 import { Income, User } from '../types';
+import { motion } from 'motion/react';
 
 interface IncomesProps {
   user: User;
@@ -141,7 +142,11 @@ export default function Incomes({ user }: IncomesProps) {
   }).filter(s => s.total > 0);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8"
+    >
       <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
@@ -270,6 +275,6 @@ export default function Incomes({ user }: IncomesProps) {
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
