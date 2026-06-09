@@ -5,6 +5,17 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
 
 ---
 
+### [v4.1.0] - 2026-06-09
+#### 🔧 Vercel Deployment & Wallet Balance Fixes
+*   **Vercel Deployment Fix (`vercel.json`):**
+    *   Cấu hình explicit static build sử dụng `@vercel/static-build` và chuyển thư mục phân phối tĩnh `distDir` thành `"dist"`. Tránh việc Vercel phục vụ thư mục gốc chưa biên dịch làm sập ứng dụng (màn hình trắng do lỗi cú pháp TSX ở phía Client).
+*   **Fix lỗi sập màn hình sau Login (Dashboard crash fix):**
+    *   Tự động tính toán biến dữ liệu dòng tiền `cashflow` và báo cáo phân tích chi tiêu `insights` cục bộ ở phía Client sử dụng React `useMemo` dựa trên dữ liệu giao dịch thực tế thay vì gọi các API bị chặn trên máy chủ tĩnh. Khắc phục hoàn toàn lỗi sập ứng dụng (`ReferenceError: insights is not defined`) ngay sau khi đăng nhập.
+*   **Tách biệt chi tiêu định kỳ khỏi số dư ví:**
+    *   Cập nhật biến `loggedExpenseTotal` (Chi tiêu thông thường) tại Dashboard tự động lọc bỏ các khoản chi tiêu có tag định kỳ (`isRecurring: true`), giúp tránh việc cộng dồn lặp hai lần khi tính số dư ví thực tế.
+
+---
+
 ### [v4.0.0] - 2026-06-09
 #### 🌟 Tính năng mới Sprint 4 (Savings, Incomes, Calendar & Recurring)
 *   **Mục tiêu tiết kiệm (Saving Goals):** 
