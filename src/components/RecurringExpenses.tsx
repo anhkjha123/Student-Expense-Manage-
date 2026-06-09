@@ -27,6 +27,7 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
 
   const loadRecs = async () => {
     setIsLoading(true);
+    const localRecsKey = `sem_${user.id}_recurring_expenses`;
     try {
       const res = await fetch('/api/recurring-expenses', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('sem_token')}` }
@@ -34,15 +35,46 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
       if (res.ok) {
         const data = await res.json();
         setRecs(data);
+        localStorage.setItem(localRecsKey, JSON.stringify(data));
+      } else {
+        throw new Error('API load failed');
       }
     } catch (e) {
-      console.error(e);
+      console.warn("API load recurring expenses failed, using local fallback:", e);
+      const stored = localStorage.getItem(localRecsKey);
+      if (stored) {
+        setRecs(JSON.parse(stored));
+      }
     }
     setIsLoading(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const localRecsKey = `sem_${user.id}_recurring_expenses`;
+    
+    // Calculate repeatOn locally
+    const dateObj = new Date(formData.startDate);
+    let repeatOn = '';
+    if (formData.cycle === 'MONTHLY') {
+      repeatOn = `Ngày ${dateObj.getDate()} hàng tháng`;
+    } else {
+      const weekdays = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+      repeatOn = `${weekdays[dateObj.getDay()]} hàng tuần`;
+    }
+
+    const newRec: RecurringExpense = {
+      id: `rec_added_${Date.now()}`,
+      userId: user.id,
+      amount: Number(formData.amount),
+      categoryId: formData.categoryId,
+      title: formData.title,
+      cycle: formData.cycle as any,
+      startDate: formData.startDate,
+      note: formData.note,
+      repeatOn
+    };
+
     try {
       const res = await fetch('/api/recurring-expenses', {
         method: 'POST',
@@ -51,26 +83,37 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
           'Authorization': `Bearer ${localStorage.getItem('sem_token')}`
         },
         body: JSON.stringify({
-          title: formData.title,
-          amount: Number(formData.amount),
-          categoryId: formData.categoryId,
-          cycle: formData.cycle,
-          startDate: formData.startDate,
-          note: formData.note
+          title: newRec.title,
+          amount: newRec.amount,
+          categoryId: newRec.categoryId,
+          cycle: newRec.cycle,
+          startDate: newRec.startDate,
+          note: newRec.note,
+          repeatOn: newRec.repeatOn
         })
       });
       if (res.ok) {
         setShowForm(false);
         setFormData({ ...formData, title: '', amount: '', note: '' });
         loadRecs();
+      } else {
+        throw new Error('API save failed');
       }
     } catch (e) {
-      console.error(e);
+      console.warn("Saving recurring expense offline locally:", e);
+      const stored = localStorage.getItem(localRecsKey);
+      const list = stored ? JSON.parse(stored) : [];
+      const updated = [newRec, ...list];
+      localStorage.setItem(localRecsKey, JSON.stringify(updated));
+      setShowForm(false);
+      setFormData({ ...formData, title: '', amount: '', note: '' });
+      loadRecs();
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Bạn có chắc muốn hủy bỏ khoản chi định kỳ này?')) return;
+    const localRecsKey = `sem_${user.id}_recurring_expenses`;
     try {
       const res = await fetch(`/api/recurring-expenses/${id}`, {
         method: 'DELETE',
@@ -78,9 +121,18 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
       });
       if (res.ok) {
         loadRecs();
+      } else {
+        throw new Error('API delete failed');
       }
     } catch (e) {
-      console.error(e);
+      console.warn("Deleting recurring expense offline locally:", e);
+      const stored = localStorage.getItem(localRecsKey);
+      if (stored) {
+        const list = JSON.parse(stored) as RecurringExpense[];
+        const updated = list.filter(r => r.id !== id);
+        localStorage.setItem(localRecsKey, JSON.stringify(updated));
+        loadRecs();
+      }
     }
   };
 
@@ -166,7 +218,7 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
                   </div>
                   <div className="flex gap-2">
                     <span className="text-[10px] font-bold px-2 py-1 bg-slate-100 text-slate-600 rounded-md">
-                      {item.cycle === 'MONTHLY' ? 'Mỗi tháng' : 'Mỗi tuần'}
+                      {item.repeatOn || (item.cycle === 'MONTHLY' ? 'Mỗi tháng' : 'Mỗi tuần')}
                     </span>
                     <span className="text-[10px] font-semibold px-2 py-1 bg-blue-50 text-blue-600 rounded-md flex items-center gap-1">
                       <Calendar className="h-3 w-3" /> Từ {item.startDate.split('-').reverse().join('/')}

@@ -429,9 +429,84 @@ export default function App() {
     if (!currentUser) return;
 
     const { recurringCycle, ...newExpenseData } = newExpenseInput;
-
-    let createdExpense: Expense;
     const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+
+    // --- AUTOMATIC RECURRING EXPENSE REGISTRATION ONLY ---
+    if (recurringCycle && recurringCycle !== 'NONE') {
+      const dateObj = new Date(newExpenseData.date);
+      let repeatOn = '';
+      if (recurringCycle === 'MONTHLY') {
+        repeatOn = `Ngày ${dateObj.getDate()} hàng tháng`;
+      } else {
+        const weekdays = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+        repeatOn = `${weekdays[dateObj.getDay()]} hàng tuần`;
+      }
+
+      const newRec: RecurringExpense = {
+        id: `rec_added_${Date.now()}`,
+        userId: currentUser.id,
+        amount: Number(newExpenseData.amount),
+        categoryId: newExpenseData.categoryId,
+        title: newExpenseData.title,
+        cycle: recurringCycle,
+        startDate: newExpenseData.date,
+        note: newExpenseData.note,
+        repeatOn
+      };
+
+      if (isGuest) {
+        const localRecsKey = `sem_${currentUser.id}_recurring_expenses`;
+        const stored = localStorage.getItem(localRecsKey);
+        const list = stored ? JSON.parse(stored) : [];
+        const updated = [newRec, ...list];
+        localStorage.setItem(localRecsKey, JSON.stringify(updated));
+      } else {
+        try {
+          await fetch('/api/recurring-expenses', {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('sem_token')}`
+            },
+            body: JSON.stringify({
+              title: newRec.title,
+              amount: newRec.amount,
+              categoryId: newRec.categoryId,
+              cycle: newRec.cycle,
+              startDate: newRec.startDate,
+              note: newRec.note,
+              repeatOn: newRec.repeatOn
+            })
+          });
+        } catch (err) {
+          console.error("Failed to call recurring-expenses API:", err);
+          const localRecsKey = `sem_${currentUser.id}_recurring_expenses`;
+          const stored = localStorage.getItem(localRecsKey);
+          const list = stored ? JSON.parse(stored) : [];
+          const updated = [newRec, ...list];
+          localStorage.setItem(localRecsKey, JSON.stringify(updated));
+        }
+      }
+
+      const recurringNotif: Notification = {
+        id: `notif_sys_${Date.now()}_rec`,
+        userId: currentUser.id,
+        type: 'success',
+        title: 'Chi tiêu định kỳ mới!',
+        message: `Khoản chi "${newExpenseData.title}" đã được thiết lập tự động lặp lại ${recurringCycle === 'WEEKLY' ? 'hàng tuần' : 'hàng tháng'}.`,
+        date: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        read: false
+      };
+      setNotifications(prev => {
+        const updated = [recurringNotif, ...prev];
+        localStorage.setItem(`sem_${currentUser.id}_notifs`, JSON.stringify(updated));
+        return updated;
+      });
+      return;
+    }
+
+    // --- NORMAL EXPENSE (DO NOT REPEAT) ---
+    let createdExpense: Expense;
     
     if (isGuest) {
       createdExpense = {
@@ -486,46 +561,6 @@ export default function App() {
 
     const nextExpensesList = [createdExpense, ...expenses];
     saveExpenses(nextExpensesList);
-
-    // --- AUTOMATIC RECURRING EXPENSE REGISTRATION ---
-    if (recurringCycle && recurringCycle !== 'NONE' && !isGuest) {
-      try {
-        fetch('/api/recurring-expenses', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('sem_token')}`
-          },
-          body: JSON.stringify({
-            title: newExpenseData.title,
-            amount: Number(newExpenseData.amount),
-            categoryId: newExpenseData.categoryId,
-            cycle: recurringCycle,
-            startDate: newExpenseData.date,
-            note: newExpenseData.note
-          })
-        }).then(res => {
-          if (res.ok) {
-            const recurringNotif: Notification = {
-              id: `notif_sys_${Date.now()}_rec`,
-              userId: currentUser.id,
-              type: 'success',
-              title: 'Chi tiêu định kỳ mới!',
-              message: `Khoản chi "${newExpenseData.title}" đã được thiết lập tự động lặp lại ${recurringCycle === 'WEEKLY' ? 'hàng tuần' : 'hàng tháng'}.`,
-              date: new Date().toISOString().replace('T', ' ').substring(0, 19),
-              read: false
-            };
-            setNotifications(prev => {
-              const updated = [recurringNotif, ...prev];
-              localStorage.setItem(`sem_${currentUser.id}_notifs`, JSON.stringify(updated));
-              return updated;
-            });
-          }
-        }).catch(err => console.error("Failed to call recurring-expenses API:", err));
-      } catch (err) {
-        console.error("Failed to trigger recurring-expenses registration:", err);
-      }
-    }
 
     // --- KIỂM TRA HẠN MỨC NGAY LẬP TỨC (Real-time target breach monitoring) ---
     const categoryId = newExpenseData.categoryId;

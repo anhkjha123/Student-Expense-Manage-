@@ -82,4 +82,5 @@ export interface RecurringExpense {
   cycle: 'MONTHLY' | 'WEEKLY';
   startDate: string;
   note?: string;
+  repeatOn?: string;
 }

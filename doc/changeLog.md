@@ -18,7 +18,12 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
     *   Hỗ trợ bấm chọn ngày để kiểm tra danh sách chi tiết các giao dịch tương ứng.
 *   **Chi tiêu định kỳ & Nhập chi tiêu lặp lại (Recurring Expenses):**
     *   Thêm tab cấu hình các khoản chi cố định hàng tuần/tháng (như tiền nhà, mạng internet).
-    *   **Dropdown định kỳ trong biểu mẫu nhập nhanh:** Cung cấp hộp chọn "Chi tiêu định kỳ (Lặp lại)" (Không lặp lại, Lặp lại hàng tuần, Lặp lại hàng tháng) ngay tại `AddExpenseModal` khi tạo khoản chi mới. Khi lưu, hệ thống tự động ghi nhận giao dịch hiện tại đồng thời thiết lập mẫu chi tiêu định kỳ tương ứng để tự động sinh hóa đơn trong tương lai.
+    *   **Dropdown định kỳ trong biểu mẫu nhập nhanh:** Cung cấp hộp chọn "Chi tiêu định kỳ (Lặp lại)" (Không lặp lại, Lặp lại hàng tuần, Lặp lại hàng tháng) ngay tại `AddExpenseModal` khi tạo khoản chi mới.
+    *   **Phân luồng ghi nhận dữ liệu định kỳ:**
+        *   *Không lặp lại:* Chỉ ghi nhận giao dịch hiện tại vào Lịch sử chi tiêu (normal Expense).
+        *   *Lặp lại (Tuần/Tháng):* Chỉ tạo cấu hình trong danh sách Chi tiêu định kỳ (Recurring Expense) để tự động sinh hóa đơn trong tương lai, không ghi nhận giao dịch chi tiêu lập tức vào lịch sử.
+    *   **Thuộc tính Lặp lại theo ngày/thứ (`repeatOn`):** Thêm thuộc tính mới `repeatOn` (kiểu chuỗi chứa chữ "tháng" hoặc "tuần" tương ứng, ví dụ: `"Ngày 15 hàng tháng"`, `"Thứ Hai hàng tuần"`) được tạo tự động dựa trên ngày bắt đầu. Cập nhật giao diện thẻ định kỳ để hiển thị rõ tần suất và ngày lặp.
+    *   **Xử lý tự động trừ tiền khi đến hạn:** Bộ sinh tự động trên server Express quét chu kỳ định kỳ mỗi phút, đối chiếu ngày hiện tại với ngày lặp (`repeatOn`), tự động tạo giao dịch chi tiêu thực tế tương ứng để trừ tiền trong Ví người dùng khi đến kỳ hạn.
     *   **Tái cấu trúc điều hướng (Navigation Dropdown & Mobile Toggle):** Loại bỏ tab "Định Kỳ" độc lập khỏi thanh điều hướng chính. Trên desktop, khi hover qua tab "Sổ Chi Tiêu" sẽ hiển thị dropdown chứa hai tùy chọn: "Lịch sử chi tiêu" và "Chi tiêu định kỳ". Trên mobile, tab "Sổ Chi Tiêu" tự động đóng vai trò nút bấm chuyển đổi động (toggle) giữa hai chế độ "Sổ chi tiêu" và "Định kỳ", tối ưu hóa tuyệt đối không gian hiển thị.
 *   **🔧 Sửa lỗi nút lưu Thu nhập & Tiết kiệm (Save Buttons Fix):**
     *   **Khắc phục lỗi xác thực token (Auth token fix):** Bổ sung trích xuất ID người dùng linh hoạt (`decoded.user_id || decoded.sub`) trong `authMiddleware` tại backend server Express, giúp giải mã chính xác token ID Firebase khi đăng nhập bằng Google/Email.
