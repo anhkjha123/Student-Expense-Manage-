@@ -807,6 +807,7 @@ export default function App() {
               onOpenAddExpense={() => setIsAddExpenseOpen(true)}
               setActiveTab={setActiveTab}
               onEditExpense={(expense) => setEditingExpense(expense)}
+              recurringExpenses={recurringExpenses}
             />
           )}
 

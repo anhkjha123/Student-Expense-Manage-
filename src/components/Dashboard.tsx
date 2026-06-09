@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   TrendingDown, 
   AlertTriangle, 
@@ -18,9 +18,10 @@ import {
   Car,
   Home,
   Coffee,
-  Pencil
+  Pencil,
+  Info
 } from 'lucide-react';
-import { User as UserType, Expense, Category, Budget, Notification } from '../types';
+import { User as UserType, Expense, Category, Budget, Notification, Income, RecurringExpense } from '../types';
 import { motion } from 'motion/react';
 
 interface DashboardProps {
@@ -32,6 +33,7 @@ interface DashboardProps {
   onOpenAddExpense: () => void;
   setActiveTab: (tab: string) => void;
   onEditExpense?: (expense: Expense) => void;
+  recurringExpenses?: RecurringExpense[];
 }
 
 export default function Dashboard({
@@ -42,45 +44,103 @@ export default function Dashboard({
   notifications,
   onOpenAddExpense,
   setActiveTab,
-  onEditExpense
+  onEditExpense,
+  recurringExpenses = []
 }: DashboardProps) {
   
-  const [wallet, setWallet] = useState({ balance: 0, totalIncome: 0, totalExpense: 0 });
   const [cashflow, setCashflow] = useState<any[]>([]);
   const [insights, setInsights] = useState<any[]>([]);
+  const [variableIncomes, setVariableIncomes] = useState<Income[]>([]);
+  const [tooltipVisible, setTooltipVisible] = useState<'income' | 'expense' | null>(null);
 
+  // Load variable incomes (non-fixed) for current month from localStorage / API
   useEffect(() => {
+    const currentMonthStr = new Date().toISOString().substring(0, 7);
     const token = localStorage.getItem('sem_token');
-    if (!token) return;
 
-    // Fetch Wallet Balance
-    fetch('/api/wallet/balance', { headers: { 'Authorization': `Bearer ${token}` } })
-      .then(res => res.json())
-      .then(data => setWallet(data))
-      .catch(console.error);
+    const loadIncomesLocal = () => {
+      const stored = localStorage.getItem(`sem_${user.id}_incomes`);
+      if (stored) {
+        try {
+          const all: Income[] = JSON.parse(stored);
+          setVariableIncomes(all.filter(i => i.date.startsWith(currentMonthStr)));
+        } catch (_) {}
+      }
+    };
 
-    // Fetch Cashflow (for the current month)
-    const monthStr = new Date().toISOString().substring(0, 7);
-    fetch(`/api/wallet/cashflow?month=${monthStr}`, { headers: { 'Authorization': `Bearer ${token}` } })
-      .then(res => res.json())
-      .then(data => setCashflow(data))
-      .catch(console.error);
+    if (token) {
+      fetch(`/api/incomes?month=${currentMonthStr}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(r => r.ok ? r.json() : Promise.reject())
+        .then((data: Income[]) => {
+          setVariableIncomes(data);
+          localStorage.setItem(`sem_${user.id}_incomes`, JSON.stringify(data));
+        })
+        .catch(loadIncomesLocal);
 
-    // Fetch Insights
-    fetch('/api/insights/spending', { headers: { 'Authorization': `Bearer ${token}` } })
-      .then(res => res.json())
-      .then(data => setInsights(data))
-      .catch(console.error);
-  }, []);
+      // Fetch Cashflow (for the current month)
+      fetch(`/api/wallet/cashflow?month=${currentMonthStr}`, { headers: { 'Authorization': `Bearer ${token}` } })
+        .then(res => res.json())
+        .then(data => setCashflow(data))
+        .catch(console.error);
+
+      // Fetch Insights
+      fetch('/api/insights/spending', { headers: { 'Authorization': `Bearer ${token}` } })
+        .then(res => res.json())
+        .then(data => setInsights(data))
+        .catch(console.error);
+    } else {
+      loadIncomesLocal();
+    }
+  }, [user.id]);
 
   const currentDate = new Date();
   const currentMonthStr = currentDate.toISOString().substring(0, 7);
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth(); // 0-indexed
   const currentMonthExpenses = expenses.filter(exp => exp.date.startsWith(currentMonthStr));
 
-  const totalSpentThisMonth = currentMonthExpenses.reduce((sum, item) => sum + item.amount, 0);
-  const totalIncome = user.monthlyIncome;
+  // --- Tính số tiền chi tiêu định kỳ phát sinh trong tháng hiện tại ---
+  const recurringThisMonth = useMemo(() => {
+    let total = 0;
+    const items: Array<{ title: string; amount: number; cycle: string }> = [];
+    for (const rec of recurringExpenses) {
+      const start = new Date(rec.startDate + 'T00:00:00');
+      // Must have started on or before this month
+      if (start.getFullYear() > currentYear || (start.getFullYear() === currentYear && start.getMonth() > currentMonth)) {
+        continue;
+      }
+      let occurrences = 0;
+      if (rec.cycle === 'MONTHLY') {
+        occurrences = 1;
+      } else if (rec.cycle === 'WEEKLY') {
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const startDow = start.getDay();
+        for (let d = 1; d <= daysInMonth; d++) {
+          const candidate = new Date(currentYear, currentMonth, d);
+          if (candidate.getDay() === startDow && candidate >= start) occurrences++;
+        }
+      }
+      if (occurrences > 0) {
+        items.push({ title: rec.title, amount: rec.amount * occurrences, cycle: rec.cycle });
+        total += rec.amount * occurrences;
+      }
+    }
+    return { total, items };
+  }, [recurringExpenses, currentYear, currentMonth]);
+
+  // --- Thu = thu nhập cố định + thu nhập không cố định tháng này ---
+  const variableIncomeTotal = variableIncomes.reduce((sum, i) => sum + i.amount, 0);
+  const totalIncome = user.monthlyIncome + variableIncomeTotal; // Tổng thu
+  
+  // --- Chi = chi thường + chi định kỳ tháng này ---
+  const loggedExpenseTotal = currentMonthExpenses.reduce((sum, item) => sum + item.amount, 0);
+  const totalSpentThisMonth = loggedExpenseTotal + recurringThisMonth.total;
+
   const savingGoal = user.savingGoal;
-  const availableToSpend = totalIncome - savingGoal; // Số tiền khả dụng cho chi tiêu
+  const availableToSpend = user.monthlyIncome - savingGoal; // Số tiền khả dụng cho chi tiêu (dựa trên income cố định)
+  const walletBalance = totalIncome - totalSpentThisMonth; // Số dư ví thực tế
   const remainingBudget = availableToSpend - totalSpentThisMonth;
 
   // Tính thống kê chi tiêu Cần thiết vs Mong muốn của tháng hiện tại
@@ -219,10 +279,10 @@ export default function Dashboard({
           <div className="flex justify-between items-start relative z-10">
             <div className="space-y-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-100 font-mono">
-                Số Dư Ví Hiện Tại
+                Số Dư Ví Tháng Này
               </span>
-              <div className="text-3xl font-black font-mono drop-shadow-md">
-                {new Intl.NumberFormat('vi-VN').format(wallet.balance)}đ
+              <div className={`text-3xl font-black font-mono drop-shadow-md ${walletBalance < 0 ? 'text-red-200' : ''}`}>
+                {walletBalance < 0 ? '-' : ''}{new Intl.NumberFormat('vi-VN').format(Math.abs(walletBalance))}đ
               </div>
             </div>
             <span className="p-3 bg-white/20 text-white rounded-2xl shadow-inner border border-white/30 backdrop-blur-sm">
@@ -232,9 +292,81 @@ export default function Dashboard({
           <div className="absolute -bottom-4 -right-4 text-white/10 pointer-events-none transform -rotate-12">
             <DollarSign className="h-32 w-32" />
           </div>
-          <div className="flex justify-between text-[10px] text-emerald-50 font-semibold mt-4 pt-3 border-t border-emerald-400/50 relative z-10">
-            <span>Thu: +{new Intl.NumberFormat('vi-VN').format(wallet.totalIncome)}đ</span>
-            <span>Chi: -{new Intl.NumberFormat('vi-VN').format(wallet.totalExpense)}đ</span>
+
+          {/* Thu / Chi row with hover tooltips */}
+          <div className="flex justify-between text-[10px] text-emerald-50 font-semibold mt-4 pt-3 border-t border-emerald-400/50 relative z-10 gap-2">
+            {/* THU tooltip */}
+            <div
+              className="relative cursor-help flex items-center gap-0.5"
+              onMouseEnter={() => setTooltipVisible('income')}
+              onMouseLeave={() => setTooltipVisible(null)}
+            >
+              <span>Thu: +{new Intl.NumberFormat('vi-VN').format(totalIncome)}đ</span>
+              <Info className="h-2.5 w-2.5 text-emerald-200" />
+              {tooltipVisible === 'income' && (
+                <div className="absolute bottom-full left-0 mb-2 w-64 bg-slate-900/95 backdrop-blur-sm text-white rounded-xl p-3 shadow-2xl border border-white/10 text-[10px] leading-relaxed z-50 pointer-events-none">
+                  <div className="font-bold text-emerald-300 mb-2 text-xs">📥 Phân tích Thu nhập tháng</div>
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between">
+                      <span className="text-slate-300">Thu nhập cố định (ngân sách):</span>
+                      <span className="font-mono text-emerald-400">+{new Intl.NumberFormat('vi-VN').format(user.monthlyIncome)}đ</span>
+                    </div>
+                    {variableIncomes.length > 0 ? variableIncomes.map(inc => (
+                      <div key={inc.id} className="flex justify-between">
+                        <span className="text-slate-300 truncate max-w-[140px]">{inc.note || (inc.source === 'SCHOLARSHIP' ? 'Học bổng' : inc.source === 'PART_TIME' ? 'Làm thêm' : inc.source === 'FAMILY' ? 'Gia đình' : 'Khác')}:</span>
+                        <span className="font-mono text-emerald-400">+{new Intl.NumberFormat('vi-VN').format(inc.amount)}đ</span>
+                      </div>
+                    )) : (
+                      <div className="text-slate-400 italic">Không có thu nhập biến động tháng này</div>
+                    )}
+                    <div className="border-t border-white/10 pt-1.5 flex justify-between font-bold">
+                      <span className="text-white">= Tổng thu:</span>
+                      <span className="font-mono text-emerald-300">+{new Intl.NumberFormat('vi-VN').format(totalIncome)}đ</span>
+                    </div>
+                  </div>
+                  <div className="absolute bottom-[-4px] left-4 w-2 h-2 bg-slate-900 rotate-45 border-r border-b border-white/10" />
+                </div>
+              )}
+            </div>
+
+            {/* CHI tooltip */}
+            <div
+              className="relative cursor-help flex items-center gap-0.5"
+              onMouseEnter={() => setTooltipVisible('expense')}
+              onMouseLeave={() => setTooltipVisible(null)}
+            >
+              <Info className="h-2.5 w-2.5 text-emerald-200" />
+              <span>Chi: -{new Intl.NumberFormat('vi-VN').format(totalSpentThisMonth)}đ</span>
+              {tooltipVisible === 'expense' && (
+                <div className="absolute bottom-full right-0 mb-2 w-64 bg-slate-900/95 backdrop-blur-sm text-white rounded-xl p-3 shadow-2xl border border-white/10 text-[10px] leading-relaxed z-50 pointer-events-none">
+                  <div className="font-bold text-red-300 mb-2 text-xs">📤 Phân tích Chi tiêu tháng</div>
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between">
+                      <span className="text-slate-300">Chi tiêu thông thường:</span>
+                      <span className="font-mono text-red-400">-{new Intl.NumberFormat('vi-VN').format(loggedExpenseTotal)}đ</span>
+                    </div>
+                    {recurringThisMonth.items.length > 0 ? (
+                      <>
+                        <div className="text-slate-400 text-[9px] pt-0.5">Chi tiêu định kỳ:</div>
+                        {recurringThisMonth.items.map((item, idx) => (
+                          <div key={idx} className="flex justify-between pl-2">
+                            <span className="text-slate-300 truncate max-w-[140px]">🔄 {item.title}:</span>
+                            <span className="font-mono text-red-400">-{new Intl.NumberFormat('vi-VN').format(item.amount)}đ</span>
+                          </div>
+                        ))}
+                      </>
+                    ) : (
+                      <div className="text-slate-400 italic">Không có chi tiêu định kỳ tháng này</div>
+                    )}
+                    <div className="border-t border-white/10 pt-1.5 flex justify-between font-bold">
+                      <span className="text-white">= Tổng chi:</span>
+                      <span className="font-mono text-red-300">-{new Intl.NumberFormat('vi-VN').format(totalSpentThisMonth)}đ</span>
+                    </div>
+                  </div>
+                  <div className="absolute bottom-[-4px] right-4 w-2 h-2 bg-slate-900 rotate-45 border-r border-b border-white/10" />
+                </div>
+              )}
+            </div>
           </div>
         </motion.div>
 
