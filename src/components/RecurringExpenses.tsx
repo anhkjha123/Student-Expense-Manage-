@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Repeat, Plus, Calendar, AlertTriangle } from 'lucide-react';
+import { Repeat, Calendar, AlertTriangle } from 'lucide-react';
 import { RecurringExpense, User, Category } from '../types';
 
 interface RecurringExpensesProps {
@@ -10,18 +10,8 @@ interface RecurringExpensesProps {
 export default function RecurringExpenses({ user, categories }: RecurringExpensesProps) {
   const [recs, setRecs] = useState<RecurringExpense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<RecurringExpense | null>(null);
   
-  const [formData, setFormData] = useState({
-    title: '',
-    amount: '',
-    categoryId: 'rent',
-    cycle: 'MONTHLY',
-    startDate: new Date().toISOString().split('T')[0],
-    note: ''
-  });
-
   useEffect(() => {
     loadRecs();
   }, [user]);
@@ -48,68 +38,6 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
       }
     }
     setIsLoading(false);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const localRecsKey = `sem_${user.id}_recurring_expenses`;
-    
-    // Calculate repeatOn locally
-    const dateObj = new Date(formData.startDate);
-    let repeatOn = '';
-    if (formData.cycle === 'MONTHLY') {
-      repeatOn = `Ngày ${dateObj.getDate()} hàng tháng`;
-    } else {
-      const weekdays = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
-      repeatOn = `${weekdays[dateObj.getDay()]} hàng tuần`;
-    }
-
-    const newRec: RecurringExpense = {
-      id: `rec_added_${Date.now()}`,
-      userId: user.id,
-      amount: Number(formData.amount),
-      categoryId: formData.categoryId,
-      title: formData.title,
-      cycle: formData.cycle as any,
-      startDate: formData.startDate,
-      note: formData.note,
-      repeatOn
-    };
-
-    try {
-      const res = await fetch('/api/recurring-expenses', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('sem_token')}`
-        },
-        body: JSON.stringify({
-          title: newRec.title,
-          amount: newRec.amount,
-          categoryId: newRec.categoryId,
-          cycle: newRec.cycle,
-          startDate: newRec.startDate,
-          note: newRec.note,
-          repeatOn: newRec.repeatOn
-        })
-      });
-      if (res.ok) {
-        setShowForm(false);
-        setFormData({ ...formData, title: '', amount: '', note: '' });
-        loadRecs();
-      } else {
-        throw new Error('API save failed');
-      }
-    } catch (e) {
-      console.warn("Saving recurring expense offline locally:", e);
-      const stored = localStorage.getItem(localRecsKey);
-      const list = stored ? JSON.parse(stored) : [];
-      const updated = [newRec, ...list];
-      localStorage.setItem(localRecsKey, JSON.stringify(updated));
-      setShowForm(false);
-      setFormData({ ...formData, title: '', amount: '', note: '' });
-      loadRecs();
-    }
   };
 
   const confirmDelete = async () => {
@@ -149,51 +77,7 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
           </h2>
           <p className="text-slate-500 text-sm mt-1">Tự động hóa việc ghi nhận các khoản chi cố định hàng tháng/tuần</p>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all shadow-sm shadow-emerald-200"
-        >
-          <Plus className="h-4 w-4" /> {showForm ? 'Hủy' : 'Thêm mới'}
-        </button>
       </div>
-
-      {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8 max-w-3xl">
-          <h3 className="font-semibold text-slate-800 mb-4">Cấu hình chi tiêu định kỳ mới</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Tên khoản chi</label>
-              <input required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} type="text" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" placeholder="Ví dụ: Tiền phòng trọ" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Số tiền (đ)</label>
-              <input required value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} type="number" min="0" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" placeholder="1500000" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Danh mục</label>
-              <select required value={formData.categoryId} onChange={e => setFormData({...formData, categoryId: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all">
-                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Chu kỳ</label>
-                <select required value={formData.cycle} onChange={e => setFormData({...formData, cycle: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all">
-                  <option value="MONTHLY">Hàng tháng</option>
-                  <option value="WEEKLY">Hàng tuần</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Ngày bắt đầu</label>
-                <input required value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} type="date" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 flex justify-end">
-            <button type="submit" className="bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-6 rounded-xl transition-all">Lưu cấu hình</button>
-          </div>
-        </form>
-      )}
 
       {isLoading ? (
         <div className="p-8 text-center text-slate-500">Đang tải...</div>

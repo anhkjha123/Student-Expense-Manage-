@@ -65,9 +65,9 @@ export default function ExpenseHistory({
     }
   });
 
-  const totalFilteredAmount = filteredExpenses.filter(e => !e.isRecurring).reduce((sum, item) => sum + item.amount, 0);
-  const totalNeeds = filteredExpenses.filter(e => e.isNecessary && !e.isRecurring).reduce((sum, item) => sum + item.amount, 0);
-  const totalWants = filteredExpenses.filter(e => !e.isNecessary && !e.isRecurring).reduce((sum, item) => sum + item.amount, 0);
+  const totalFilteredAmount = filteredExpenses.reduce((sum, item) => sum + item.amount, 0);
+  const totalNeeds = filteredExpenses.filter(e => e.isNecessary).reduce((sum, item) => sum + item.amount, 0);
+  const totalWants = filteredExpenses.filter(e => !e.isNecessary).reduce((sum, item) => sum + item.amount, 0);
 
   const getCategoryName = (id: string) => {
     return categories.find(c => c.id === id)?.name || 'Khác';

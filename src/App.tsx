@@ -504,7 +504,14 @@ export default function App() {
         localStorage.setItem(`sem_${currentUser.id}_notifs`, JSON.stringify(updated));
         return updated;
       });
-      return;
+      const todayLocal = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+      const isStartToday = newExpenseData.date === todayLocal;
+      
+      if (isStartToday) {
+        newExpenseData.isRecurring = true;
+      } else {
+        return;
+      }
     }
 
     // --- NORMAL EXPENSE (DO NOT REPEAT) ---

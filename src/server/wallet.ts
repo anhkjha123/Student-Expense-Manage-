@@ -15,7 +15,7 @@ export const walletController = {
     }
 
     const totalIncome = incomes.reduce((sum, i) => sum + i.amount, 0);
-    const totalExpense = expenses.filter(e => !e.isRecurring).reduce((sum, e) => sum + e.amount, 0);
+    const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
     const balance = totalIncome - totalExpense;
 
     res.json({
