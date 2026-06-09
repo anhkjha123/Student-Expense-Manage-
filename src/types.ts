@@ -84,4 +84,5 @@ export interface RecurringExpense {
   startDate: string;
   note?: string;
   repeatOn?: string;
+  isNecessary?: boolean;
 }

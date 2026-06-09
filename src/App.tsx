@@ -451,7 +451,8 @@ export default function App() {
         cycle: recurringCycle,
         startDate: newExpenseData.date,
         note: newExpenseData.note,
-        repeatOn
+        repeatOn,
+        isNecessary: newExpenseData.isNecessary
       };
 
       if (isGuest) {
@@ -475,7 +476,8 @@ export default function App() {
               cycle: newRec.cycle,
               startDate: newRec.startDate,
               note: newRec.note,
-              repeatOn: newRec.repeatOn
+              repeatOn: newRec.repeatOn,
+              isNecessary: newRec.isNecessary
             })
           });
         } catch (err) {
@@ -502,7 +504,7 @@ export default function App() {
         localStorage.setItem(`sem_${currentUser.id}_notifs`, JSON.stringify(updated));
         return updated;
       });
-      newExpenseData.isRecurring = true;
+      return;
     }
 
     // --- NORMAL EXPENSE (DO NOT REPEAT) ---

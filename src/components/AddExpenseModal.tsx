@@ -99,7 +99,7 @@ export default function AddExpenseModal({
       date,
       note: note.trim() || undefined,
       isNecessary,
-      isRecurring,
+      isRecurring: editingExpense ? isRecurring : (recurringCycle !== 'NONE'),
       recurringCycle: editingExpense ? undefined : recurringCycle
     };
 
@@ -256,7 +256,7 @@ export default function AddExpenseModal({
             <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
               Phân loại chi tiêu tài chính (Nhiều lựa chọn) <span className="text-red-500">*</span>
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => setIsNecessary(true)}
@@ -281,19 +281,6 @@ export default function AddExpenseModal({
               >
                 <span className="text-xs font-bold block">Sở thích</span>
                 <span className="text-[9px] opacity-75 block">Wants</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsRecurring(!isRecurring)}
-                className={`flex flex-col items-center justify-center rounded-2xl border p-2 text-center transition-all cursor-pointer ${
-                  isRecurring
-                    ? 'border-blue-500 bg-blue-50 text-blue-600 ring-2 ring-blue-500/10'
-                    : 'border-slate-200 hover:border-slate-300 text-slate-500'
-                }`}
-              >
-                <span className="text-xs font-bold block">Định kỳ</span>
-                <span className="text-[9px] opacity-75 block">Lặp lại</span>
               </button>
             </div>
           </div>
