@@ -502,7 +502,7 @@ export default function App() {
         localStorage.setItem(`sem_${currentUser.id}_notifs`, JSON.stringify(updated));
         return updated;
       });
-      return;
+      newExpenseData.isRecurring = true;
     }
 
     // --- NORMAL EXPENSE (DO NOT REPEAT) ---

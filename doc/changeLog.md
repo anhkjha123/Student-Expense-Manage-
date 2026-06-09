@@ -15,7 +15,11 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
     *   Tích hợp bộ lọc theo tháng và biểu đồ tỷ lệ cơ cấu nguồn thu.
 *   **Lịch chi tiêu (Calendar View):**
     *   Bảng lịch trực quan đổi màu theo mức độ chi tiêu của từng ngày (Xanh < 100k, Vàng < 500k, Đỏ > 500k).
-    *   Hỗ trợ bấm chọn ngày để kiểm tra danh sách chi tiết các giao dịch tương ứng.
+    *   Sử dụng màu **xanh nước biển** và dấu chấm nhấp nháy làm indicator trực quan cho các ngày phát sinh chi tiêu định kỳ (Recurring Expense).
+    *   Hỗ trợ bấm chọn ngày để kiểm tra danh sách chi tiết các giao dịch tương ứng với thanh biên trái màu xanh.
+*   **Hoạt ảnh chuyển động (Framer Motion) & Cố định Navbar:**
+    *   Bổ sung hiệu ứng motion transition (`motion.div`) cho trang **Thu Nhập** và **Tiết Kiệm** đồng bộ với các trang khác.
+    *   Cố định nhãn tên "Sổ Chi Tiêu" và biểu tượng icon `BookOpen` trên thanh điều hướng khi click chọn các sub-options trong Dropdown.
 *   **Chi tiêu định kỳ & Nhập chi tiêu lặp lại (Recurring Expenses):**
     *   Thêm tab cấu hình các khoản chi cố định hàng tuần/tháng (như tiền nhà, mạng internet).
     *   **Dropdown định kỳ trong biểu mẫu nhập nhanh:** Cung cấp hộp chọn "Chi tiêu định kỳ (Lặp lại)" (Không lặp lại, Lặp lại hàng tuần, Lặp lại hàng tháng) ngay tại `AddExpenseModal` khi tạo khoản chi mới.

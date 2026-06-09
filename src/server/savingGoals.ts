@@ -62,7 +62,7 @@ export const savingGoalsController = {
     const expenses = dbInstance.getExpenses().filter(e => e.userId === userId);
 
     const totalIncome = incomes.reduce((sum, i) => sum + i.amount, 0);
-    const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
+    const totalExpense = expenses.filter(e => !e.isRecurring).reduce((sum, e) => sum + e.amount, 0);
     const walletBalance = Math.max(0, totalIncome - totalExpense);
 
     // According to DoD #2, currentAmount is based on walletBalance.

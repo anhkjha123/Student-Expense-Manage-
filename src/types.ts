@@ -26,6 +26,7 @@ export interface Expense {
   date: string;         // Định dạng YYYY-MM-DD
   note?: string;        // Ghi chú thêm
   isNecessary: boolean; // Khoản chi bắt buộc (Cần thiết vs Mong muốn)
+  isRecurring?: boolean; // Chi tiêu định kỳ (nếu có)
 }
 
 export interface Budget {

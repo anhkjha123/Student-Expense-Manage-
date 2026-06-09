@@ -75,7 +75,7 @@ export default function Dashboard({
 
   const currentDate = new Date();
   const currentMonthStr = currentDate.toISOString().substring(0, 7);
-  const currentMonthExpenses = expenses.filter(exp => exp.date.startsWith(currentMonthStr));
+  const currentMonthExpenses = expenses.filter(exp => exp.date.startsWith(currentMonthStr) && !exp.isRecurring);
 
   const totalSpentThisMonth = currentMonthExpenses.reduce((sum, item) => sum + item.amount, 0);
   const totalIncome = user.monthlyIncome;

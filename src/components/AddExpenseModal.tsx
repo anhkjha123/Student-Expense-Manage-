@@ -35,6 +35,7 @@ export default function AddExpenseModal({
   );
   const [note, setNote] = useState<string>('');
   const [isNecessary, setIsNecessary] = useState<boolean>(true);
+  const [isRecurring, setIsRecurring] = useState<boolean>(false);
   const [recurringCycle, setRecurringCycle] = useState<'NONE' | 'WEEKLY' | 'MONTHLY'>('NONE');
   const [error, setError] = useState<string | null>(null);
 
@@ -47,6 +48,7 @@ export default function AddExpenseModal({
         setDate(editingExpense.date);
         setNote(editingExpense.note || '');
         setIsNecessary(editingExpense.isNecessary);
+        setIsRecurring(editingExpense.isRecurring || false);
       } else {
         setAmount('');
         if (categories.length > 0) {
@@ -56,6 +58,7 @@ export default function AddExpenseModal({
         setDate(new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
         setNote('');
         setIsNecessary(true);
+        setIsRecurring(false);
         setRecurringCycle('NONE');
       }
       setError(null);
@@ -96,6 +99,7 @@ export default function AddExpenseModal({
       date,
       note: note.trim() || undefined,
       isNecessary,
+      isRecurring,
       recurringCycle: editingExpense ? undefined : recurringCycle
     };
 
@@ -111,6 +115,7 @@ export default function AddExpenseModal({
       setTitle('');
       setNote('');
       setIsNecessary(true);
+      setIsRecurring(false);
       setRecurringCycle('NONE');
     }
     setError(null);
@@ -249,37 +254,46 @@ export default function AddExpenseModal({
           {/* Classification Option (Needs vs Wants) */}
           <div className="space-y-1">
             <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
-              Phân loại chi tiêu tài chính <span className="text-red-500">*</span>
+              Phân loại chi tiêu tài chính (Nhiều lựa chọn) <span className="text-red-500">*</span>
             </label>
-            <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => setIsNecessary(true)}
-                className={`flex flex-col items-center justify-center rounded-2xl border p-2.5 sm:p-3 text-center transition-all cursor-pointer gap-0.5 ${
+                className={`flex flex-col items-center justify-center rounded-2xl border p-2 text-center transition-all cursor-pointer ${
                   isNecessary
                     ? 'border-emerald-500 bg-emerald-50 text-emerald-600 ring-2 ring-emerald-500/10'
                     : 'border-slate-200 hover:border-slate-300 text-slate-500'
                 }`}
               >
-                <span className="text-xs font-bold block">Mức Cần thiết (Needs)</span>
-                <span className="text-[9px] sm:text-[10px] opacity-75 leading-relaxed block">
-                  Ăn uống, thuê nhà, đi lại, học tập
-                </span>
+                <span className="text-xs font-bold block">Bắt buộc</span>
+                <span className="text-[9px] opacity-75 block">Needs</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setIsNecessary(false)}
-                className={`flex flex-col items-center justify-center rounded-2xl border p-2.5 sm:p-3 text-center transition-all cursor-pointer gap-0.5 ${
+                className={`flex flex-col items-center justify-center rounded-2xl border p-2 text-center transition-all cursor-pointer ${
                   !isNecessary
                     ? 'border-amber-500 bg-amber-50 text-amber-800 ring-2 ring-amber-500/10'
                     : 'border-slate-200 hover:border-slate-300 text-slate-500'
                 }`}
               >
-                <span className="text-xs font-bold block">Mức Mong muốn (Wants)</span>
-                <span className="text-[9px] sm:text-[10px] opacity-75 leading-relaxed block">
-                  Trà sữa, mua sắm, giải trí, du lịch
-                </span>
+                <span className="text-xs font-bold block">Sở thích</span>
+                <span className="text-[9px] opacity-75 block">Wants</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsRecurring(!isRecurring)}
+                className={`flex flex-col items-center justify-center rounded-2xl border p-2 text-center transition-all cursor-pointer ${
+                  isRecurring
+                    ? 'border-blue-500 bg-blue-50 text-blue-600 ring-2 ring-blue-500/10'
+                    : 'border-slate-200 hover:border-slate-300 text-slate-500'
+                }`}
+              >
+                <span className="text-xs font-bold block">Định kỳ</span>
+                <span className="text-[9px] opacity-75 block">Lặp lại</span>
               </button>
             </div>
           </div>

@@ -19,7 +19,7 @@ export const insightsController = {
     }
     const lastMonthStr = `${lastYear}-${lastMonth.toString().padStart(2, '0')}`;
 
-    const expenses = dbInstance.getExpenses().filter(e => e.userId === userId);
+    const expenses = dbInstance.getExpenses().filter(e => e.userId === userId && !e.isRecurring);
     
     const currentMonthExpenses = expenses.filter(e => e.date.startsWith(currentMonthStr));
     const lastMonthExpenses = expenses.filter(e => e.date.startsWith(lastMonthStr));

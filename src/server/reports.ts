@@ -14,7 +14,7 @@ export const reportsController = {
       const targetMonth = (month as string) || new Date().toISOString().substring(0, 7);
 
       const allExpenses = dbInstance.getExpenses();
-      const userExpenses = allExpenses.filter(e => e.userId === userId && e.date.startsWith(targetMonth));
+      const userExpenses = allExpenses.filter(e => e.userId === userId && e.date.startsWith(targetMonth) && !e.isRecurring);
 
       // Thực thi bộ lọc tương đương câu truy vấn "SELECT categoryId, SUM(amount) FROM expenses GROUP BY categoryId"
       const aggregation: { [key: string]: number } = {};
@@ -52,7 +52,7 @@ export const reportsController = {
       if (!userId) return res.status(401).json({ error: 'Ngoại lệ phiên đăng nhập' });
 
       const allExpenses = dbInstance.getExpenses();
-      const userExpenses = allExpenses.filter(e => e.userId === userId);
+      const userExpenses = allExpenses.filter(e => e.userId === userId && !e.isRecurring);
 
       // Phân bổ dòng tiền theo tuần (tính từ ngày 1 đến ngày 28 của tháng)
       // Tuần 1: Ngày 1-7, Tuần 2: Ngày 8-14, Tuần 3: Ngày 15-21, Tuần 4: Ngày 22+
@@ -91,7 +91,7 @@ export const reportsController = {
       if (!userId) return res.status(401).json({ error: 'Ngoại lệ phiên đăng nhập' });
 
       const allExpenses = dbInstance.getExpenses();
-      const userExpenses = allExpenses.filter(e => e.userId === userId);
+      const userExpenses = allExpenses.filter(e => e.userId === userId && !e.isRecurring);
 
       const stats: { [key: string]: { amount: number; count: number } } = {};
 
@@ -116,7 +116,7 @@ export const reportsController = {
       if (!userId) return res.status(401).json({ error: 'Ngoại lệ phiên đăng nhập' });
 
       const allExpenses = dbInstance.getExpenses();
-      const userExpenses = allExpenses.filter(e => e.userId === userId);
+      const userExpenses = allExpenses.filter(e => e.userId === userId && !e.isRecurring);
 
       const totals: { [key: string]: number } = {};
       userExpenses.forEach(exp => {
@@ -154,7 +154,7 @@ export const reportsController = {
       const { month } = req.query;
       const targetMonth = (month as string) || new Date().toISOString().substring(0, 7);
 
-      const expenses = dbInstance.getExpenses().filter(e => e.userId === userId && e.date.startsWith(targetMonth));
+      const expenses = dbInstance.getExpenses().filter(e => e.userId === userId && e.date.startsWith(targetMonth) && !e.isRecurring);
       const totalSpent = expenses.reduce((sum, item) => sum + item.amount, 0);
 
       // Trả về HTML biểu mẫu in báo cáo chuyên nghiệp
@@ -251,7 +251,7 @@ export const reportsController = {
       const { month } = req.query;
       const targetMonth = (month as string) || new Date().toISOString().substring(0, 7);
 
-      const expenses = dbInstance.getExpenses().filter(e => e.userId === userId && e.date.startsWith(targetMonth));
+      const expenses = dbInstance.getExpenses().filter(e => e.userId === userId && e.date.startsWith(targetMonth) && !e.isRecurring);
 
       // Tạo cấu trúc chuỗi CSV chất lượng cao kèm UTF-8 BOM
       let csvContent = '\uFEFF'; // BOM chống lỗi font tiếng Việt trong Excel
