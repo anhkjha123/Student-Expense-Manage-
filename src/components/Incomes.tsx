@@ -32,6 +32,7 @@ export default function Incomes({ user }: IncomesProps) {
 
   const loadIncomes = async () => {
     setIsLoading(true);
+    const localIncomesKey = `sem_${user.id}_incomes`;
     try {
       let url = '/api/incomes';
       if (filterMonth) {
@@ -43,15 +44,36 @@ export default function Incomes({ user }: IncomesProps) {
       if (res.ok) {
         const data = await res.json();
         setIncomes(data);
+        localStorage.setItem(localIncomesKey, JSON.stringify(data));
+      } else {
+        throw new Error('API load incomes failed');
       }
     } catch (e) {
-      console.error(e);
+      console.warn("API load incomes failed, using local fallback:", e);
+      const stored = localStorage.getItem(localIncomesKey);
+      if (stored) {
+        let parsed: Income[] = JSON.parse(stored);
+        if (filterMonth) {
+          parsed = parsed.filter(i => i.date.startsWith(filterMonth));
+        }
+        setIncomes(parsed);
+      }
     }
     setIsLoading(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const localIncomesKey = `sem_${user.id}_incomes`;
+    const newIncome: Income = {
+      id: `inc_added_${Date.now()}`,
+      userId: user.id,
+      amount: Number(formData.amount),
+      source: formData.source as any,
+      date: formData.date,
+      note: formData.note
+    };
+
     try {
       const res = await fetch('/api/incomes', {
         method: 'POST',
@@ -60,24 +82,34 @@ export default function Incomes({ user }: IncomesProps) {
           'Authorization': `Bearer ${localStorage.getItem('sem_token')}`
         },
         body: JSON.stringify({
-          amount: Number(formData.amount),
-          source: formData.source,
-          date: formData.date,
-          note: formData.note
+          amount: newIncome.amount,
+          source: newIncome.source,
+          date: newIncome.date,
+          note: newIncome.note
         })
       });
       if (res.ok) {
         setShowForm(false);
         setFormData({ ...formData, amount: '', note: '' });
         loadIncomes();
+      } else {
+        throw new Error('API save income failed');
       }
     } catch (e) {
-      console.error(e);
+      console.warn("Saving income offline locally:", e);
+      const stored = localStorage.getItem(localIncomesKey);
+      const list = stored ? JSON.parse(stored) : [];
+      const updated = [newIncome, ...list];
+      localStorage.setItem(localIncomesKey, JSON.stringify(updated));
+      setShowForm(false);
+      setFormData({ ...formData, amount: '', note: '' });
+      loadIncomes();
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Bạn có chắc muốn xóa khoản thu này?')) return;
+    const localIncomesKey = `sem_${user.id}_incomes`;
     try {
       const res = await fetch(`/api/incomes/${id}`, {
         method: 'DELETE',
@@ -85,9 +117,18 @@ export default function Incomes({ user }: IncomesProps) {
       });
       if (res.ok) {
         loadIncomes();
+      } else {
+        throw new Error('API delete failed');
       }
     } catch (e) {
-      console.error(e);
+      console.warn("Deleting income offline locally:", e);
+      const stored = localStorage.getItem(localIncomesKey);
+      if (stored) {
+        const list = JSON.parse(stored) as Income[];
+        const updated = list.filter(i => i.id !== id);
+        localStorage.setItem(localIncomesKey, JSON.stringify(updated));
+        loadIncomes();
+      }
     }
   };
 

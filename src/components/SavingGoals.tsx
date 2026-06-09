@@ -25,6 +25,7 @@ export default function SavingGoals({ user }: SavingGoalsProps) {
 
   const loadGoals = async () => {
     setIsLoading(true);
+    const localGoalsKey = `sem_${user.id}_saving_goals`;
     try {
       const res = await fetch('/api/saving-goals', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('sem_token')}` }
@@ -45,15 +46,36 @@ export default function SavingGoals({ user }: SavingGoalsProps) {
         }));
         
         setGoals(withProgress);
+        localStorage.setItem(localGoalsKey, JSON.stringify(withProgress));
+      } else {
+        throw new Error('API load goals failed');
       }
     } catch (e) {
-      console.error(e);
+      console.warn("API load goals failed, using local fallback:", e);
+      const stored = localStorage.getItem(localGoalsKey);
+      if (stored) {
+        setGoals(JSON.parse(stored));
+      }
     }
     setIsLoading(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const localGoalsKey = `sem_${user.id}_saving_goals`;
+    const newGoal: SavingGoal & { percent?: number; daysLeft?: number } = {
+      id: `goal_added_${Date.now()}`,
+      userId: user.id,
+      name: formData.name,
+      targetAmount: Number(formData.targetAmount),
+      currentAmount: 0,
+      deadline: formData.deadline,
+      status: 'On Track',
+      categoryId: formData.categoryId,
+      percent: 0,
+      daysLeft: Math.ceil((new Date(formData.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+    };
+
     try {
       const res = await fetch('/api/saving-goals', {
         method: 'POST',
@@ -72,14 +94,24 @@ export default function SavingGoals({ user }: SavingGoalsProps) {
         setShowForm(false);
         setFormData({ name: '', targetAmount: '', deadline: '', categoryId: 'study' });
         loadGoals();
+      } else {
+        throw new Error('API save goal failed');
       }
     } catch (e) {
-      console.error(e);
+      console.warn("Saving goal offline locally:", e);
+      const stored = localStorage.getItem(localGoalsKey);
+      const list = stored ? JSON.parse(stored) : [];
+      const updated = [newGoal, ...list];
+      localStorage.setItem(localGoalsKey, JSON.stringify(updated));
+      setShowForm(false);
+      setFormData({ name: '', targetAmount: '', deadline: '', categoryId: 'study' });
+      loadGoals();
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Bạn có chắc muốn xóa mục tiêu này?')) return;
+    const localGoalsKey = `sem_${user.id}_saving_goals`;
     try {
       const res = await fetch(`/api/saving-goals/${id}`, {
         method: 'DELETE',
@@ -87,9 +119,18 @@ export default function SavingGoals({ user }: SavingGoalsProps) {
       });
       if (res.ok) {
         loadGoals();
+      } else {
+        throw new Error('API delete goal failed');
       }
     } catch (e) {
-      console.error(e);
+      console.warn("Deleting goal offline locally:", e);
+      const stored = localStorage.getItem(localGoalsKey);
+      if (stored) {
+        const list = JSON.parse(stored) as SavingGoal[];
+        const updated = list.filter(g => g.id !== id);
+        localStorage.setItem(localGoalsKey, JSON.stringify(updated));
+        loadGoals();
+      }
     }
   };
 

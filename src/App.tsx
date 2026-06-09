@@ -80,6 +80,7 @@ export default function App() {
       } else {
         setIsFirebaseSynced(false);
         if (isGuest) {
+          localStorage.setItem('sem_token', 'demo_offline_token_xyz');
           const storedUser = localStorage.getItem('sem_user');
           if (storedUser) {
             try {
@@ -334,6 +335,7 @@ export default function App() {
   const handleLoginSuccess = (user: User, isGuest = false) => {
     if (isGuest) {
       localStorage.setItem('sem_guest_mode', 'true');
+      localStorage.setItem('sem_token', 'demo_offline_token_xyz');
     } else {
       localStorage.setItem('sem_guest_mode', 'false');
     }

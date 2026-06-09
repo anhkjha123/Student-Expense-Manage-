@@ -20,6 +20,10 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
     *   Thêm tab cấu hình các khoản chi cố định hàng tuần/tháng (như tiền nhà, mạng internet).
     *   **Dropdown định kỳ trong biểu mẫu nhập nhanh:** Cung cấp hộp chọn "Chi tiêu định kỳ (Lặp lại)" (Không lặp lại, Lặp lại hàng tuần, Lặp lại hàng tháng) ngay tại `AddExpenseModal` khi tạo khoản chi mới. Khi lưu, hệ thống tự động ghi nhận giao dịch hiện tại đồng thời thiết lập mẫu chi tiêu định kỳ tương ứng để tự động sinh hóa đơn trong tương lai.
     *   **Tái cấu trúc điều hướng (Navigation Dropdown & Mobile Toggle):** Loại bỏ tab "Định Kỳ" độc lập khỏi thanh điều hướng chính. Trên desktop, khi hover qua tab "Sổ Chi Tiêu" sẽ hiển thị dropdown chứa hai tùy chọn: "Lịch sử chi tiêu" và "Chi tiêu định kỳ". Trên mobile, tab "Sổ Chi Tiêu" tự động đóng vai trò nút bấm chuyển đổi động (toggle) giữa hai chế độ "Sổ chi tiêu" và "Định kỳ", tối ưu hóa tuyệt đối không gian hiển thị.
+*   **🔧 Sửa lỗi nút lưu Thu nhập & Tiết kiệm (Save Buttons Fix):**
+    *   **Khắc phục lỗi xác thực token (Auth token fix):** Bổ sung trích xuất ID người dùng linh hoạt (`decoded.user_id || decoded.sub`) trong `authMiddleware` tại backend server Express, giúp giải mã chính xác token ID Firebase khi đăng nhập bằng Google/Email.
+    *   **Khởi tạo token offline cho Chế độ khách:** Tự động gán token cục bộ `'demo_offline_token_xyz'` khi người dùng trải nghiệm Chế độ Khách (Offline), đảm bảo mọi cuộc gọi API thử nghiệm tới backend được phê duyệt hợp lệ.
+    *   **Cơ chế lưu trữ ngoại tuyến dự phòng (LocalStorage Fallback):** Bổ sung logic lưu trữ và nạp dữ liệu cục bộ vào LocalStorage dự phòng cho `SavingGoals.tsx` và `Incomes.tsx`. Nếu kết nối mạng đứt hoặc Express API trả lỗi, các nút lưu vẫn ghi nhận hoạt động bình thường trên trình duyệt của người dùng.
 
 ---
 
