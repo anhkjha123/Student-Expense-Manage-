@@ -10,7 +10,11 @@ import {
   BookOpen,
   Home,
   CheckCircle,
-  HelpCircle
+  HelpCircle,
+  DollarSign,
+  Target,
+  Calendar,
+  Repeat
 } from 'lucide-react';
 import { User, Notification } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -42,10 +46,14 @@ export default function Navbar({
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const tabs = [
-    { id: 'dashboard', name: 'Dashboard', icon: 'Activity' },
-    { id: 'history', name: 'Sổ Chi Tiêu', icon: 'List' },
-    { id: 'budget', name: 'Ngân Sách', icon: 'Settings' },
-    { id: 'reports', name: 'Báo Cáo', icon: 'PieChart' },
+    { id: 'dashboard', name: 'Dashboard' },
+    { id: 'history', name: 'Sổ Chi Tiêu' },
+    { id: 'budget', name: 'Ngân Sách' },
+    { id: 'reports', name: 'Báo Cáo' },
+    { id: 'incomes', name: 'Thu Nhập' },
+    { id: 'saving-goals', name: 'Tiết Kiệm' },
+    { id: 'calendar', name: 'Lịch' },
+    { id: 'recurring', name: 'Định Kỳ' }
   ];
 
   const getNotifIcon = (type: string) => {
@@ -105,6 +113,10 @@ export default function Navbar({
                 {tab.id === 'history' && <BookOpen className="h-4 w-4" />}
                 {tab.id === 'budget' && <Settings className="h-4 w-4" />}
                 {tab.id === 'reports' && <PieChart className="h-4 w-4" />}
+                {tab.id === 'incomes' && <DollarSign className="h-4 w-4" />}
+                {tab.id === 'saving-goals' && <Target className="h-4 w-4" />}
+                {tab.id === 'calendar' && <Calendar className="h-4 w-4" />}
+                {tab.id === 'recurring' && <Repeat className="h-4 w-4" />}
                 {tab.name}
               </button>
             );
@@ -248,6 +260,10 @@ export default function Navbar({
               {tab.id === 'history' && <BookOpen className="h-4.5 w-4.5" />}
               {tab.id === 'budget' && <Settings className="h-4.5 w-4.5" />}
               {tab.id === 'reports' && <PieChart className="h-4.5 w-4.5" />}
+              {tab.id === 'incomes' && <DollarSign className="h-4.5 w-4.5" />}
+              {tab.id === 'saving-goals' && <Target className="h-4.5 w-4.5" />}
+              {tab.id === 'calendar' && <Calendar className="h-4.5 w-4.5" />}
+              {tab.id === 'recurring' && <Repeat className="h-4.5 w-4.5" />}
               <span>{tab.name}</span>
             </button>
           );

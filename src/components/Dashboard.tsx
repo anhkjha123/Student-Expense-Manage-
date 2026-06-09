@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   TrendingDown, 
   AlertTriangle, 
@@ -45,6 +45,34 @@ export default function Dashboard({
   onEditExpense
 }: DashboardProps) {
   
+  const [wallet, setWallet] = useState({ balance: 0, totalIncome: 0, totalExpense: 0 });
+  const [cashflow, setCashflow] = useState<any[]>([]);
+  const [insights, setInsights] = useState<any[]>([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('sem_token');
+    if (!token) return;
+
+    // Fetch Wallet Balance
+    fetch('/api/wallet/balance', { headers: { 'Authorization': `Bearer ${token}` } })
+      .then(res => res.json())
+      .then(data => setWallet(data))
+      .catch(console.error);
+
+    // Fetch Cashflow (for the current month)
+    const monthStr = new Date().toISOString().substring(0, 7);
+    fetch(`/api/wallet/cashflow?month=${monthStr}`, { headers: { 'Authorization': `Bearer ${token}` } })
+      .then(res => res.json())
+      .then(data => setCashflow(data))
+      .catch(console.error);
+
+    // Fetch Insights
+    fetch('/api/insights/spending', { headers: { 'Authorization': `Bearer ${token}` } })
+      .then(res => res.json())
+      .then(data => setInsights(data))
+      .catch(console.error);
+  }, []);
+
   const currentDate = new Date();
   const currentMonthStr = currentDate.toISOString().substring(0, 7);
   const currentMonthExpenses = expenses.filter(exp => exp.date.startsWith(currentMonthStr));
@@ -183,29 +211,30 @@ export default function Dashboard({
 
       {/* CORE FINANCIAL OVERVIEW CARDS */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        {/* Total Monthly Income Box */}
+        {/* Wallet Balance Box */}
         <motion.div 
           whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
-          className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-white to-emerald-50/30 p-5 shadow-sm relative overflow-hidden transition-all duration-300"
+          className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-500 to-teal-600 p-5 shadow-sm relative overflow-hidden transition-all duration-300 text-white"
         >
           <div className="flex justify-between items-start relative z-10">
             <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
-                Chu cấp / Thu nhập
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-100 font-mono">
+                Số Dư Ví Hiện Tại
               </span>
-              <div className="text-2xl font-black font-mono text-slate-900 drop-shadow-sm">
-                {new Intl.NumberFormat('vi-VN').format(totalIncome)}đ
+              <div className="text-3xl font-black font-mono drop-shadow-md">
+                {new Intl.NumberFormat('vi-VN').format(wallet.balance)}đ
               </div>
             </div>
-            <span className="p-3 bg-emerald-100 text-emerald-600 rounded-2xl shadow-inner border border-emerald-200">
-              <Coins className="h-5 w-5" />
+            <span className="p-3 bg-white/20 text-white rounded-2xl shadow-inner border border-white/30 backdrop-blur-sm">
+              <DollarSign className="h-5 w-5" />
             </span>
           </div>
-          <div className="absolute -bottom-4 -right-4 text-emerald-100/50 pointer-events-none transform -rotate-12">
-            <Coins className="h-24 w-24" />
+          <div className="absolute -bottom-4 -right-4 text-white/10 pointer-events-none transform -rotate-12">
+            <DollarSign className="h-32 w-32" />
           </div>
-          <div className="text-[10px] text-slate-600 font-semibold mt-3 pt-3 border-t border-emerald-100/50 relative z-10">
-            Duy trì mục tiêu tích lũy: <strong className="text-emerald-700 font-mono">{new Intl.NumberFormat('vi-VN').format(savingGoal)}đ</strong>
+          <div className="flex justify-between text-[10px] text-emerald-50 font-semibold mt-4 pt-3 border-t border-emerald-400/50 relative z-10">
+            <span>Thu: +{new Intl.NumberFormat('vi-VN').format(wallet.totalIncome)}đ</span>
+            <span>Chi: -{new Intl.NumberFormat('vi-VN').format(wallet.totalExpense)}đ</span>
           </div>
         </motion.div>
 
@@ -261,6 +290,24 @@ export default function Dashboard({
           </div>
         </motion.div>
       </motion.div>
+
+      {/* SPENDING INSIGHTS PANEL */}
+      {insights.length > 0 && (
+        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {insights.map(insight => (
+            <div key={insight.id} className={`rounded-2xl p-4 border flex items-start gap-3 shadow-sm ${
+              insight.type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-900' :
+              insight.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-900' :
+              'bg-blue-50 border-blue-200 text-blue-900'
+            }`}>
+              {insight.type === 'warning' ? <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600" /> :
+               insight.type === 'success' ? <CheckCircle className="h-5 w-5 shrink-0 text-emerald-600" /> :
+               <Activity className="h-5 w-5 shrink-0 text-blue-600" />}
+              <div className="text-xs font-medium leading-relaxed">{insight.message}</div>
+            </div>
+          ))}
+        </motion.div>
+      )}
 
       {/* WALLET SAFETY GAUGE & NEEDS/WANTS PROGRESS */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-12 gap-6">
@@ -398,8 +445,49 @@ export default function Dashboard({
         </motion.div>
       )}
 
-      {/* CATEGORIES BUDGET METERS & RECENT EXPENSES */}
+      {/* CASH FLOW CHART & RECENT EXPENSES */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        
+        {/* Cash Flow Area Chart (Mockup with CSS) */}
+        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md md:col-span-7 lg:col-span-7 space-y-4 hover:shadow-lg transition-shadow duration-300 flex flex-col justify-between">
+          <div className="flex justify-between items-center pb-2 border-b border-slate-50">
+            <h3 className="font-display text-base font-bold text-slate-800 drop-shadow-sm">
+              Dòng Tiền (Cash Flow)
+            </h3>
+          </div>
+          <div className="h-48 w-full flex items-end gap-1 px-1 overflow-x-auto relative mt-4">
+            {cashflow.length === 0 ? (
+              <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Đang tải dữ liệu dòng tiền...</div>
+            ) : (
+              cashflow.map(day => {
+                const isDeficit = day.expense > day.income;
+                const total = Math.max(day.expense, day.income, 100000);
+                const expHeight = (day.expense / total) * 100;
+                const incHeight = (day.income / total) * 100;
+                return (
+                  <div key={day.date} className="flex-1 flex flex-col justify-end items-center group relative min-w-[12px]">
+                    {/* Tooltip */}
+                    <div className="absolute -top-12 bg-slate-800 text-white text-[10px] p-2 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap pointer-events-none">
+                      <div>{day.date.split('-').reverse().join('/')}</div>
+                      <div className="text-emerald-400">Thu: +{new Intl.NumberFormat('vi-VN').format(day.income)}</div>
+                      <div className="text-red-400">Chi: -{new Intl.NumberFormat('vi-VN').format(day.expense)}</div>
+                    </div>
+                    {/* Bars */}
+                    <div className="w-full relative flex items-end h-full">
+                      <div className={`absolute bottom-0 w-full bg-emerald-400/50 rounded-t-sm`} style={{ height: `${incHeight}%` }}></div>
+                      <div className={`absolute bottom-0 w-full ${isDeficit ? 'bg-red-500' : 'bg-red-300/50'} rounded-t-sm`} style={{ height: `${expHeight}%` }}></div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+          <div className="flex justify-center gap-4 text-[10px] text-slate-500 font-medium">
+            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-400/50"></div> Thu nhập</span>
+            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-300/50"></div> Chi tiêu</span>
+            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-500"></div> Chi &gt; Thu (Thâm hụt)</span>
+          </div>
+        </div>
         
         {/* Categories Budget Limit Meters */}
         <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md md:col-span-7 lg:col-span-7 space-y-4 hover:shadow-lg transition-shadow duration-300">

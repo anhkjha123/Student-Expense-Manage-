@@ -52,3 +52,34 @@ export interface DashboardStats {
   savingForecast: number;
   budgetWarningActive: boolean;
 }
+
+export interface SavingGoal {
+  id: string;
+  userId: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number; // Updated via API based on wallet balance or manual input
+  deadline: string;
+  status: 'On Track' | 'At Risk' | 'Completed';
+  categoryId?: string;
+}
+
+export interface Income {
+  id: string;
+  userId: string;
+  amount: number;
+  source: 'SCHOLARSHIP' | 'PART_TIME' | 'FAMILY' | 'OTHER';
+  date: string;
+  note?: string;
+}
+
+export interface RecurringExpense {
+  id: string;
+  userId: string;
+  amount: number;
+  categoryId: string;
+  title: string;
+  cycle: 'MONTHLY' | 'WEEKLY';
+  startDate: string;
+  note?: string;
+}

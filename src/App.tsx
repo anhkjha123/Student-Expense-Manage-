@@ -25,6 +25,10 @@ import BudgetSettings from './components/BudgetSettings';
 import Reports from './components/Reports';
 import AddExpenseModal from './components/AddExpenseModal';
 import LoginRegister from './components/LoginRegister';
+import SavingGoals from './components/SavingGoals';
+import Incomes from './components/Incomes';
+import CalendarView from './components/CalendarView';
+import RecurringExpenses from './components/RecurringExpenses';
 
 export default function App() {
   // --- CORE STATE ---
@@ -717,6 +721,22 @@ export default function App() {
               categories={DEFAULT_CATEGORIES}
               user={currentUser}
             />
+          )}
+
+          {activeTab === 'saving-goals' && (
+            <SavingGoals user={currentUser} />
+          )}
+
+          {activeTab === 'incomes' && (
+            <Incomes user={currentUser} />
+          )}
+
+          {activeTab === 'calendar' && (
+            <CalendarView expenses={expenses} categories={DEFAULT_CATEGORIES} />
+          )}
+
+          {activeTab === 'recurring' && (
+            <RecurringExpenses user={currentUser} categories={DEFAULT_CATEGORIES} />
           )}
         </main>
 
