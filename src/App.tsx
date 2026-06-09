@@ -108,6 +108,20 @@ export default function App() {
   // --- LOAD RECURRING EXPENSES (for CalendarView) ---
   const loadRecurringExpenses = async (userId: string) => {
     const localRecsKey = `sem_${userId}_recurring_expenses`;
+    const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+
+    if (!isGuest && auth.currentUser) {
+      try {
+        const data = await ApiService.getRecurringExpenses();
+        setRecurringExpenses(data);
+        localStorage.setItem(localRecsKey, JSON.stringify(data));
+        return;
+      } catch (e) {
+        console.warn('Firestore getRecurringExpenses in App failed, falling back:', e);
+      }
+    }
+
+    // Guest / offline fallback: Express API then localStorage
     try {
       const res = await fetch('/api/recurring-expenses', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('sem_token')}` }
@@ -486,34 +500,55 @@ export default function App() {
         const list = stored ? JSON.parse(stored) : [];
         const updated = [newRec, ...list];
         localStorage.setItem(localRecsKey, JSON.stringify(updated));
-      } else {
+      } else if (auth.currentUser) {
         try {
-          await fetch('/api/recurring-expenses', {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('sem_token')}`
-            },
-            body: JSON.stringify({
-              title: newRec.title,
-              amount: newRec.amount,
-              categoryId: newRec.categoryId,
-              cycle: newRec.cycle,
-              startDate: newRec.startDate,
-              note: newRec.note,
-              repeatOn: newRec.repeatOn,
-              isNecessary: newRec.isNecessary
-            })
+          const created = await ApiService.createRecurringExpense({
+            title: newRec.title,
+            amount: newRec.amount,
+            categoryId: newRec.categoryId,
+            cycle: newRec.cycle,
+            startDate: newRec.startDate,
+            note: newRec.note,
+            repeatOn: newRec.repeatOn,
+            isNecessary: newRec.isNecessary
           });
-        } catch (err) {
-          console.error("Failed to call recurring-expenses API:", err);
+          // Update local state immediately with the Firestore-returned ID
+          setRecurringExpenses(prev => [created, ...prev]);
           const localRecsKey = `sem_${currentUser.id}_recurring_expenses`;
           const stored = localStorage.getItem(localRecsKey);
           const list = stored ? JSON.parse(stored) : [];
-          const updated = [newRec, ...list];
-          localStorage.setItem(localRecsKey, JSON.stringify(updated));
+          localStorage.setItem(localRecsKey, JSON.stringify([created, ...list]));
+        } catch (err) {
+          console.error("Firestore createRecurringExpense failed, falling back to Express:", err);
+          try {
+            await fetch('/api/recurring-expenses', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('sem_token')}` },
+              body: JSON.stringify({ title: newRec.title, amount: newRec.amount, categoryId: newRec.categoryId, cycle: newRec.cycle, startDate: newRec.startDate, note: newRec.note, repeatOn: newRec.repeatOn, isNecessary: newRec.isNecessary })
+            });
+          } catch {
+            const localRecsKey = `sem_${currentUser.id}_recurring_expenses`;
+            const stored = localStorage.getItem(localRecsKey);
+            const list = stored ? JSON.parse(stored) : [];
+            localStorage.setItem(localRecsKey, JSON.stringify([newRec, ...list]));
+          }
+        }
+      } else {
+        // Express fallback when not yet fully authenticated
+        try {
+          await fetch('/api/recurring-expenses', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('sem_token')}` },
+            body: JSON.stringify({ title: newRec.title, amount: newRec.amount, categoryId: newRec.categoryId, cycle: newRec.cycle, startDate: newRec.startDate, note: newRec.note, repeatOn: newRec.repeatOn, isNecessary: newRec.isNecessary })
+          });
+        } catch {
+          const localRecsKey = `sem_${currentUser.id}_recurring_expenses`;
+          const stored = localStorage.getItem(localRecsKey);
+          const list = stored ? JSON.parse(stored) : [];
+          localStorage.setItem(localRecsKey, JSON.stringify([newRec, ...list]));
         }
       }
+
 
       const recurringNotif: Notification = {
         id: `notif_sys_${Date.now()}_rec`,

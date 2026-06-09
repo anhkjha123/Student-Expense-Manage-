@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Target, Plus, TrendingUp, Calendar, AlertTriangle, CheckCircle } from 'lucide-react';
 import { SavingGoal, User } from '../types';
 import { ApiService } from '../lib/api';
+import { auth } from '../lib/firebase';
 import { motion } from 'motion/react';
 
 interface SavingGoalsProps {
@@ -27,36 +28,53 @@ export default function SavingGoals({ user }: SavingGoalsProps) {
   const loadGoals = async () => {
     setIsLoading(true);
     const localGoalsKey = `sem_${user.id}_saving_goals`;
+    const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+
+    const computeProgress = (goals: SavingGoal[]) =>
+      goals.map(g => {
+        const now = new Date();
+        const deadline = new Date(g.deadline);
+        const daysLeft = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        const percent = g.targetAmount > 0
+          ? Math.min(100, Math.round((g.currentAmount / g.targetAmount) * 100))
+          : 0;
+        return { ...g, percent, daysLeft };
+      });
+
+    if (!isGuest && auth.currentUser) {
+      try {
+        const data = await ApiService.getSavingGoals();
+        const withProgress = computeProgress(data);
+        setGoals(withProgress);
+        localStorage.setItem(localGoalsKey, JSON.stringify(withProgress));
+        setIsLoading(false);
+        return;
+      } catch (e) {
+        console.warn('Firestore getSavingGoals failed, falling back:', e);
+      }
+    }
+
+    // Guest / offline fallback: Express API then localStorage
     try {
       const res = await fetch('/api/saving-goals', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('sem_token')}` }
       });
       if (res.ok) {
         const data: SavingGoal[] = await res.json();
-        
-        // Fetch progress for each
         const withProgress = await Promise.all(data.map(async (g) => {
           const pRes = await fetch(`/api/saving-goals/${g.id}/progress`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('sem_token')}` }
           });
-          if (pRes.ok) {
-            const pData = await pRes.json();
-            return { ...g, ...pData };
-          }
+          if (pRes.ok) { const pData = await pRes.json(); return { ...g, ...pData }; }
           return g;
         }));
-        
         setGoals(withProgress);
         localStorage.setItem(localGoalsKey, JSON.stringify(withProgress));
-      } else {
-        throw new Error('API load goals failed');
-      }
+      } else { throw new Error('API failed'); }
     } catch (e) {
-      console.warn("API load goals failed, using local fallback:", e);
+      console.warn('Express API failed, using localStorage:', e);
       const stored = localStorage.getItem(localGoalsKey);
-      if (stored) {
-        setGoals(JSON.parse(stored));
-      }
+      if (stored) setGoals(JSON.parse(stored));
     }
     setIsLoading(false);
   };
@@ -64,6 +82,29 @@ export default function SavingGoals({ user }: SavingGoalsProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const localGoalsKey = `sem_${user.id}_saving_goals`;
+    const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+    const daysLeft = Math.ceil((new Date(formData.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+
+    if (!isGuest && auth.currentUser) {
+      try {
+        await ApiService.createSavingGoal({
+          name: formData.name,
+          targetAmount: Number(formData.targetAmount),
+          currentAmount: 0,
+          deadline: formData.deadline,
+          status: 'On Track',
+          categoryId: formData.categoryId
+        });
+        setShowForm(false);
+        setFormData({ name: '', targetAmount: '', deadline: '', categoryId: 'study' });
+        loadGoals();
+        return;
+      } catch (e) {
+        console.warn('Firestore createSavingGoal failed, falling back:', e);
+      }
+    }
+
+    // Guest / offline fallback
     const newGoal: SavingGoal & { percent?: number; daysLeft?: number } = {
       id: `goal_added_${Date.now()}`,
       userId: user.id,
@@ -74,64 +115,52 @@ export default function SavingGoals({ user }: SavingGoalsProps) {
       status: 'On Track',
       categoryId: formData.categoryId,
       percent: 0,
-      daysLeft: Math.ceil((new Date(formData.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+      daysLeft
     };
-
     try {
       const res = await fetch('/api/saving-goals', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('sem_token')}`
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          targetAmount: Number(formData.targetAmount),
-          deadline: formData.deadline,
-          categoryId: formData.categoryId
-        })
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('sem_token')}` },
+        body: JSON.stringify({ name: formData.name, targetAmount: Number(formData.targetAmount), deadline: formData.deadline, categoryId: formData.categoryId })
       });
-      if (res.ok) {
-        setShowForm(false);
-        setFormData({ name: '', targetAmount: '', deadline: '', categoryId: 'study' });
-        loadGoals();
-      } else {
-        throw new Error('API save goal failed');
-      }
-    } catch (e) {
-      console.warn("Saving goal offline locally:", e);
+      if (!res.ok) throw new Error('API failed');
+    } catch {
       const stored = localStorage.getItem(localGoalsKey);
       const list = stored ? JSON.parse(stored) : [];
-      const updated = [newGoal, ...list];
-      localStorage.setItem(localGoalsKey, JSON.stringify(updated));
-      setShowForm(false);
-      setFormData({ name: '', targetAmount: '', deadline: '', categoryId: 'study' });
-      loadGoals();
+      localStorage.setItem(localGoalsKey, JSON.stringify([newGoal, ...list]));
     }
+    setShowForm(false);
+    setFormData({ name: '', targetAmount: '', deadline: '', categoryId: 'study' });
+    loadGoals();
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Bạn có chắc muốn xóa mục tiêu này?')) return;
     const localGoalsKey = `sem_${user.id}_saving_goals`;
+    const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+
+    if (!isGuest && auth.currentUser) {
+      try {
+        await ApiService.deleteSavingGoal(id);
+        loadGoals();
+        return;
+      } catch (e) {
+        console.warn('Firestore deleteSavingGoal failed, falling back:', e);
+      }
+    }
+
     try {
       const res = await fetch(`/api/saving-goals/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('sem_token')}` }
       });
-      if (res.ok) {
-        loadGoals();
-      } else {
-        throw new Error('API delete goal failed');
-      }
-    } catch (e) {
-      console.warn("Deleting goal offline locally:", e);
-      const stored = localStorage.getItem(localGoalsKey);
-      if (stored) {
-        const list = JSON.parse(stored) as SavingGoal[];
-        const updated = list.filter(g => g.id !== id);
-        localStorage.setItem(localGoalsKey, JSON.stringify(updated));
-        loadGoals();
-      }
+      if (res.ok) { loadGoals(); return; }
+    } catch {}
+    const stored = localStorage.getItem(localGoalsKey);
+    if (stored) {
+      const list = JSON.parse(stored) as SavingGoal[];
+      localStorage.setItem(localGoalsKey, JSON.stringify(list.filter(g => g.id !== id)));
+      loadGoals();
     }
   };
 

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Repeat, Calendar, AlertTriangle } from 'lucide-react';
 import { RecurringExpense, User, Category } from '../types';
+import { ApiService } from '../lib/api';
+import { auth } from '../lib/firebase';
 
 interface RecurringExpensesProps {
   user: User;
@@ -19,6 +21,21 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
   const loadRecs = async () => {
     setIsLoading(true);
     const localRecsKey = `sem_${user.id}_recurring_expenses`;
+    const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+
+    if (!isGuest && auth.currentUser) {
+      try {
+        const data = await ApiService.getRecurringExpenses();
+        setRecs(data);
+        localStorage.setItem(localRecsKey, JSON.stringify(data));
+        setIsLoading(false);
+        return;
+      } catch (e) {
+        console.warn('Firestore getRecurringExpenses failed, falling back:', e);
+      }
+    }
+
+    // Guest / offline fallback
     try {
       const res = await fetch('/api/recurring-expenses', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('sem_token')}` }
@@ -27,15 +44,11 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
         const data = await res.json();
         setRecs(data);
         localStorage.setItem(localRecsKey, JSON.stringify(data));
-      } else {
-        throw new Error('API load failed');
-      }
+      } else { throw new Error('API failed'); }
     } catch (e) {
-      console.warn("API load recurring expenses failed, using local fallback:", e);
+      console.warn('Express API failed, using localStorage:', e);
       const stored = localStorage.getItem(localRecsKey);
-      if (stored) {
-        setRecs(JSON.parse(stored));
-      }
+      if (stored) setRecs(JSON.parse(stored));
     }
     setIsLoading(false);
   };
@@ -44,23 +57,32 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
     if (!deleteTarget) return;
     const id = deleteTarget.id;
     const localRecsKey = `sem_${user.id}_recurring_expenses`;
+    const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+
+    if (!isGuest && auth.currentUser) {
+      try {
+        await ApiService.deleteRecurringExpense(id);
+        setDeleteTarget(null);
+        loadRecs();
+        return;
+      } catch (e) {
+        console.warn('Firestore deleteRecurringExpense failed, falling back:', e);
+      }
+    }
+
     try {
       const res = await fetch(`/api/recurring-expenses/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('sem_token')}` }
       });
-      if (res.ok) {
-        loadRecs();
-      } else {
-        throw new Error('API delete failed');
-      }
+      if (res.ok) { loadRecs(); }
+      else { throw new Error('API failed'); }
     } catch (e) {
-      console.warn("Deleting recurring expense offline locally:", e);
+      console.warn('Express API failed, using localStorage:', e);
       const stored = localStorage.getItem(localRecsKey);
       if (stored) {
         const list = JSON.parse(stored) as RecurringExpense[];
-        const updated = list.filter(r => r.id !== id);
-        localStorage.setItem(localRecsKey, JSON.stringify(updated));
+        localStorage.setItem(localRecsKey, JSON.stringify(list.filter(r => r.id !== id)));
         loadRecs();
       }
     } finally {

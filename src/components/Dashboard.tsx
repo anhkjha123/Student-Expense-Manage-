@@ -22,6 +22,7 @@ import {
   Info
 } from 'lucide-react';
 import { User as UserType, Expense, Category, Budget, Notification, Income, RecurringExpense } from '../types';
+import { ApiService } from '../lib/api';
 import { motion } from 'motion/react';
 
 interface DashboardProps {
@@ -48,18 +49,17 @@ export default function Dashboard({
   recurringExpenses = []
 }: DashboardProps) {
   
-  const [cashflow, setCashflow] = useState<any[]>([]);
-  const [insights, setInsights] = useState<any[]>([]);
   const [variableIncomes, setVariableIncomes] = useState<Income[]>([]);
   const [tooltipVisible, setTooltipVisible] = useState<'income' | 'expense' | null>(null);
 
   // Load variable incomes (non-fixed) for current month from localStorage / API
   useEffect(() => {
     const currentMonthStr = new Date().toISOString().substring(0, 7);
-    const token = localStorage.getItem('sem_token');
+    const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+    const localKey = `sem_${user.id}_incomes`;
 
     const loadIncomesLocal = () => {
-      const stored = localStorage.getItem(`sem_${user.id}_incomes`);
+      const stored = localStorage.getItem(localKey);
       if (stored) {
         try {
           const all: Income[] = JSON.parse(stored);
@@ -68,28 +68,24 @@ export default function Dashboard({
       }
     };
 
-    if (token) {
-      fetch(`/api/incomes?month=${currentMonthStr}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-        .then(r => r.ok ? r.json() : Promise.reject())
-        .then((data: Income[]) => {
+    if (!isGuest && localStorage.getItem('sem_token')) {
+      ApiService.getIncomes(currentMonthStr)
+        .then(data => {
           setVariableIncomes(data);
-          localStorage.setItem(`sem_${user.id}_incomes`, JSON.stringify(data));
+          localStorage.setItem(localKey, JSON.stringify(data));
         })
-        .catch(loadIncomesLocal);
-
-      // Fetch Cashflow (for the current month)
-      fetch(`/api/wallet/cashflow?month=${currentMonthStr}`, { headers: { 'Authorization': `Bearer ${token}` } })
-        .then(res => res.json())
-        .then(data => setCashflow(data))
-        .catch(console.error);
-
-      // Fetch Insights
-      fetch('/api/insights/spending', { headers: { 'Authorization': `Bearer ${token}` } })
-        .then(res => res.json())
-        .then(data => setInsights(data))
-        .catch(console.error);
+        .catch(() => {
+          // fallback to Express API if ApiService fails or not fully connected
+          fetch(`/api/incomes?month=${currentMonthStr}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('sem_token')}` }
+          })
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then((data: Income[]) => {
+              setVariableIncomes(data);
+              localStorage.setItem(localKey, JSON.stringify(data));
+            })
+            .catch(loadIncomesLocal);
+        });
     } else {
       loadIncomesLocal();
     }

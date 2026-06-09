@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { DollarSign, Plus, Download, Filter } from 'lucide-react';
 import { Income, User } from '../types';
+import { ApiService } from '../lib/api';
+import { auth } from '../lib/firebase';
 import { motion } from 'motion/react';
 
 interface IncomesProps {
@@ -34,11 +36,24 @@ export default function Incomes({ user }: IncomesProps) {
   const loadIncomes = async () => {
     setIsLoading(true);
     const localIncomesKey = `sem_${user.id}_incomes`;
+    const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+
+    if (!isGuest && auth.currentUser) {
+      try {
+        const data = await ApiService.getIncomes(filterMonth || undefined);
+        setIncomes(data);
+        localStorage.setItem(localIncomesKey, JSON.stringify(data));
+        setIsLoading(false);
+        return;
+      } catch (e) {
+        console.warn('Firestore getIncomes failed, falling back:', e);
+      }
+    }
+
+    // Guest / offline fallback: Express API then localStorage
     try {
       let url = '/api/incomes';
-      if (filterMonth) {
-        url += `?month=${filterMonth}`;
-      }
+      if (filterMonth) url += `?month=${filterMonth}`;
       const res = await fetch(url, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('sem_token')}` }
       });
@@ -46,17 +61,13 @@ export default function Incomes({ user }: IncomesProps) {
         const data = await res.json();
         setIncomes(data);
         localStorage.setItem(localIncomesKey, JSON.stringify(data));
-      } else {
-        throw new Error('API load incomes failed');
-      }
+      } else { throw new Error('API failed'); }
     } catch (e) {
-      console.warn("API load incomes failed, using local fallback:", e);
+      console.warn('Express API failed, using localStorage:', e);
       const stored = localStorage.getItem(localIncomesKey);
       if (stored) {
         let parsed: Income[] = JSON.parse(stored);
-        if (filterMonth) {
-          parsed = parsed.filter(i => i.date.startsWith(filterMonth));
-        }
+        if (filterMonth) parsed = parsed.filter(i => i.date.startsWith(filterMonth));
         setIncomes(parsed);
       }
     }
@@ -66,6 +77,26 @@ export default function Incomes({ user }: IncomesProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const localIncomesKey = `sem_${user.id}_incomes`;
+    const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+
+    if (!isGuest && auth.currentUser) {
+      try {
+        await ApiService.createIncome({
+          amount: Number(formData.amount),
+          source: formData.source as any,
+          date: formData.date,
+          note: formData.note || undefined
+        });
+        setShowForm(false);
+        setFormData({ ...formData, amount: '', note: '' });
+        loadIncomes();
+        return;
+      } catch (e) {
+        console.warn('Firestore createIncome failed, falling back:', e);
+      }
+    }
+
+    // Guest / offline fallback
     const newIncome: Income = {
       id: `inc_added_${Date.now()}`,
       userId: user.id,
@@ -74,62 +105,50 @@ export default function Incomes({ user }: IncomesProps) {
       date: formData.date,
       note: formData.note
     };
-
     try {
       const res = await fetch('/api/incomes', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('sem_token')}`
-        },
-        body: JSON.stringify({
-          amount: newIncome.amount,
-          source: newIncome.source,
-          date: newIncome.date,
-          note: newIncome.note
-        })
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('sem_token')}` },
+        body: JSON.stringify({ amount: newIncome.amount, source: newIncome.source, date: newIncome.date, note: newIncome.note })
       });
-      if (res.ok) {
-        setShowForm(false);
-        setFormData({ ...formData, amount: '', note: '' });
-        loadIncomes();
-      } else {
-        throw new Error('API save income failed');
-      }
-    } catch (e) {
-      console.warn("Saving income offline locally:", e);
+      if (!res.ok) throw new Error('API failed');
+    } catch {
       const stored = localStorage.getItem(localIncomesKey);
       const list = stored ? JSON.parse(stored) : [];
-      const updated = [newIncome, ...list];
-      localStorage.setItem(localIncomesKey, JSON.stringify(updated));
-      setShowForm(false);
-      setFormData({ ...formData, amount: '', note: '' });
-      loadIncomes();
+      localStorage.setItem(localIncomesKey, JSON.stringify([newIncome, ...list]));
     }
+    setShowForm(false);
+    setFormData({ ...formData, amount: '', note: '' });
+    loadIncomes();
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Bạn có chắc muốn xóa khoản thu này?')) return;
     const localIncomesKey = `sem_${user.id}_incomes`;
+    const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+
+    if (!isGuest && auth.currentUser) {
+      try {
+        await ApiService.deleteIncome(id);
+        loadIncomes();
+        return;
+      } catch (e) {
+        console.warn('Firestore deleteIncome failed, falling back:', e);
+      }
+    }
+
     try {
       const res = await fetch(`/api/incomes/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('sem_token')}` }
       });
-      if (res.ok) {
-        loadIncomes();
-      } else {
-        throw new Error('API delete failed');
-      }
-    } catch (e) {
-      console.warn("Deleting income offline locally:", e);
-      const stored = localStorage.getItem(localIncomesKey);
-      if (stored) {
-        const list = JSON.parse(stored) as Income[];
-        const updated = list.filter(i => i.id !== id);
-        localStorage.setItem(localIncomesKey, JSON.stringify(updated));
-        loadIncomes();
-      }
+      if (res.ok) { loadIncomes(); return; }
+    } catch {}
+    const stored = localStorage.getItem(localIncomesKey);
+    if (stored) {
+      const list = JSON.parse(stored) as Income[];
+      localStorage.setItem(localIncomesKey, JSON.stringify(list.filter(i => i.id !== id)));
+      loadIncomes();
     }
   };
 
