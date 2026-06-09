@@ -97,6 +97,108 @@ export default function Dashboard({
   const currentMonth = currentDate.getMonth(); // 0-indexed
   const currentMonthExpenses = expenses.filter(exp => exp.date.startsWith(currentMonthStr));
 
+  // Compute cashflow locally
+  const cashflow = useMemo(() => {
+    const flowMap: Record<string, { income: number; expense: number }> = {};
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${currentMonthStr}-${day.toString().padStart(2, '0')}`;
+      flowMap[dateStr] = { income: 0, expense: 0 };
+    }
+
+    variableIncomes.forEach(i => {
+      if (flowMap[i.date]) flowMap[i.date].income += i.amount;
+    });
+
+    currentMonthExpenses.forEach(e => {
+      if (flowMap[e.date]) flowMap[e.date].expense += e.amount;
+    });
+
+    return Object.keys(flowMap).sort().map(date => ({
+      date,
+      income: flowMap[date].income,
+      expense: flowMap[date].expense
+    }));
+  }, [variableIncomes, currentMonthExpenses, currentYear, currentMonth, currentMonthStr]);
+
+  // Compute insights locally
+  const insights = useMemo(() => {
+    const list: Array<{ id: string; type: 'warning' | 'info' | 'success'; message: string; categoryId?: string }> = [];
+
+    // 1. Analyze Category Increase > 20% compared to last month
+    const currentCatMap: Record<string, number> = {};
+    const lastCatMap: Record<string, number> = {};
+
+    let lastMonth = currentMonth; // currentMonth is 0-indexed, so lastMonth = currentMonth (which represents the previous month in 1-indexed view)
+    let lastYear = currentYear;
+    if (lastMonth === 0) {
+      lastMonth = 12;
+      lastYear -= 1;
+    }
+    const lastMonthStr = `${lastYear}-${lastMonth.toString().padStart(2, '0')}`;
+
+    const lastMonthExpenses = expenses.filter(e => e.date.startsWith(lastMonthStr));
+
+    currentMonthExpenses.forEach(e => {
+      currentCatMap[e.categoryId] = (currentCatMap[e.categoryId] || 0) + e.amount;
+    });
+    lastMonthExpenses.forEach(e => {
+      lastCatMap[e.categoryId] = (lastCatMap[e.categoryId] || 0) + e.amount;
+    });
+
+    Object.keys(currentCatMap).forEach(catId => {
+      const currentAmt = currentCatMap[catId];
+      const lastAmt = lastCatMap[catId] || 0;
+      if (lastAmt > 0) {
+        const increase = (currentAmt - lastAmt) / lastAmt;
+        if (increase > 0.2) {
+          const catName = categories.find(c => c.id === catId)?.name || catId;
+          list.push({
+            id: `insight_cat_${catId}`,
+            type: 'warning',
+            message: `Chi tiêu danh mục "${catName}" đã tăng ${Math.round(increase * 100)}% so với tháng trước. Bạn nên cân nhắc cắt giảm!`,
+            categoryId: catId
+          });
+        }
+      }
+    });
+
+    // 2. Find highest spending day
+    const dayMap: Record<string, number> = {};
+    currentMonthExpenses.forEach(e => {
+      dayMap[e.date] = (dayMap[e.date] || 0) + e.amount;
+    });
+
+    let maxDay = '';
+    let maxAmount = 0;
+    Object.keys(dayMap).forEach(date => {
+      if (dayMap[date] > maxAmount) {
+        maxAmount = dayMap[date];
+        maxDay = date;
+      }
+    });
+
+    if (maxDay && maxAmount > 0) {
+      const formattedDate = maxDay.split('-').reverse().join('/');
+      list.push({
+        id: 'insight_max_day',
+        type: 'info',
+        message: `Ngày ${formattedDate} bạn đã chi nhiều nhất với số tiền ${new Intl.NumberFormat('vi-VN').format(maxAmount)}đ. Hãy cẩn thận các ngày mua sắm lớn nhé!`
+      });
+    }
+
+    if (list.length === 0) {
+      list.push({
+        id: 'insight_good',
+        type: 'success',
+        message: 'Tuyệt vời! Thói quen chi tiêu của bạn trong tháng này rất ổn định và không có dấu hiệu bất thường.'
+      });
+    }
+
+    return list;
+  }, [expenses, currentMonthExpenses, categories, currentMonth, currentYear]);
+
   // --- Tính số tiền chi tiêu định kỳ phát sinh trong tháng hiện tại ---
   const recurringThisMonth = useMemo(() => {
     let total = 0;
