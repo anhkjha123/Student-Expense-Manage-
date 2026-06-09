@@ -4,7 +4,8 @@ import {
   Expense, 
   Category, 
   Budget, 
-  Notification 
+  Notification,
+  RecurringExpense
 } from './types';
 import { 
   DEFAULT_CATEGORIES, 
@@ -36,6 +37,7 @@ export default function App() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [recurringExpenses, setRecurringExpenses] = useState<RecurringExpense[]>([]);
   
   // App views & UI Controls
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -103,12 +105,34 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  // --- LOAD RECURRING EXPENSES (for CalendarView) ---
+  const loadRecurringExpenses = async (userId: string) => {
+    const localRecsKey = `sem_${userId}_recurring_expenses`;
+    try {
+      const res = await fetch('/api/recurring-expenses', {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('sem_token')}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setRecurringExpenses(data);
+        localStorage.setItem(localRecsKey, JSON.stringify(data));
+        return;
+      }
+    } catch (_) {}
+    // fallback to localStorage
+    const stored = localStorage.getItem(localRecsKey);
+    if (stored) {
+      try { setRecurringExpenses(JSON.parse(stored)); } catch (_) {}
+    }
+  };
+
   // --- LOAD USER-SCOPED DATA WHEN USER CHANGES ---
   useEffect(() => {
     if (!currentUser) {
       setExpenses([]);
       setBudgets([]);
       setNotifications([]);
+      setRecurringExpenses([]);
       return;
     }
 
@@ -307,6 +331,7 @@ export default function App() {
     };
 
     loadData();
+    if (currentUser) loadRecurringExpenses(currentUser.id);
   }, [currentUser?.id]);
 
   // --- SAVE TO USER-SCOPED LOCALSTORAGE ON UPDATES ---
@@ -820,7 +845,7 @@ export default function App() {
           )}
 
           {activeTab === 'calendar' && (
-            <CalendarView expenses={expenses} categories={DEFAULT_CATEGORIES} />
+            <CalendarView expenses={expenses} categories={DEFAULT_CATEGORIES} recurringExpenses={recurringExpenses} />
           )}
 
           {activeTab === 'recurring' && (

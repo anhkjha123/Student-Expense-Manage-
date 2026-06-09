@@ -1,25 +1,58 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Expense, Category } from '../types';
+import React, { useState, useMemo } from 'react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Repeat } from 'lucide-react';
+import { Expense, Category, RecurringExpense } from '../types';
 
 interface CalendarViewProps {
   expenses: Expense[];
   categories: Category[];
+  recurringExpenses?: RecurringExpense[];
 }
 
-export default function CalendarView({ expenses, categories }: CalendarViewProps) {
+/**
+ * Generate all dates in YYYY-MM-DD format that a recurring expense fires
+ * within the given year/month.
+ */
+function getRecurringDatesForMonth(rec: RecurringExpense, year: number, month: number): string[] {
+  const start = new Date(rec.startDate + 'T00:00:00');
+  const results: string[] = [];
+
+  if (rec.cycle === 'MONTHLY') {
+    // Same day of month as startDate, every month
+    const day = start.getDate();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    if (
+      (year > start.getFullYear() || (year === start.getFullYear() && month >= start.getMonth())) &&
+      day <= daysInMonth
+    ) {
+      const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+      results.push(dateStr);
+    }
+  } else if (rec.cycle === 'WEEKLY') {
+    // Same day of week as startDate, every week within the month
+    const startDow = start.getDay(); // 0=Sun, 1=Mon ...
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const candidate = new Date(year, month, d);
+      if (candidate.getDay() !== startDow) continue;
+      if (candidate < start) continue;
+      const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
+      results.push(dateStr);
+    }
+  }
+
+  return results;
+}
+
+export default function CalendarView({ expenses, categories, recurringExpenses = [] }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDateStr, setSelectedDateStr] = useState<string | null>(null);
-
-  const calendarExpenses = expenses.filter(e => !e.isRecurring);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstDayOfMonth = new Date(year, month, 1).getDay(); // 0 is Sunday
-  
-  // Adjust so Monday is first day of week
+  const firstDayOfMonth = new Date(year, month, 1).getDay();
   const startOffset = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
 
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
@@ -28,12 +61,31 @@ export default function CalendarView({ expenses, categories }: CalendarViewProps
   const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
   const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
 
+  // Build a map: dateStr -> list of virtual recurring occurrences
+  const recurringByDate = useMemo(() => {
+    const map: Record<string, RecurringExpense[]> = {};
+    for (const rec of recurringExpenses) {
+      const dates = getRecurringDatesForMonth(rec, year, month);
+      for (const dateStr of dates) {
+        if (!map[dateStr]) map[dateStr] = [];
+        map[dateStr].push(rec);
+      }
+    }
+    return map;
+  }, [recurringExpenses, year, month]);
+
   const getExpensesForDay = (day: number) => {
     const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-    return calendarExpenses.filter(e => e.date === dateStr);
+    return expenses.filter(e => e.date === dateStr);
   };
 
-  const getDayColor = (totalAmount: number) => {
+  const getRecurringForDay = (day: number): RecurringExpense[] => {
+    const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+    return recurringByDate[dateStr] || [];
+  };
+
+  const getDayColor = (totalAmount: number, hasRecurring: boolean) => {
+    if (hasRecurring && totalAmount === 0) return 'bg-blue-50 border-blue-200 hover:bg-blue-100';
     if (totalAmount === 0) return 'bg-white border-slate-100 hover:border-slate-300';
     if (totalAmount < 100000) return 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100';
     if (totalAmount <= 500000) return 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100';
@@ -42,19 +94,26 @@ export default function CalendarView({ expenses, categories }: CalendarViewProps
 
   const handleDayClick = (day: number) => {
     const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-    setSelectedDateStr(dateStr);
+    setSelectedDateStr(prev => prev === dateStr ? null : dateStr);
   };
 
-  const selectedExpenses = selectedDateStr ? calendarExpenses.filter(e => e.date === selectedDateStr) : [];
+  const selectedExpenses = selectedDateStr ? expenses.filter(e => e.date === selectedDateStr) : [];
+  const selectedRecurring = selectedDateStr ? (recurringByDate[selectedDateStr] || []) : [];
+
+  const formatAmount = (amount: number) => {
+    if (amount >= 1000000) return `${(amount / 1000000).toFixed(1)}M`;
+    return `${(amount / 1000).toFixed(0)}k`;
+  };
 
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row gap-8">
+
         {/* Calendar Section */}
         <div className="flex-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5 text-emerald-500" /> 
+              <CalendarIcon className="h-5 w-5 text-emerald-500" />
               {currentDate.toLocaleString('vi-VN', { month: 'long', year: 'numeric' })}
             </h2>
             <div className="flex gap-2">
@@ -72,34 +131,52 @@ export default function CalendarView({ expenses, categories }: CalendarViewProps
           </div>
 
           <div className="grid grid-cols-7 gap-2">
-            {blanks.map(b => <div key={`blank-${b}`} className="aspect-square rounded-xl bg-transparent"></div>)}
-            
+            {blanks.map(b => <div key={`blank-${b}`} className="aspect-square rounded-xl bg-transparent" />)}
+
             {days.map(day => {
               const dayExpenses = getExpensesForDay(day);
-              const totalAmount = dayExpenses.reduce((sum, e) => sum + e.amount, 0);
-              const isSelected = selectedDateStr === `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-              
+              const dayRecurring = getRecurringForDay(day);
+              const loggedTotal = dayExpenses.reduce((sum, e) => sum + e.amount, 0);
+              const recurringTotal = dayRecurring.reduce((sum, r) => sum + r.amount, 0);
+              const totalAmount = loggedTotal + recurringTotal;
+              const hasRecurring = dayRecurring.length > 0;
+              const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+              const isSelected = selectedDateStr === dateStr;
+
               return (
-                <div 
-                  key={day} 
+                <div
+                  key={day}
                   onClick={() => handleDayClick(day)}
-                  className={`aspect-square rounded-xl border p-1 cursor-pointer transition-all flex flex-col justify-between ${getDayColor(totalAmount)} ${isSelected ? 'ring-2 ring-emerald-500 ring-offset-2' : ''}`}
+                  className={`aspect-square rounded-xl border p-1 cursor-pointer transition-all flex flex-col justify-between relative ${getDayColor(totalAmount, hasRecurring)} ${isSelected ? 'ring-2 ring-emerald-500 ring-offset-2' : ''}`}
                 >
                   <span className="text-xs font-bold pl-1">{day}</span>
+
+                  {/* Blue dot indicator for recurring expenses */}
+                  {hasRecurring && (
+                    <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-blue-500" />
+                  )}
+
                   {totalAmount > 0 && (
                     <span className="text-[9px] font-semibold text-center leading-tight truncate px-0.5 pb-0.5">
-                      {totalAmount >= 1000000 ? `${(totalAmount/1000000).toFixed(1)}M` : `${totalAmount/1000}k`}
+                      {formatAmount(totalAmount)}
                     </span>
                   )}
                 </div>
               );
             })}
           </div>
-          
-          <div className="mt-6 flex items-center justify-center gap-4 text-xs font-medium text-slate-500">
-            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-emerald-100 border border-emerald-200"></div> &lt; 100k</div>
-            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-amber-100 border border-amber-200"></div> 100k - 500k</div>
-            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-red-100 border border-red-200"></div> &gt; 500k</div>
+
+          {/* Legend */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-slate-500">
+            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-emerald-100 border border-emerald-200" /> &lt; 100k</div>
+            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-amber-100 border border-amber-200" /> 100k - 500k</div>
+            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-red-100 border border-red-200" /> &gt; 500k</div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-sm bg-blue-100 border border-blue-200 relative flex items-center justify-center">
+                <span className="w-1 h-1 rounded-full bg-blue-500 absolute top-0 right-0" />
+              </div>
+              Định kỳ
+            </div>
           </div>
         </div>
 
@@ -107,19 +184,23 @@ export default function CalendarView({ expenses, categories }: CalendarViewProps
         <div className="w-full md:w-80 flex flex-col gap-4">
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex-1">
             <h3 className="font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100">
-              {selectedDateStr ? `Chi tiết ngày ${selectedDateStr.split('-').reverse().join('/')}` : 'Chọn một ngày để xem'}
+              {selectedDateStr
+                ? `Chi tiết ngày ${selectedDateStr.split('-').reverse().join('/')}`
+                : 'Chọn một ngày để xem'}
             </h3>
-            
+
             {selectedDateStr ? (
-              selectedExpenses.length > 0 ? (
+              (selectedExpenses.length > 0 || selectedRecurring.length > 0) ? (
                 <div className="space-y-4">
+
+                  {/* Logged expenses */}
                   {selectedExpenses.map(exp => {
                     const cat = categories.find(c => c.id === exp.categoryId);
                     return (
                       <div key={exp.id} className="flex justify-between items-start border-l-2 border-emerald-500 pl-3">
                         <div>
                           <p className="text-sm font-semibold text-slate-800">{exp.title}</p>
-                          <p className="text-[10px] text-slate-500">{cat?.name || 'Khác'} {exp.note ? `- ${exp.note}` : ''}</p>
+                          <p className="text-[10px] text-slate-500">{cat?.name || 'Khác'}{exp.note ? ` - ${exp.note}` : ''}</p>
                         </div>
                         <span className="text-sm font-bold text-red-500 whitespace-nowrap pl-2">
                           -{new Intl.NumberFormat('vi-VN').format(exp.amount)}đ
@@ -127,9 +208,38 @@ export default function CalendarView({ expenses, categories }: CalendarViewProps
                       </div>
                     );
                   })}
+
+                  {/* Virtual recurring occurrences */}
+                  {selectedRecurring.map(rec => {
+                    const cat = categories.find(c => c.id === rec.categoryId);
+                    return (
+                      <div key={`rec-${rec.id}`} className="flex justify-between items-start border-l-2 border-blue-400 pl-3">
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-sm font-semibold text-slate-800">{rec.title}</p>
+                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded-full">
+                              <Repeat className="h-2.5 w-2.5" />
+                              Định kỳ
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-slate-500">{cat?.name || 'Khác'}{rec.note ? ` - ${rec.note}` : ''}</p>
+                        </div>
+                        <span className="text-sm font-bold text-blue-600 whitespace-nowrap pl-2">
+                          -{new Intl.NumberFormat('vi-VN').format(rec.amount)}đ
+                        </span>
+                      </div>
+                    );
+                  })}
+
+                  {/* Total */}
                   <div className="pt-4 mt-4 border-t border-slate-100 flex justify-between items-center font-bold">
                     <span className="text-slate-600">Tổng chi:</span>
-                    <span className="text-lg text-slate-900">{new Intl.NumberFormat('vi-VN').format(selectedExpenses.reduce((s,e)=>s+e.amount,0))}đ</span>
+                    <span className="text-lg text-slate-900">
+                      {new Intl.NumberFormat('vi-VN').format(
+                        selectedExpenses.reduce((s, e) => s + e.amount, 0) +
+                        selectedRecurring.reduce((s, r) => s + r.amount, 0)
+                      )}đ
+                    </span>
                   </div>
                 </div>
               ) : (
@@ -145,6 +255,7 @@ export default function CalendarView({ expenses, categories }: CalendarViewProps
             )}
           </div>
         </div>
+
       </div>
     </div>
   );
