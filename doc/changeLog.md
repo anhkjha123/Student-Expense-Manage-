@@ -19,6 +19,7 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
 *   **Chi tiêu định kỳ & Nhập chi tiêu lặp lại (Recurring Expenses):**
     *   Thêm tab cấu hình các khoản chi cố định hàng tuần/tháng (như tiền nhà, mạng internet).
     *   **Dropdown định kỳ trong biểu mẫu nhập nhanh:** Cung cấp hộp chọn "Chi tiêu định kỳ (Lặp lại)" (Không lặp lại, Lặp lại hàng tuần, Lặp lại hàng tháng) ngay tại `AddExpenseModal` khi tạo khoản chi mới. Khi lưu, hệ thống tự động ghi nhận giao dịch hiện tại đồng thời thiết lập mẫu chi tiêu định kỳ tương ứng để tự động sinh hóa đơn trong tương lai.
+    *   **Tái cấu trúc điều hướng (Navigation Dropdown & Mobile Toggle):** Loại bỏ tab "Định Kỳ" độc lập khỏi thanh điều hướng chính. Trên desktop, khi hover qua tab "Sổ Chi Tiêu" sẽ hiển thị dropdown chứa hai tùy chọn: "Lịch sử chi tiêu" và "Chi tiêu định kỳ". Trên mobile, tab "Sổ Chi Tiêu" tự động đóng vai trò nút bấm chuyển đổi động (toggle) giữa hai chế độ "Sổ chi tiêu" và "Định kỳ", tối ưu hóa tuyệt đối không gian hiển thị.
 
 ---
 
