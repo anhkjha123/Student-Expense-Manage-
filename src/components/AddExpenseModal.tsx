@@ -14,7 +14,7 @@ interface AddExpenseModalProps {
   isOpen: boolean;
   onClose: () => void;
   categories: Category[];
-  onAddExpense: (expense: Omit<Expense, 'id' | 'userId'>) => void;
+  onAddExpense: (expense: Omit<Expense, 'id' | 'userId'> & { recurringCycle?: 'NONE' | 'WEEKLY' | 'MONTHLY' }) => void;
   editingExpense?: Expense | null;
   onEditExpense?: (id: string, expense: Omit<Expense, 'id' | 'userId'>) => void;
 }
@@ -35,6 +35,7 @@ export default function AddExpenseModal({
   );
   const [note, setNote] = useState<string>('');
   const [isNecessary, setIsNecessary] = useState<boolean>(true);
+  const [recurringCycle, setRecurringCycle] = useState<'NONE' | 'WEEKLY' | 'MONTHLY'>('NONE');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -55,6 +56,7 @@ export default function AddExpenseModal({
         setDate(new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
         setNote('');
         setIsNecessary(true);
+        setRecurringCycle('NONE');
       }
       setError(null);
     }
@@ -93,7 +95,8 @@ export default function AddExpenseModal({
       title: title.trim(),
       date,
       note: note.trim() || undefined,
-      isNecessary
+      isNecessary,
+      recurringCycle: editingExpense ? undefined : recurringCycle
     };
 
     if (editingExpense && onEditExpense) {
@@ -108,6 +111,7 @@ export default function AddExpenseModal({
       setTitle('');
       setNote('');
       setIsNecessary(true);
+      setRecurringCycle('NONE');
     }
     setError(null);
     onClose();
@@ -294,6 +298,25 @@ export default function AddExpenseModal({
               id="expense-note-input"
             />
           </div>
+
+          {/* Recurring Expense Option */}
+          {!editingExpense && (
+            <div className="space-y-1">
+              <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
+                Chi tiêu định kỳ (Lặp lại)
+              </label>
+              <select
+                value={recurringCycle}
+                onChange={(e) => setRecurringCycle(e.target.value as 'NONE' | 'WEEKLY' | 'MONTHLY')}
+                className="w-full rounded-2xl border border-slate-200 px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700 bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 shadow-sm bg-no-repeat bg-[right_16px_center]"
+                id="expense-recurring-input"
+              >
+                <option value="NONE">Không lặp lại (Một lần)</option>
+                <option value="WEEKLY">Lặp lại hàng tuần</option>
+                <option value="MONTHLY">Lặp lại hàng tháng</option>
+              </select>
+            </div>
+          )}
 
           {/* Submit Action Block */}
           <div className="flex gap-3 pt-2 text-right justify-end">

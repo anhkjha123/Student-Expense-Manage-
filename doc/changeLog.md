@@ -5,6 +5,23 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
 
 ---
 
+### [v4.0.0] - 2026-06-09
+#### 🌟 Tính năng mới Sprint 4 (Savings, Incomes, Calendar & Recurring)
+*   **Mục tiêu tiết kiệm (Saving Goals):** 
+    *   Theo dõi tiến độ tiết kiệm real-time dựa trên số dư ví thực tế.
+    *   Tự động tính phần trăm hoàn thành và đổi màu sắc cảnh báo theo thời hạn chót (Deadline).
+*   **Quản lý thu nhập (Incomes):**
+    *   Thêm tab quản lý dòng tiền vào (Incomes) với các nguồn như học bổng, làm thêm, gia đình chu cấp.
+    *   Tích hợp bộ lọc theo tháng và biểu đồ tỷ lệ cơ cấu nguồn thu.
+*   **Lịch chi tiêu (Calendar View):**
+    *   Bảng lịch trực quan đổi màu theo mức độ chi tiêu của từng ngày (Xanh < 100k, Vàng < 500k, Đỏ > 500k).
+    *   Hỗ trợ bấm chọn ngày để kiểm tra danh sách chi tiết các giao dịch tương ứng.
+*   **Chi tiêu định kỳ & Nhập chi tiêu lặp lại (Recurring Expenses):**
+    *   Thêm tab cấu hình các khoản chi cố định hàng tuần/tháng (như tiền nhà, mạng internet).
+    *   **Dropdown định kỳ trong biểu mẫu nhập nhanh:** Cung cấp hộp chọn "Chi tiêu định kỳ (Lặp lại)" (Không lặp lại, Lặp lại hàng tuần, Lặp lại hàng tháng) ngay tại `AddExpenseModal` khi tạo khoản chi mới. Khi lưu, hệ thống tự động ghi nhận giao dịch hiện tại đồng thời thiết lập mẫu chi tiêu định kỳ tương ứng để tự động sinh hóa đơn trong tương lai.
+
+---
+
 ### [v3.2.0] - 2026-06-07
 #### ✍️ Bổ sung Tính năng Chỉnh sửa Chi tiêu (Edit Expense Support)
 *   **Chỉnh sửa đa điểm (Multi-entry Point Editing):**
