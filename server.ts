@@ -6,6 +6,11 @@ import { authController, authMiddleware } from './src/server/auth';
 import { expensesController } from './src/server/expenses';
 import { budgetsController } from './src/server/budgets';
 import { reportsController } from './src/server/reports';
+import { savingGoalsController } from './src/server/savingGoals';
+import { incomesController } from './src/server/incomes';
+import { walletController } from './src/server/wallet';
+import { insightsController } from './src/server/insights';
+import { recurringExpensesController, checkAndGenerateRecurringExpenses } from './src/server/recurringExpenses';
 
 async function startServer() {
   const app = express();
@@ -44,6 +49,40 @@ async function startServer() {
   app.get('/api/health', (req: Request, res: Response) => {
     res.json({ status: 'ok', serverTime: new Date().toISOString() });
   });
+
+  // --- SPRINT 4 APIs ---
+  // 6. Saving Goals
+  app.get('/api/saving-goals', authMiddleware as any, savingGoalsController.getSavingGoals);
+  app.post('/api/saving-goals', authMiddleware as any, savingGoalsController.createSavingGoal);
+  app.put('/api/saving-goals/:id', authMiddleware as any, savingGoalsController.updateSavingGoal);
+  app.delete('/api/saving-goals/:id', authMiddleware as any, savingGoalsController.deleteSavingGoal);
+  app.get('/api/saving-goals/:id/progress', authMiddleware as any, savingGoalsController.getProgress);
+
+  // 7. Incomes
+  app.get('/api/incomes', authMiddleware as any, incomesController.getIncomes);
+  app.post('/api/incomes', authMiddleware as any, incomesController.createIncome);
+  app.put('/api/incomes/:id', authMiddleware as any, incomesController.updateIncome);
+  app.delete('/api/incomes/:id', authMiddleware as any, incomesController.deleteIncome);
+
+  // 8. Wallet Balance & Cashflow
+  app.get('/api/wallet/balance', authMiddleware as any, walletController.getBalance);
+  app.get('/api/wallet/cashflow', authMiddleware as any, walletController.getCashFlow);
+
+  // 9. Spending Insights
+  app.get('/api/insights/spending', authMiddleware as any, insightsController.getSpendingInsights);
+
+  // 10. Recurring Expenses
+  app.get('/api/recurring-expenses', authMiddleware as any, recurringExpensesController.getRecurringExpenses);
+  app.post('/api/recurring-expenses', authMiddleware as any, recurringExpensesController.createRecurringExpense);
+  app.put('/api/recurring-expenses/:id', authMiddleware as any, recurringExpensesController.updateRecurringExpense);
+  app.delete('/api/recurring-expenses/:id', authMiddleware as any, recurringExpensesController.deleteRecurringExpense);
+
+  // Bật bộ kiểm tra recurring expenses mỗi phút
+  setInterval(() => {
+    checkAndGenerateRecurringExpenses();
+  }, 60 * 1000);
+  // Run once immediately
+  checkAndGenerateRecurringExpenses();
 
   // --- VITE INTERCEPTOR DEV MIDDLEWARE vs STANDALONE STATIC SERVING ---
   if (process.env.NODE_ENV !== 'production') {

@@ -14,7 +14,7 @@ interface AddExpenseModalProps {
   isOpen: boolean;
   onClose: () => void;
   categories: Category[];
-  onAddExpense: (expense: Omit<Expense, 'id' | 'userId'>) => void;
+  onAddExpense: (expense: Omit<Expense, 'id' | 'userId'> & { recurringCycle?: 'NONE' | 'WEEKLY' | 'MONTHLY' }) => void;
   editingExpense?: Expense | null;
   onEditExpense?: (id: string, expense: Omit<Expense, 'id' | 'userId'>) => void;
 }
@@ -35,6 +35,8 @@ export default function AddExpenseModal({
   );
   const [note, setNote] = useState<string>('');
   const [isNecessary, setIsNecessary] = useState<boolean>(true);
+  const [isRecurring, setIsRecurring] = useState<boolean>(false);
+  const [recurringCycle, setRecurringCycle] = useState<'NONE' | 'WEEKLY' | 'MONTHLY'>('NONE');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -46,6 +48,7 @@ export default function AddExpenseModal({
         setDate(editingExpense.date);
         setNote(editingExpense.note || '');
         setIsNecessary(editingExpense.isNecessary);
+        setIsRecurring(editingExpense.isRecurring || false);
       } else {
         setAmount('');
         if (categories.length > 0) {
@@ -55,6 +58,8 @@ export default function AddExpenseModal({
         setDate(new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
         setNote('');
         setIsNecessary(true);
+        setIsRecurring(false);
+        setRecurringCycle('NONE');
       }
       setError(null);
     }
@@ -93,7 +98,9 @@ export default function AddExpenseModal({
       title: title.trim(),
       date,
       note: note.trim() || undefined,
-      isNecessary
+      isNecessary,
+      isRecurring: editingExpense ? isRecurring : (recurringCycle !== 'NONE'),
+      recurringCycle: editingExpense ? undefined : recurringCycle
     };
 
     if (editingExpense && onEditExpense) {
@@ -108,6 +115,8 @@ export default function AddExpenseModal({
       setTitle('');
       setNote('');
       setIsNecessary(true);
+      setIsRecurring(false);
+      setRecurringCycle('NONE');
     }
     setError(null);
     onClose();
@@ -245,37 +254,33 @@ export default function AddExpenseModal({
           {/* Classification Option (Needs vs Wants) */}
           <div className="space-y-1">
             <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
-              Phân loại chi tiêu tài chính <span className="text-red-500">*</span>
+              Phân loại chi tiêu tài chính (Nhiều lựa chọn) <span className="text-red-500">*</span>
             </label>
-            <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5">
+            <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => setIsNecessary(true)}
-                className={`flex flex-col items-center justify-center rounded-2xl border p-2.5 sm:p-3 text-center transition-all cursor-pointer gap-0.5 ${
+                className={`flex flex-col items-center justify-center rounded-2xl border p-2 text-center transition-all cursor-pointer ${
                   isNecessary
                     ? 'border-emerald-500 bg-emerald-50 text-emerald-600 ring-2 ring-emerald-500/10'
                     : 'border-slate-200 hover:border-slate-300 text-slate-500'
                 }`}
               >
-                <span className="text-xs font-bold block">Mức Cần thiết (Needs)</span>
-                <span className="text-[9px] sm:text-[10px] opacity-75 leading-relaxed block">
-                  Ăn uống, thuê nhà, đi lại, học tập
-                </span>
+                <span className="text-xs font-bold block">Bắt buộc</span>
+                <span className="text-[9px] opacity-75 block">Needs</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setIsNecessary(false)}
-                className={`flex flex-col items-center justify-center rounded-2xl border p-2.5 sm:p-3 text-center transition-all cursor-pointer gap-0.5 ${
+                className={`flex flex-col items-center justify-center rounded-2xl border p-2 text-center transition-all cursor-pointer ${
                   !isNecessary
                     ? 'border-amber-500 bg-amber-50 text-amber-800 ring-2 ring-amber-500/10'
                     : 'border-slate-200 hover:border-slate-300 text-slate-500'
                 }`}
               >
-                <span className="text-xs font-bold block">Mức Mong muốn (Wants)</span>
-                <span className="text-[9px] sm:text-[10px] opacity-75 leading-relaxed block">
-                  Trà sữa, mua sắm, giải trí, du lịch
-                </span>
+                <span className="text-xs font-bold block">Sở thích</span>
+                <span className="text-[9px] opacity-75 block">Wants</span>
               </button>
             </div>
           </div>
@@ -294,6 +299,25 @@ export default function AddExpenseModal({
               id="expense-note-input"
             />
           </div>
+
+          {/* Recurring Expense Option */}
+          {!editingExpense && (
+            <div className="space-y-1">
+              <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
+                Chi tiêu định kỳ (Lặp lại)
+              </label>
+              <select
+                value={recurringCycle}
+                onChange={(e) => setRecurringCycle(e.target.value as 'NONE' | 'WEEKLY' | 'MONTHLY')}
+                className="w-full rounded-2xl border border-slate-200 px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700 bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 shadow-sm bg-no-repeat bg-[right_16px_center]"
+                id="expense-recurring-input"
+              >
+                <option value="NONE">Không lặp lại (Một lần)</option>
+                <option value="WEEKLY">Lặp lại hàng tuần</option>
+                <option value="MONTHLY">Lặp lại hàng tháng</option>
+              </select>
+            </div>
+          )}
 
           {/* Submit Action Block */}
           <div className="flex gap-3 pt-2 text-right justify-end">

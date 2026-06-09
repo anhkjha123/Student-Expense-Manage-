@@ -34,7 +34,7 @@ export default function ExpenseHistory({
 }: ExpenseHistoryProps) {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [necessityFilter, setNecessityFilter] = useState<'all' | 'needs' | 'wants'>('all');
+  const [necessityFilter, setNecessityFilter] = useState<'all' | 'needs' | 'wants' | 'recurring'>('all');
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -48,7 +48,8 @@ export default function ExpenseHistory({
     
     const matchesNecessity = necessityFilter === 'all' || 
                              (necessityFilter === 'needs' && exp.isNecessary) || 
-                             (necessityFilter === 'wants' && !exp.isNecessary);
+                             (necessityFilter === 'wants' && !exp.isNecessary) ||
+                             (necessityFilter === 'recurring' && exp.isRecurring);
 
     return matchesSearch && matchesCategory && matchesNecessity;
   });
@@ -189,6 +190,7 @@ export default function ExpenseHistory({
               <option value="all">⚖️ Tất cả phân loại tài chính</option>
               <option value="needs">✔️ Cần thiết (Bắt buộc - Needs)</option>
               <option value="wants">☕ Ưa thích (Cắt giảm được - Wants)</option>
+              <option value="recurring">🔄 Định kỳ (Recurring)</option>
             </select>
             <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
               <ChevronDown className="h-4 w-4" />
@@ -274,15 +276,22 @@ export default function ExpenseHistory({
                       {exp.date}
                     </td>
                     <td className="px-6 py-4">
-                      {exp.isNecessary ? (
-                        <span className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 border border-emerald-150 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
-                          🟢 Bắt buộc
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 rounded-xl bg-amber-50 border border-amber-150 px-2 py-0.5 text-[10px] font-bold text-amber-700">
-                          🟡 Sở thích
-                        </span>
-                      )}
+                      <div className="flex flex-wrap gap-1">
+                        {exp.isNecessary ? (
+                          <span className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 border border-emerald-150 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
+                            🟢 Bắt buộc
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-xl bg-amber-50 border border-amber-150 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                            🟡 Sở thích
+                          </span>
+                        )}
+                        {exp.isRecurring && (
+                          <span className="inline-flex items-center gap-1 rounded-xl bg-blue-50 border border-blue-150 px-2 py-0.5 text-[10px] font-bold text-blue-600">
+                            🔵 Định kỳ
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-right font-bold text-slate-900 font-mono">
                       {new Intl.NumberFormat('vi-VN').format(exp.amount)}đ

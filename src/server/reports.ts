@@ -154,7 +154,7 @@ export const reportsController = {
       const { month } = req.query;
       const targetMonth = (month as string) || new Date().toISOString().substring(0, 7);
 
-      const expenses = dbInstance.getExpenses().filter(e => e.userId === userId && e.date.startsWith(targetMonth));
+      const expenses = dbInstance.getExpenses().filter(e => e.userId === userId && e.date.startsWith(targetMonth) && !e.isRecurring);
       const totalSpent = expenses.reduce((sum, item) => sum + item.amount, 0);
 
       // Trả về HTML biểu mẫu in báo cáo chuyên nghiệp
@@ -251,7 +251,7 @@ export const reportsController = {
       const { month } = req.query;
       const targetMonth = (month as string) || new Date().toISOString().substring(0, 7);
 
-      const expenses = dbInstance.getExpenses().filter(e => e.userId === userId && e.date.startsWith(targetMonth));
+      const expenses = dbInstance.getExpenses().filter(e => e.userId === userId && e.date.startsWith(targetMonth) && !e.isRecurring);
 
       // Tạo cấu trúc chuỗi CSV chất lượng cao kèm UTF-8 BOM
       let csvContent = '\uFEFF'; // BOM chống lỗi font tiếng Việt trong Excel

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   TrendingDown, 
   AlertTriangle, 
@@ -18,9 +18,11 @@ import {
   Car,
   Home,
   Coffee,
-  Pencil
+  Pencil,
+  Info
 } from 'lucide-react';
-import { User as UserType, Expense, Category, Budget, Notification } from '../types';
+import { User as UserType, Expense, Category, Budget, Notification, Income, RecurringExpense } from '../types';
+import { ApiService } from '../lib/api';
 import { motion } from 'motion/react';
 
 interface DashboardProps {
@@ -32,6 +34,7 @@ interface DashboardProps {
   onOpenAddExpense: () => void;
   setActiveTab: (tab: string) => void;
   onEditExpense?: (expense: Expense) => void;
+  recurringExpenses?: RecurringExpense[];
 }
 
 export default function Dashboard({
@@ -42,17 +45,200 @@ export default function Dashboard({
   notifications,
   onOpenAddExpense,
   setActiveTab,
-  onEditExpense
+  onEditExpense,
+  recurringExpenses = []
 }: DashboardProps) {
   
+  const [variableIncomes, setVariableIncomes] = useState<Income[]>([]);
+  const [tooltipVisible, setTooltipVisible] = useState<'income' | 'expense' | null>(null);
+
+  // Load variable incomes (non-fixed) for current month from localStorage / API
+  useEffect(() => {
+    const currentMonthStr = new Date().toISOString().substring(0, 7);
+    const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+    const localKey = `sem_${user.id}_incomes`;
+
+    const loadIncomesLocal = () => {
+      const stored = localStorage.getItem(localKey);
+      if (stored) {
+        try {
+          const all: Income[] = JSON.parse(stored);
+          setVariableIncomes(all.filter(i => i.date.startsWith(currentMonthStr)));
+        } catch (_) {}
+      }
+    };
+
+    if (!isGuest && localStorage.getItem('sem_token')) {
+      ApiService.getIncomes(currentMonthStr)
+        .then(data => {
+          setVariableIncomes(data);
+          localStorage.setItem(localKey, JSON.stringify(data));
+        })
+        .catch(() => {
+          // fallback to Express API if ApiService fails or not fully connected
+          fetch(`/api/incomes?month=${currentMonthStr}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('sem_token')}` }
+          })
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then((data: Income[]) => {
+              setVariableIncomes(data);
+              localStorage.setItem(localKey, JSON.stringify(data));
+            })
+            .catch(loadIncomesLocal);
+        });
+    } else {
+      loadIncomesLocal();
+    }
+  }, [user.id]);
+
   const currentDate = new Date();
   const currentMonthStr = currentDate.toISOString().substring(0, 7);
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth(); // 0-indexed
   const currentMonthExpenses = expenses.filter(exp => exp.date.startsWith(currentMonthStr));
 
-  const totalSpentThisMonth = currentMonthExpenses.reduce((sum, item) => sum + item.amount, 0);
-  const totalIncome = user.monthlyIncome;
+  // Compute cashflow locally
+  const cashflow = useMemo(() => {
+    const flowMap: Record<string, { income: number; expense: number }> = {};
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${currentMonthStr}-${day.toString().padStart(2, '0')}`;
+      flowMap[dateStr] = { income: 0, expense: 0 };
+    }
+
+    variableIncomes.forEach(i => {
+      if (flowMap[i.date]) flowMap[i.date].income += i.amount;
+    });
+
+    currentMonthExpenses.forEach(e => {
+      if (flowMap[e.date]) flowMap[e.date].expense += e.amount;
+    });
+
+    return Object.keys(flowMap).sort().map(date => ({
+      date,
+      income: flowMap[date].income,
+      expense: flowMap[date].expense
+    }));
+  }, [variableIncomes, currentMonthExpenses, currentYear, currentMonth, currentMonthStr]);
+
+  // Compute insights locally
+  const insights = useMemo(() => {
+    const list: Array<{ id: string; type: 'warning' | 'info' | 'success'; message: string; categoryId?: string }> = [];
+
+    // 1. Analyze Category Increase > 20% compared to last month
+    const currentCatMap: Record<string, number> = {};
+    const lastCatMap: Record<string, number> = {};
+
+    let lastMonth = currentMonth; // currentMonth is 0-indexed, so lastMonth = currentMonth (which represents the previous month in 1-indexed view)
+    let lastYear = currentYear;
+    if (lastMonth === 0) {
+      lastMonth = 12;
+      lastYear -= 1;
+    }
+    const lastMonthStr = `${lastYear}-${lastMonth.toString().padStart(2, '0')}`;
+
+    const lastMonthExpenses = expenses.filter(e => e.date.startsWith(lastMonthStr));
+
+    currentMonthExpenses.forEach(e => {
+      currentCatMap[e.categoryId] = (currentCatMap[e.categoryId] || 0) + e.amount;
+    });
+    lastMonthExpenses.forEach(e => {
+      lastCatMap[e.categoryId] = (lastCatMap[e.categoryId] || 0) + e.amount;
+    });
+
+    Object.keys(currentCatMap).forEach(catId => {
+      const currentAmt = currentCatMap[catId];
+      const lastAmt = lastCatMap[catId] || 0;
+      if (lastAmt > 0) {
+        const increase = (currentAmt - lastAmt) / lastAmt;
+        if (increase > 0.2) {
+          const catName = categories.find(c => c.id === catId)?.name || catId;
+          list.push({
+            id: `insight_cat_${catId}`,
+            type: 'warning',
+            message: `Chi tiêu danh mục "${catName}" đã tăng ${Math.round(increase * 100)}% so với tháng trước. Bạn nên cân nhắc cắt giảm!`,
+            categoryId: catId
+          });
+        }
+      }
+    });
+
+    // 2. Find highest spending day
+    const dayMap: Record<string, number> = {};
+    currentMonthExpenses.forEach(e => {
+      dayMap[e.date] = (dayMap[e.date] || 0) + e.amount;
+    });
+
+    let maxDay = '';
+    let maxAmount = 0;
+    Object.keys(dayMap).forEach(date => {
+      if (dayMap[date] > maxAmount) {
+        maxAmount = dayMap[date];
+        maxDay = date;
+      }
+    });
+
+    if (maxDay && maxAmount > 0) {
+      const formattedDate = maxDay.split('-').reverse().join('/');
+      list.push({
+        id: 'insight_max_day',
+        type: 'info',
+        message: `Ngày ${formattedDate} bạn đã chi nhiều nhất với số tiền ${new Intl.NumberFormat('vi-VN').format(maxAmount)}đ. Hãy cẩn thận các ngày mua sắm lớn nhé!`
+      });
+    }
+
+    if (list.length === 0) {
+      list.push({
+        id: 'insight_good',
+        type: 'success',
+        message: 'Tuyệt vời! Thói quen chi tiêu của bạn trong tháng này rất ổn định và không có dấu hiệu bất thường.'
+      });
+    }
+
+    return list;
+  }, [expenses, currentMonthExpenses, categories, currentMonth, currentYear]);
+
+  // --- Tính số tiền chi tiêu định kỳ phát sinh trong tháng hiện tại ---
+  const recurringThisMonth = useMemo(() => {
+    let total = 0;
+    const items: Array<{ title: string; amount: number; cycle: string }> = [];
+    for (const rec of recurringExpenses) {
+      const start = new Date(rec.startDate + 'T00:00:00');
+      // Must have started on or before this month
+      if (start.getFullYear() > currentYear || (start.getFullYear() === currentYear && start.getMonth() > currentMonth)) {
+        continue;
+      }
+      let occurrences = 0;
+      if (rec.cycle === 'MONTHLY') {
+        occurrences = 1;
+      } else if (rec.cycle === 'WEEKLY') {
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const startDow = start.getDay();
+        for (let d = 1; d <= daysInMonth; d++) {
+          const candidate = new Date(currentYear, currentMonth, d);
+          if (candidate.getDay() === startDow && candidate >= start) occurrences++;
+        }
+      }
+      if (occurrences > 0) {
+        items.push({ title: rec.title, amount: rec.amount * occurrences, cycle: rec.cycle });
+        total += rec.amount * occurrences;
+      }
+    }
+    return { total, items };
+  }, [recurringExpenses, currentYear, currentMonth]);
+
+  // --- Thu = thu nhập cố định + thu nhập không cố định tháng này ---
+  const variableIncomeTotal = variableIncomes.reduce((sum, i) => sum + i.amount, 0);
+  const totalIncome = user.monthlyIncome + variableIncomeTotal; // Tổng thu
+  
+  // --- Chi = chi thường (không có tag định kỳ) + chi định kỳ tháng này ---
+  const loggedExpenseTotal = currentMonthExpenses.filter(exp => !exp.isRecurring).reduce((sum, item) => sum + item.amount, 0);
+  const totalSpentThisMonth = loggedExpenseTotal + recurringThisMonth.total;
+
   const savingGoal = user.savingGoal;
-  const availableToSpend = totalIncome - savingGoal; // Số tiền khả dụng cho chi tiêu
+  const availableToSpend = user.monthlyIncome - savingGoal; // Số tiền khả dụng cho chi tiêu (dựa trên income cố định)
+  const walletBalance = totalIncome - totalSpentThisMonth; // Số dư ví thực tế
   const remainingBudget = availableToSpend - totalSpentThisMonth;
 
   // Tính thống kê chi tiêu Cần thiết vs Mong muốn của tháng hiện tại
@@ -183,29 +369,89 @@ export default function Dashboard({
 
       {/* CORE FINANCIAL OVERVIEW CARDS */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        {/* Total Monthly Income Box */}
+        {/* Wallet Balance Box */}
         <motion.div 
           whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
-          className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-white to-emerald-50/30 p-5 shadow-sm relative overflow-hidden transition-all duration-300"
+          className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-500 to-teal-600 p-5 shadow-sm relative transition-all duration-300 text-white"
         >
           <div className="flex justify-between items-start relative z-10">
             <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
-                Chu cấp / Thu nhập
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-100 font-mono">
+                Số Dư Ví Tháng Này
               </span>
-              <div className="text-2xl font-black font-mono text-slate-900 drop-shadow-sm">
-                {new Intl.NumberFormat('vi-VN').format(totalIncome)}đ
+              <div className={`text-3xl font-black font-mono drop-shadow-md ${walletBalance < 0 ? 'text-red-200' : ''}`}>
+                {walletBalance < 0 ? '-' : ''}{new Intl.NumberFormat('vi-VN').format(Math.abs(walletBalance))}đ
               </div>
             </div>
-            <span className="p-3 bg-emerald-100 text-emerald-600 rounded-2xl shadow-inner border border-emerald-200">
-              <Coins className="h-5 w-5" />
+            <span className="p-3 bg-white/20 text-white rounded-2xl shadow-inner border border-white/30 backdrop-blur-sm">
+              <DollarSign className="h-5 w-5" />
             </span>
           </div>
-          <div className="absolute -bottom-4 -right-4 text-emerald-100/50 pointer-events-none transform -rotate-12">
-            <Coins className="h-24 w-24" />
+          <div className="absolute -bottom-4 -right-4 text-white/10 pointer-events-none transform -rotate-12">
+            <DollarSign className="h-32 w-32" />
           </div>
-          <div className="text-[10px] text-slate-600 font-semibold mt-3 pt-3 border-t border-emerald-100/50 relative z-10">
-            Duy trì mục tiêu tích lũy: <strong className="text-emerald-700 font-mono">{new Intl.NumberFormat('vi-VN').format(savingGoal)}đ</strong>
+
+          {/* Thu / Chi row with hover tooltips */}
+          <div className="flex justify-between text-[10px] text-emerald-50 font-semibold mt-4 pt-3 border-t border-emerald-400/50 relative z-10 gap-2">
+            {/* THU tooltip - simplified: 2 operands only */}
+            <div
+              className="relative cursor-help flex items-center gap-0.5"
+              onMouseEnter={() => setTooltipVisible('income')}
+              onMouseLeave={() => setTooltipVisible(null)}
+            >
+              <span>Thu: +{new Intl.NumberFormat('vi-VN').format(totalIncome)}đ</span>
+              <Info className="h-2.5 w-2.5 text-emerald-200" />
+              {tooltipVisible === 'income' && (
+                <div className="absolute bottom-full left-0 mb-3 w-72 bg-slate-900 text-white rounded-2xl p-4 shadow-2xl border border-white/10 text-[11px] leading-relaxed z-[999] pointer-events-none">
+                  <div className="font-bold text-emerald-300 mb-3 text-xs tracking-wide">📥 Phân tích Thu tháng này</div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-300">Thu nhập hàng tháng (cố định):</span>
+                      <span className="font-mono font-bold text-emerald-400">+{new Intl.NumberFormat('vi-VN').format(user.monthlyIncome)}đ</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-300">Khoản thu không cố định:</span>
+                      <span className="font-mono font-bold text-emerald-400">+{new Intl.NumberFormat('vi-VN').format(variableIncomeTotal)}đ</span>
+                    </div>
+                    <div className="border-t border-slate-700 pt-2 flex justify-between items-center font-bold text-sm">
+                      <span className="text-white">= Tổng thu:</span>
+                      <span className="font-mono text-emerald-300">+{new Intl.NumberFormat('vi-VN').format(totalIncome)}đ</span>
+                    </div>
+                  </div>
+                  <div className="absolute -bottom-[5px] left-4 w-2.5 h-2.5 bg-slate-900 rotate-45 border-r border-b border-white/10" />
+                </div>
+              )}
+            </div>
+
+            {/* CHI tooltip - simplified: 2 operands only */}
+            <div
+              className="relative cursor-help flex items-center gap-0.5"
+              onMouseEnter={() => setTooltipVisible('expense')}
+              onMouseLeave={() => setTooltipVisible(null)}
+            >
+              <Info className="h-2.5 w-2.5 text-emerald-200" />
+              <span>Chi: -{new Intl.NumberFormat('vi-VN').format(totalSpentThisMonth)}đ</span>
+              {tooltipVisible === 'expense' && (
+                <div className="absolute bottom-full right-0 mb-3 w-72 bg-slate-900 text-white rounded-2xl p-4 shadow-2xl border border-white/10 text-[11px] leading-relaxed z-[999] pointer-events-none">
+                  <div className="font-bold text-red-300 mb-3 text-xs tracking-wide">📤 Phân tích Chi tháng này</div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-300">Chi tiêu thông thường:</span>
+                      <span className="font-mono font-bold text-red-400">-{new Intl.NumberFormat('vi-VN').format(loggedExpenseTotal)}đ</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-300">Chi tiêu định kỳ:</span>
+                      <span className="font-mono font-bold text-red-400">-{new Intl.NumberFormat('vi-VN').format(recurringThisMonth.total)}đ</span>
+                    </div>
+                    <div className="border-t border-slate-700 pt-2 flex justify-between items-center font-bold text-sm">
+                      <span className="text-white">= Tổng chi:</span>
+                      <span className="font-mono text-red-300">-{new Intl.NumberFormat('vi-VN').format(totalSpentThisMonth)}đ</span>
+                    </div>
+                  </div>
+                  <div className="absolute -bottom-[5px] right-4 w-2.5 h-2.5 bg-slate-900 rotate-45 border-r border-b border-white/10" />
+                </div>
+              )}
+            </div>
           </div>
         </motion.div>
 
@@ -261,6 +507,24 @@ export default function Dashboard({
           </div>
         </motion.div>
       </motion.div>
+
+      {/* SPENDING INSIGHTS PANEL */}
+      {insights.length > 0 && (
+        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {insights.map(insight => (
+            <div key={insight.id} className={`rounded-2xl p-4 border flex items-start gap-3 shadow-sm ${
+              insight.type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-900' :
+              insight.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-900' :
+              'bg-blue-50 border-blue-200 text-blue-900'
+            }`}>
+              {insight.type === 'warning' ? <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600" /> :
+               insight.type === 'success' ? <CheckCircle className="h-5 w-5 shrink-0 text-emerald-600" /> :
+               <Activity className="h-5 w-5 shrink-0 text-blue-600" />}
+              <div className="text-xs font-medium leading-relaxed">{insight.message}</div>
+            </div>
+          ))}
+        </motion.div>
+      )}
 
       {/* WALLET SAFETY GAUGE & NEEDS/WANTS PROGRESS */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-12 gap-6">
@@ -398,8 +662,49 @@ export default function Dashboard({
         </motion.div>
       )}
 
-      {/* CATEGORIES BUDGET METERS & RECENT EXPENSES */}
+      {/* CASH FLOW CHART & RECENT EXPENSES */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        
+        {/* Cash Flow Area Chart (Mockup with CSS) */}
+        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md md:col-span-7 lg:col-span-7 space-y-4 hover:shadow-lg transition-shadow duration-300 flex flex-col justify-between">
+          <div className="flex justify-between items-center pb-2 border-b border-slate-50">
+            <h3 className="font-display text-base font-bold text-slate-800 drop-shadow-sm">
+              Dòng Tiền (Cash Flow)
+            </h3>
+          </div>
+          <div className="h-48 w-full flex items-end gap-1 px-1 overflow-x-auto relative mt-4">
+            {cashflow.length === 0 ? (
+              <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Đang tải dữ liệu dòng tiền...</div>
+            ) : (
+              cashflow.map(day => {
+                const isDeficit = day.expense > day.income;
+                const total = Math.max(day.expense, day.income, 100000);
+                const expHeight = (day.expense / total) * 100;
+                const incHeight = (day.income / total) * 100;
+                return (
+                  <div key={day.date} className="flex-1 flex flex-col justify-end items-center group relative min-w-[12px]">
+                    {/* Tooltip */}
+                    <div className="absolute -top-12 bg-slate-800 text-white text-[10px] p-2 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap pointer-events-none">
+                      <div>{day.date.split('-').reverse().join('/')}</div>
+                      <div className="text-emerald-400">Thu: +{new Intl.NumberFormat('vi-VN').format(day.income)}</div>
+                      <div className="text-red-400">Chi: -{new Intl.NumberFormat('vi-VN').format(day.expense)}</div>
+                    </div>
+                    {/* Bars */}
+                    <div className="w-full relative flex items-end h-full">
+                      <div className={`absolute bottom-0 w-full bg-emerald-400/50 rounded-t-sm`} style={{ height: `${incHeight}%` }}></div>
+                      <div className={`absolute bottom-0 w-full ${isDeficit ? 'bg-red-500' : 'bg-red-300/50'} rounded-t-sm`} style={{ height: `${expHeight}%` }}></div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+          <div className="flex justify-center gap-4 text-[10px] text-slate-500 font-medium">
+            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-400/50"></div> Thu nhập</span>
+            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-300/50"></div> Chi tiêu</span>
+            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-500"></div> Chi &gt; Thu (Thâm hụt)</span>
+          </div>
+        </div>
         
         {/* Categories Budget Limit Meters */}
         <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md md:col-span-7 lg:col-span-7 space-y-4 hover:shadow-lg transition-shadow duration-300">

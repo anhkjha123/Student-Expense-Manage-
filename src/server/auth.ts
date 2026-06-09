@@ -92,7 +92,7 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
   }
 
   req.user = {
-    id: decoded.id,
+    id: decoded.id || decoded.user_id || decoded.sub,
     email: decoded.email,
     name: decoded.name
   };

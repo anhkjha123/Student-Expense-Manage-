@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { User, Expense, Budget, Notification } from '../types';
+import { User, Expense, Budget, Notification, SavingGoal, Income, RecurringExpense } from '../types';
 
 export interface DBUser extends User {
   passwordHash: string;
@@ -15,6 +15,9 @@ export interface Schema {
   expenses: Expense[];
   budgets: DBBudget[];
   notifications: Notification[];
+  savingGoals: SavingGoal[];
+  incomes: Income[];
+  recurringExpenses: RecurringExpense[];
 }
 
 const DB_DIR = path.join(process.cwd(), 'data');
@@ -255,6 +258,55 @@ function initDB() {
           date: '2026-06-01 09:15:00',
           read: false
         }
+      ],
+      savingGoals: [
+        {
+          id: 'goal_01',
+          userId: 'user_01',
+          name: 'Mua Macbook Pro',
+          targetAmount: 35000000,
+          currentAmount: 0,
+          deadline: '2026-12-31',
+          status: 'On Track',
+          categoryId: 'study'
+        }
+      ],
+      incomes: [
+        {
+          id: 'inc_01',
+          userId: 'user_01',
+          amount: 4500000,
+          source: 'FAMILY',
+          date: '2026-05-01',
+          note: 'Bố mẹ cho tiền tiêu vặt tháng 5'
+        },
+        {
+          id: 'inc_02',
+          userId: 'user_01',
+          amount: 2000000,
+          source: 'PART_TIME',
+          date: '2026-05-15',
+          note: 'Lương gia sư'
+        },
+        {
+          id: 'inc_03',
+          userId: 'user_01',
+          amount: 4500000,
+          source: 'FAMILY',
+          date: '2026-06-01',
+          note: 'Bố mẹ cho tiền tiêu vặt tháng 6'
+        }
+      ],
+      recurringExpenses: [
+        {
+          id: 'rec_01',
+          userId: 'user_01',
+          amount: 1600000,
+          categoryId: 'rent',
+          title: 'Tiền phòng trọ + Internet',
+          cycle: 'MONTHLY',
+          startDate: '2026-06-01'
+        }
       ]
     };
     fs.writeFileSync(DB_FILE, JSON.stringify(initialSchema, null, 2), 'utf-8');
@@ -272,7 +324,7 @@ export class Database {
       return JSON.parse(data) as Schema;
     } catch (e) {
       console.error('Lỗi khi đọc file database:', e);
-      return { users: [], expenses: [], budgets: [], notifications: [] };
+      return { users: [], expenses: [], budgets: [], notifications: [], savingGoals: [], incomes: [], recurringExpenses: [] };
     }
   }
 
@@ -365,6 +417,87 @@ export class Database {
     const schema = this.read();
     schema.notifications = notifs;
     this.write(schema);
+  }
+
+  // --- SAVING GOALS ---
+  public getSavingGoals(): SavingGoal[] {
+    return this.read().savingGoals || [];
+  }
+
+  public saveSavingGoal(goal: SavingGoal): void {
+    const schema = this.read();
+    if (!schema.savingGoals) schema.savingGoals = [];
+    const idx = schema.savingGoals.findIndex(g => g.id === goal.id);
+    if (idx >= 0) {
+      schema.savingGoals[idx] = goal;
+    } else {
+      schema.savingGoals.push(goal);
+    }
+    this.write(schema);
+  }
+
+  public deleteSavingGoal(id: string): boolean {
+    const schema = this.read();
+    if (!schema.savingGoals) return false;
+    const filter = schema.savingGoals.filter(g => g.id !== id);
+    if (filter.length === schema.savingGoals.length) return false;
+    schema.savingGoals = filter;
+    this.write(schema);
+    return true;
+  }
+
+  // --- INCOMES ---
+  public getIncomes(): Income[] {
+    return this.read().incomes || [];
+  }
+
+  public saveIncome(income: Income): void {
+    const schema = this.read();
+    if (!schema.incomes) schema.incomes = [];
+    const idx = schema.incomes.findIndex(i => i.id === income.id);
+    if (idx >= 0) {
+      schema.incomes[idx] = income;
+    } else {
+      schema.incomes.push(income);
+    }
+    this.write(schema);
+  }
+
+  public deleteIncome(id: string): boolean {
+    const schema = this.read();
+    if (!schema.incomes) return false;
+    const filter = schema.incomes.filter(i => i.id !== id);
+    if (filter.length === schema.incomes.length) return false;
+    schema.incomes = filter;
+    this.write(schema);
+    return true;
+  }
+
+  // --- RECURRING EXPENSES ---
+  public getRecurringExpenses(): RecurringExpense[] {
+    return this.read().recurringExpenses || [];
+  }
+
+  public saveRecurringExpense(recurring: RecurringExpense): void {
+    const schema = this.read();
+    if (!schema.recurringExpenses) schema.recurringExpenses = [];
+    const idx = schema.recurringExpenses.findIndex(r => r.id === recurring.id);
+    if (idx >= 0) {
+      schema.recurringExpenses[idx] = recurring;
+    } else {
+      schema.recurringExpenses.push(recurring);
+    }
+    this.write(schema);
+  }
+
+  public deleteRecurringExpense(id: string): boolean {
+    const schema = this.read();
+    if (!schema.recurringExpenses) return false;
+    const filter = schema.recurringExpenses.filter(r => r.id !== id);
+    if (filter.length === schema.recurringExpenses.length) return false;
+    schema.recurringExpenses = filter;
+    this.write(schema);
+    return true;
   }
 }
 

@@ -1,0 +1,307 @@
+{
+  "users": [
+    {
+      "id": "user_01",
+      "email": "sinhvien@hust.edu.vn",
+      "name": "Nguyễn Minh Đức",
+      "school": "Đại Học Bách Khoa Hà Nội",
+      "monthlyIncome": 4500000,
+      "savingGoal": 500000,
+      "joinedDate": "2026-02-15",
+      "passwordHash": "sinhvien_hashed_pw"
+    }
+  ],
+  "expenses": [
+    {
+      "id": "exp_01",
+      "userId": "user_01",
+      "amount": 1500000,
+      "categoryId": "rent",
+      "title": "Tiền phòng trọ tháng 5 + điện nước",
+      "date": "2026-05-02",
+      "note": "Đóng đầu tháng cho chủ nhà",
+      "isNecessary": true
+    },
+    {
+      "id": "exp_02",
+      "userId": "user_01",
+      "amount": 120000,
+      "categoryId": "study",
+      "title": "Sách giải tích 2 và giáo trình",
+      "date": "2026-05-04",
+      "note": "Mua ở cổng trường",
+      "isNecessary": true
+    },
+    {
+      "id": "exp_03",
+      "userId": "user_01",
+      "amount": 45000,
+      "categoryId": "food",
+      "title": "Ăn cơm trưa Bách Khoa",
+      "date": "2026-05-05",
+      "note": "Suất cơm sườn 45k",
+      "isNecessary": true
+    },
+    {
+      "id": "exp_04",
+      "userId": "user_01",
+      "amount": 60000,
+      "categoryId": "entertainment",
+      "title": "Trà sữa KOI Thé với bạn",
+      "date": "2026-05-06",
+      "note": "Thèm quá mua uống giải sầu",
+      "isNecessary": false
+    },
+    {
+      "id": "exp_05",
+      "userId": "user_01",
+      "amount": 90000,
+      "categoryId": "transport",
+      "title": "Đổ xăng xe máy Wave",
+      "date": "2026-05-08",
+      "note": "Xăng đắt quá đổ đầy bình",
+      "isNecessary": true
+    },
+    {
+      "id": "exp_06",
+      "userId": "user_01",
+      "amount": 350000,
+      "categoryId": "shopping",
+      "title": "Mua giày sneaker giá rẻ",
+      "date": "2026-05-10",
+      "note": "Mua sale trên Shopee",
+      "isNecessary": false
+    },
+    {
+      "id": "exp_07",
+      "userId": "user_01",
+      "amount": 45000,
+      "categoryId": "food",
+      "title": "Cơm tối bình dân",
+      "date": "2026-05-11",
+      "isNecessary": true
+    },
+    {
+      "id": "exp_08",
+      "userId": "user_01",
+      "amount": 250000,
+      "categoryId": "study",
+      "title": "Tiền quỹ lớp kì II",
+      "date": "2026-05-12",
+      "note": "Đóng cho lớp trưởng",
+      "isNecessary": true
+    },
+    {
+      "id": "exp_09",
+      "userId": "user_01",
+      "amount": 85000,
+      "categoryId": "food",
+      "title": "Ăn lẩu ly ăn vặt vỉa hè",
+      "date": "2026-05-15",
+      "note": "Ăn chung với mấy bạn cùng phòng ký túc xá cũ",
+      "isNecessary": false
+    },
+    {
+      "id": "exp_10",
+      "userId": "user_01",
+      "amount": 110000,
+      "categoryId": "shopping",
+      "title": "Kem đánh răng, dầu gội, sữa tắm",
+      "date": "2026-05-16",
+      "note": "Mua ở tạp hóa đầu ngõ",
+      "isNecessary": true
+    },
+    {
+      "id": "exp_11",
+      "userId": "user_01",
+      "amount": 45000,
+      "categoryId": "food",
+      "title": "Bát phở bò ăn sáng",
+      "date": "2026-05-18",
+      "isNecessary": true
+    },
+    {
+      "id": "exp_12",
+      "userId": "user_01",
+      "amount": 150000,
+      "categoryId": "entertainment",
+      "title": "Vé xem phim Doctor Strange mới",
+      "date": "2026-05-20",
+      "note": "CGV Vincom Bà Triệu",
+      "isNecessary": false
+    },
+    {
+      "id": "exp_13",
+      "userId": "user_01",
+      "amount": 90000,
+      "categoryId": "transport",
+      "title": "Đổ xăng lần 2",
+      "date": "2026-05-22",
+      "isNecessary": true
+    },
+    {
+      "id": "exp_14",
+      "userId": "user_01",
+      "amount": 420000,
+      "categoryId": "food",
+      "title": "Ăn buffet lẩu sinh nhật bạn",
+      "date": "2026-05-24",
+      "note": "Buổi tối vui vẻ nhưng hơi xót ví",
+      "isNecessary": false
+    },
+    {
+      "id": "exp_15",
+      "userId": "user_01",
+      "amount": 250000,
+      "categoryId": "other",
+      "title": "Thuốc men cảm cúm",
+      "date": "2026-05-26",
+      "note": "Bị sốt mua thuốc tây uống",
+      "isNecessary": true
+    },
+    {
+      "id": "exp_16",
+      "userId": "user_01",
+      "amount": 50000,
+      "categoryId": "food",
+      "title": "Bánh mỳ và cafe sáng",
+      "date": "2026-05-28",
+      "isNecessary": true
+    },
+    {
+      "id": "exp_17",
+      "userId": "user_01",
+      "amount": 200000,
+      "categoryId": "shopping",
+      "title": "Mua áo thun mùa hè",
+      "date": "2026-05-29",
+      "note": "Mua chợ đêm",
+      "isNecessary": false
+    },
+    {
+      "id": "exp_20",
+      "userId": "user_01",
+      "amount": 1600000,
+      "categoryId": "rent",
+      "title": "Tiền phòng trọ + Internet tháng 6",
+      "date": "2026-06-01",
+      "note": "Đã đóng buổi sáng",
+      "isNecessary": true
+    },
+    {
+      "id": "exp_21",
+      "userId": "user_01",
+      "amount": 55000,
+      "categoryId": "food",
+      "title": "Bún chả trưa đầu tháng",
+      "date": "2026-06-01",
+      "isNecessary": true
+    }
+  ],
+  "budgets": [
+    {
+      "userId": "user_01",
+      "categoryId": "rent",
+      "amount": 1600000
+    },
+    {
+      "userId": "user_01",
+      "categoryId": "food",
+      "amount": 1200000
+    },
+    {
+      "userId": "user_01",
+      "categoryId": "study",
+      "amount": 400000
+    },
+    {
+      "userId": "user_01",
+      "categoryId": "transport",
+      "amount": 300000
+    },
+    {
+      "userId": "user_01",
+      "categoryId": "entertainment",
+      "amount": 300000
+    },
+    {
+      "userId": "user_01",
+      "categoryId": "shopping",
+      "amount": 400000
+    },
+    {
+      "userId": "user_01",
+      "categoryId": "other",
+      "amount": 200000
+    }
+  ],
+  "notifications": [
+    {
+      "id": "not_01",
+      "userId": "user_01",
+      "type": "success",
+      "title": "Chào mừng bạn đến với Student Expense Manager!",
+      "message": "Hãy bắt đầu phân chia các khoản ngân sách chi tiêu để không còn cháy túi cuối tháng nhé.",
+      "date": "2026-06-01 08:00:00",
+      "read": false
+    },
+    {
+      "id": "not_02",
+      "userId": "user_01",
+      "type": "warning",
+      "title": "Hạn mức Nhà trọ tháng 6 đã đạt tối đa!",
+      "message": "Khoản chi \"Tiền phòng trọ + Internet\" 1,600,000đ đã dùng hết 100% ngân sách danh mục nhà trọ tháng này.",
+      "date": "2026-06-01 09:15:00",
+      "read": false
+    }
+  ],
+  "savingGoals": [
+    {
+      "id": "goal_01",
+      "userId": "user_01",
+      "name": "Mua Macbook Pro",
+      "targetAmount": 35000000,
+      "currentAmount": 0,
+      "deadline": "2026-12-31",
+      "status": "On Track",
+      "categoryId": "study"
+    }
+  ],
+  "incomes": [
+    {
+      "id": "inc_01",
+      "userId": "user_01",
+      "amount": 4500000,
+      "source": "FAMILY",
+      "date": "2026-05-01",
+      "note": "Bố mẹ cho tiền tiêu vặt tháng 5"
+    },
+    {
+      "id": "inc_02",
+      "userId": "user_01",
+      "amount": 2000000,
+      "source": "PART_TIME",
+      "date": "2026-05-15",
+      "note": "Lương gia sư"
+    },
+    {
+      "id": "inc_03",
+      "userId": "user_01",
+      "amount": 4500000,
+      "source": "FAMILY",
+      "date": "2026-06-01",
+      "note": "Bố mẹ cho tiền tiêu vặt tháng 6"
+    }
+  ],
+  "recurringExpenses": [
+    {
+      "id": "rec_01",
+      "userId": "user_01",
+      "amount": 1600000,
+      "categoryId": "rent",
+      "title": "Tiền phòng trọ + Internet",
+      "cycle": "MONTHLY",
+      "startDate": "2026-06-01"
+    }
+  ]
+}

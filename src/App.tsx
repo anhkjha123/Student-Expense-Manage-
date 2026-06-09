@@ -4,7 +4,8 @@ import {
   Expense, 
   Category, 
   Budget, 
-  Notification 
+  Notification,
+  RecurringExpense
 } from './types';
 import { 
   DEFAULT_CATEGORIES, 
@@ -25,6 +26,10 @@ import BudgetSettings from './components/BudgetSettings';
 import Reports from './components/Reports';
 import AddExpenseModal from './components/AddExpenseModal';
 import LoginRegister from './components/LoginRegister';
+import SavingGoals from './components/SavingGoals';
+import Incomes from './components/Incomes';
+import CalendarView from './components/CalendarView';
+import RecurringExpenses from './components/RecurringExpenses';
 
 export default function App() {
   // --- CORE STATE ---
@@ -32,6 +37,7 @@ export default function App() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [recurringExpenses, setRecurringExpenses] = useState<RecurringExpense[]>([]);
   
   // App views & UI Controls
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -76,6 +82,7 @@ export default function App() {
       } else {
         setIsFirebaseSynced(false);
         if (isGuest) {
+          localStorage.setItem('sem_token', 'demo_offline_token_xyz');
           const storedUser = localStorage.getItem('sem_user');
           if (storedUser) {
             try {
@@ -98,12 +105,48 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  // --- LOAD RECURRING EXPENSES (for CalendarView) ---
+  const loadRecurringExpenses = async (userId: string) => {
+    const localRecsKey = `sem_${userId}_recurring_expenses`;
+    const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+
+    if (!isGuest && auth.currentUser) {
+      try {
+        const data = await ApiService.getRecurringExpenses();
+        setRecurringExpenses(data);
+        localStorage.setItem(localRecsKey, JSON.stringify(data));
+        return;
+      } catch (e) {
+        console.warn('Firestore getRecurringExpenses in App failed, falling back:', e);
+      }
+    }
+
+    // Guest / offline fallback: Express API then localStorage
+    try {
+      const res = await fetch('/api/recurring-expenses', {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('sem_token')}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setRecurringExpenses(data);
+        localStorage.setItem(localRecsKey, JSON.stringify(data));
+        return;
+      }
+    } catch (_) {}
+    // fallback to localStorage
+    const stored = localStorage.getItem(localRecsKey);
+    if (stored) {
+      try { setRecurringExpenses(JSON.parse(stored)); } catch (_) {}
+    }
+  };
+
   // --- LOAD USER-SCOPED DATA WHEN USER CHANGES ---
   useEffect(() => {
     if (!currentUser) {
       setExpenses([]);
       setBudgets([]);
       setNotifications([]);
+      setRecurringExpenses([]);
       return;
     }
 
@@ -302,6 +345,7 @@ export default function App() {
     };
 
     loadData();
+    if (currentUser) loadRecurringExpenses(currentUser.id);
   }, [currentUser?.id]);
 
   // --- SAVE TO USER-SCOPED LOCALSTORAGE ON UPDATES ---
@@ -330,6 +374,7 @@ export default function App() {
   const handleLoginSuccess = (user: User, isGuest = false) => {
     if (isGuest) {
       localStorage.setItem('sem_guest_mode', 'true');
+      localStorage.setItem('sem_token', 'demo_offline_token_xyz');
     } else {
       localStorage.setItem('sem_guest_mode', 'false');
     }
@@ -419,11 +464,118 @@ export default function App() {
   };
 
   // --- ADD EXPENSE PROCESS & REAL-TIME INCURSION CHECK ---
-  const handleAddExpense = async (newExpenseData: Omit<Expense, 'id' | 'userId'>) => {
+  const handleAddExpense = async (newExpenseInput: Omit<Expense, 'id' | 'userId'> & { recurringCycle?: 'NONE' | 'WEEKLY' | 'MONTHLY' }) => {
     if (!currentUser) return;
 
-    let createdExpense: Expense;
+    const { recurringCycle, ...newExpenseData } = newExpenseInput;
     const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+
+    // --- AUTOMATIC RECURRING EXPENSE REGISTRATION ONLY ---
+    if (recurringCycle && recurringCycle !== 'NONE') {
+      const dateObj = new Date(newExpenseData.date);
+      let repeatOn = '';
+      if (recurringCycle === 'MONTHLY') {
+        repeatOn = `Ngày ${dateObj.getDate()} hàng tháng`;
+      } else {
+        const weekdays = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+        repeatOn = `${weekdays[dateObj.getDay()]} hàng tuần`;
+      }
+
+      const newRec: RecurringExpense = {
+        id: `rec_added_${Date.now()}`,
+        userId: currentUser.id,
+        amount: Number(newExpenseData.amount),
+        categoryId: newExpenseData.categoryId,
+        title: newExpenseData.title,
+        cycle: recurringCycle,
+        startDate: newExpenseData.date,
+        note: newExpenseData.note,
+        repeatOn,
+        isNecessary: newExpenseData.isNecessary
+      };
+
+      if (isGuest) {
+        const localRecsKey = `sem_${currentUser.id}_recurring_expenses`;
+        const stored = localStorage.getItem(localRecsKey);
+        const list = stored ? JSON.parse(stored) : [];
+        const updated = [newRec, ...list];
+        localStorage.setItem(localRecsKey, JSON.stringify(updated));
+      } else if (auth.currentUser) {
+        try {
+          const created = await ApiService.createRecurringExpense({
+            title: newRec.title,
+            amount: newRec.amount,
+            categoryId: newRec.categoryId,
+            cycle: newRec.cycle,
+            startDate: newRec.startDate,
+            note: newRec.note,
+            repeatOn: newRec.repeatOn,
+            isNecessary: newRec.isNecessary
+          });
+          // Update local state immediately with the Firestore-returned ID
+          setRecurringExpenses(prev => [created, ...prev]);
+          const localRecsKey = `sem_${currentUser.id}_recurring_expenses`;
+          const stored = localStorage.getItem(localRecsKey);
+          const list = stored ? JSON.parse(stored) : [];
+          localStorage.setItem(localRecsKey, JSON.stringify([created, ...list]));
+        } catch (err) {
+          console.error("Firestore createRecurringExpense failed, falling back to Express:", err);
+          try {
+            await fetch('/api/recurring-expenses', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('sem_token')}` },
+              body: JSON.stringify({ title: newRec.title, amount: newRec.amount, categoryId: newRec.categoryId, cycle: newRec.cycle, startDate: newRec.startDate, note: newRec.note, repeatOn: newRec.repeatOn, isNecessary: newRec.isNecessary })
+            });
+          } catch {
+            const localRecsKey = `sem_${currentUser.id}_recurring_expenses`;
+            const stored = localStorage.getItem(localRecsKey);
+            const list = stored ? JSON.parse(stored) : [];
+            localStorage.setItem(localRecsKey, JSON.stringify([newRec, ...list]));
+          }
+        }
+      } else {
+        // Express fallback when not yet fully authenticated
+        try {
+          await fetch('/api/recurring-expenses', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('sem_token')}` },
+            body: JSON.stringify({ title: newRec.title, amount: newRec.amount, categoryId: newRec.categoryId, cycle: newRec.cycle, startDate: newRec.startDate, note: newRec.note, repeatOn: newRec.repeatOn, isNecessary: newRec.isNecessary })
+          });
+        } catch {
+          const localRecsKey = `sem_${currentUser.id}_recurring_expenses`;
+          const stored = localStorage.getItem(localRecsKey);
+          const list = stored ? JSON.parse(stored) : [];
+          localStorage.setItem(localRecsKey, JSON.stringify([newRec, ...list]));
+        }
+      }
+
+
+      const recurringNotif: Notification = {
+        id: `notif_sys_${Date.now()}_rec`,
+        userId: currentUser.id,
+        type: 'success',
+        title: 'Chi tiêu định kỳ mới!',
+        message: `Khoản chi "${newExpenseData.title}" đã được thiết lập tự động lặp lại ${recurringCycle === 'WEEKLY' ? 'hàng tuần' : 'hàng tháng'}.`,
+        date: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        read: false
+      };
+      setNotifications(prev => {
+        const updated = [recurringNotif, ...prev];
+        localStorage.setItem(`sem_${currentUser.id}_notifs`, JSON.stringify(updated));
+        return updated;
+      });
+      const todayLocal = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+      const isStartToday = newExpenseData.date === todayLocal;
+      
+      if (isStartToday) {
+        newExpenseData.isRecurring = true;
+      } else {
+        return;
+      }
+    }
+
+    // --- NORMAL EXPENSE (DO NOT REPEAT) ---
+    let createdExpense: Expense;
     
     if (isGuest) {
       createdExpense = {
@@ -690,6 +842,7 @@ export default function App() {
               onOpenAddExpense={() => setIsAddExpenseOpen(true)}
               setActiveTab={setActiveTab}
               onEditExpense={(expense) => setEditingExpense(expense)}
+              recurringExpenses={recurringExpenses}
             />
           )}
 
@@ -717,6 +870,22 @@ export default function App() {
               categories={DEFAULT_CATEGORIES}
               user={currentUser}
             />
+          )}
+
+          {activeTab === 'saving-goals' && (
+            <SavingGoals user={currentUser} />
+          )}
+
+          {activeTab === 'incomes' && (
+            <Incomes user={currentUser} />
+          )}
+
+          {activeTab === 'calendar' && (
+            <CalendarView expenses={expenses} categories={DEFAULT_CATEGORIES} recurringExpenses={recurringExpenses} />
+          )}
+
+          {activeTab === 'recurring' && (
+            <RecurringExpenses user={currentUser} categories={DEFAULT_CATEGORIES} />
           )}
         </main>
 

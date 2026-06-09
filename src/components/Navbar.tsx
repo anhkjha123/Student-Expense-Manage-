@@ -10,7 +10,11 @@ import {
   BookOpen,
   Home,
   CheckCircle,
-  HelpCircle
+  HelpCircle,
+  DollarSign,
+  Target,
+  Calendar,
+  Repeat
 } from 'lucide-react';
 import { User, Notification } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -42,10 +46,13 @@ export default function Navbar({
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const tabs = [
-    { id: 'dashboard', name: 'Dashboard', icon: 'Activity' },
-    { id: 'history', name: 'Sổ Chi Tiêu', icon: 'List' },
-    { id: 'budget', name: 'Ngân Sách', icon: 'Settings' },
-    { id: 'reports', name: 'Báo Cáo', icon: 'PieChart' },
+    { id: 'dashboard', name: 'Dashboard' },
+    { id: 'history', name: 'Sổ Chi Tiêu' },
+    { id: 'budget', name: 'Ngân Sách' },
+    { id: 'reports', name: 'Báo Cáo' },
+    { id: 'incomes', name: 'Thu Nhập' },
+    { id: 'saving-goals', name: 'Tiết Kiệm' },
+    { id: 'calendar', name: 'Lịch' }
   ];
 
   const getNotifIcon = (type: string) => {
@@ -89,7 +96,50 @@ export default function Navbar({
         {/* NAVIGATION DESKTOP */}
         <nav className="hidden md:flex items-center space-x-1">
           {tabs.map((tab) => {
-            const isActive = activeTab === tab.id;
+            const isActive = tab.id === 'history'
+              ? (activeTab === 'history' || activeTab === 'recurring')
+              : activeTab === tab.id;
+
+            if (tab.id === 'history') {
+              return (
+                <div key={tab.id} className="relative group py-2">
+                  <button
+                    id={`nav-tab-${tab.id}`}
+                    onClick={() => setActiveTab('history')}
+                    className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                      isActive
+                        ? 'bg-emerald-50 text-emerald-600'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
+                  >
+                    <BookOpen className="h-4 w-4" />
+                    {tab.name}
+                  </button>
+                  {/* Dropdown Menu on Hover */}
+                  <div className="absolute left-0 mt-1 hidden group-hover:block bg-white border border-slate-100 rounded-xl shadow-lg p-2 min-w-[150px] z-50">
+                    <button
+                      onClick={() => setActiveTab('history')}
+                      className={`w-full text-left px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+                        activeTab === 'history' ? 'bg-emerald-50 text-emerald-600' : 'text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      <BookOpen className="h-3.5 w-3.5" />
+                      Lịch sử chi tiêu
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('recurring')}
+                      className={`w-full text-left px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+                        activeTab === 'recurring' ? 'bg-emerald-50 text-emerald-600' : 'text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      <Repeat className="h-3.5 w-3.5" />
+                      Chi tiêu định kỳ
+                    </button>
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <button
                 key={tab.id}
@@ -102,9 +152,11 @@ export default function Navbar({
                 }`}
               >
                 {tab.id === 'dashboard' && <Home className="h-4 w-4" />}
-                {tab.id === 'history' && <BookOpen className="h-4 w-4" />}
                 {tab.id === 'budget' && <Settings className="h-4 w-4" />}
                 {tab.id === 'reports' && <PieChart className="h-4 w-4" />}
+                {tab.id === 'incomes' && <DollarSign className="h-4 w-4" />}
+                {tab.id === 'saving-goals' && <Target className="h-4 w-4" />}
+                {tab.id === 'calendar' && <Calendar className="h-4 w-4" />}
                 {tab.name}
               </button>
             );
@@ -235,11 +287,23 @@ export default function Navbar({
       {/* NAVIGATION MOBILE ROW */}
       <div className="flex md:hidden border-t border-slate-100 bg-slate-50/50 justify-around py-1">
         {tabs.map((tab) => {
-          const isActive = activeTab === tab.id;
+          const isActive = tab.id === 'history'
+            ? (activeTab === 'history' || activeTab === 'recurring')
+            : activeTab === tab.id;
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                if (tab.id === 'history') {
+                  if (activeTab === 'history') {
+                    setActiveTab('recurring');
+                  } else {
+                    setActiveTab('history');
+                  }
+                } else {
+                  setActiveTab(tab.id);
+                }
+              }}
               className={`flex flex-col items-center gap-1 py-1 text-[10px] font-semibold transition-all ${
                 isActive ? 'text-emerald-600 font-bold scale-105' : 'text-slate-500'
               }`}
@@ -248,6 +312,9 @@ export default function Navbar({
               {tab.id === 'history' && <BookOpen className="h-4.5 w-4.5" />}
               {tab.id === 'budget' && <Settings className="h-4.5 w-4.5" />}
               {tab.id === 'reports' && <PieChart className="h-4.5 w-4.5" />}
+              {tab.id === 'incomes' && <DollarSign className="h-4.5 w-4.5" />}
+              {tab.id === 'saving-goals' && <Target className="h-4.5 w-4.5" />}
+              {tab.id === 'calendar' && <Calendar className="h-4.5 w-4.5" />}
               <span>{tab.name}</span>
             </button>
           );

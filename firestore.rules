@@ -46,6 +46,34 @@ service cloud.firestore {
           && (!('userId' in data) || (data.userId is string && data.userId.size() <= 128));
     }
 
+    function isValidIncome(data) {
+      return (!('amount' in data) || (data.amount is number))
+          && (!('source' in data) || (data.source is string && data.source.size() <= 64))
+          && (!('date' in data) || (data.date is string && data.date.size() <= 64))
+          && (!('note' in data) || (data.note is string && data.note.size() <= 1024))
+          && (!('userId' in data) || (data.userId is string && data.userId.size() <= 128));
+    }
+
+    function isValidRecurringExpense(data) {
+      return (!('amount' in data) || (data.amount is number))
+          && (!('categoryId' in data) || (data.categoryId is string && data.categoryId.size() <= 128))
+          && (!('title' in data) || (data.title is string && data.title.size() <= 256))
+          && (!('cycle' in data) || (data.cycle is string && data.cycle.size() <= 16))
+          && (!('startDate' in data) || (data.startDate is string && data.startDate.size() <= 64))
+          && (!('note' in data) || (data.note is string && data.note.size() <= 1024))
+          && (!('userId' in data) || (data.userId is string && data.userId.size() <= 128));
+    }
+
+    function isValidSavingGoal(data) {
+      return (!('name' in data) || (data.name is string && data.name.size() <= 256))
+          && (!('targetAmount' in data) || (data.targetAmount is number))
+          && (!('currentAmount' in data) || (data.currentAmount is number))
+          && (!('deadline' in data) || (data.deadline is string && data.deadline.size() <= 64))
+          && (!('status' in data) || (data.status is string && data.status.size() <= 32))
+          && (!('userId' in data) || (data.userId is string && data.userId.size() <= 128))
+          && (!('categoryId' in data) || (data.categoryId is string && data.categoryId.size() <= 128));
+    }
+
     match /users/{userId} {
       allow get: if isSignedIn() && isValidId(userId) && userId == request.auth.uid;
       allow list: if false; 
@@ -101,6 +129,47 @@ service cloud.firestore {
                     && incoming().userId == existing().userId;
       allow delete: if isSignedIn() && isValidId(notificationId) && existing().userId == request.auth.uid;
     }
+
+    match /incomes/{incomeId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn()
+                    && isValidId(incomeId)
+                    && isValidIncome(incoming())
+                    && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn()
+                    && isValidId(incomeId)
+                    && existing().userId == request.auth.uid
+                    && isValidIncome(incoming())
+                    && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && isValidId(incomeId) && existing().userId == request.auth.uid;
+    }
+
+    match /recurringExpenses/{recId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn()
+                    && isValidId(recId)
+                    && isValidRecurringExpense(incoming())
+                    && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn()
+                    && isValidId(recId)
+                    && existing().userId == request.auth.uid
+                    && isValidRecurringExpense(incoming())
+                    && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && isValidId(recId) && existing().userId == request.auth.uid;
+    }
+
+    match /savingGoals/{goalId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn()
+                    && isValidId(goalId)
+                    && isValidSavingGoal(incoming())
+                    && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn()
+                    && isValidId(goalId)
+                    && existing().userId == request.auth.uid
+                    && isValidSavingGoal(incoming())
+                    && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && isValidId(goalId) && existing().userId == request.auth.uid;
+    }
   }
 }
-

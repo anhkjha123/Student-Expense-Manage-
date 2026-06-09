@@ -5,6 +5,49 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
 
 ---
 
+### [v4.1.0] - 2026-06-09
+#### 🔧 Vercel Deployment & Wallet Balance Fixes
+*   **Vercel Deployment Fix (`vercel.json`):**
+    *   Cấu hình explicit static build sử dụng `@vercel/static-build` và chuyển thư mục phân phối tĩnh `distDir` thành `"dist"`. Tránh việc Vercel phục vụ thư mục gốc chưa biên dịch làm sập ứng dụng (màn hình trắng do lỗi cú pháp TSX ở phía Client).
+*   **Fix lỗi sập màn hình sau Login (Dashboard crash fix):**
+    *   Tự động tính toán biến dữ liệu dòng tiền `cashflow` và báo cáo phân tích chi tiêu `insights` cục bộ ở phía Client sử dụng React `useMemo` dựa trên dữ liệu giao dịch thực tế thay vì gọi các API bị chặn trên máy chủ tĩnh. Khắc phục hoàn toàn lỗi sập ứng dụng (`ReferenceError: insights is not defined`) ngay sau khi đăng nhập.
+*   **Tách biệt chi tiêu định kỳ khỏi số dư ví:**
+    *   Cập nhật biến `loggedExpenseTotal` (Chi tiêu thông thường) tại Dashboard tự động lọc bỏ các khoản chi tiêu có tag định kỳ (`isRecurring: true`), giúp tránh việc cộng dồn lặp hai lần khi tính số dư ví thực tế.
+
+---
+
+### [v4.0.0] - 2026-06-09
+#### 🌟 Tính năng mới Sprint 4 (Savings, Incomes, Calendar & Recurring)
+*   **Mục tiêu tiết kiệm (Saving Goals):** 
+    *   Theo dõi tiến độ tiết kiệm real-time dựa trên số dư ví thực tế.
+    *   Tự động tính phần trăm hoàn thành và đổi màu sắc cảnh báo theo thời hạn chót (Deadline).
+*   **Quản lý thu nhập (Incomes):**
+    *   Thêm tab quản lý dòng tiền vào (Incomes) với các nguồn như học bổng, làm thêm, gia đình chu cấp.
+    *   Tích hợp bộ lọc theo tháng và biểu đồ tỷ lệ cơ cấu nguồn thu.
+*   **Lịch chi tiêu (Calendar View):**
+    *   Bảng lịch trực quan đổi màu theo mức độ chi tiêu của từng ngày (Xanh < 100k, Vàng < 500k, Đỏ > 500k).
+    *   Sử dụng màu **xanh nước biển** và dấu chấm nhấp nháy làm indicator trực quan cho các ngày phát sinh chi tiêu định kỳ (Recurring Expense).
+    *   Hỗ trợ bấm chọn ngày để kiểm tra danh sách chi tiết các giao dịch tương ứng với thanh biên trái màu xanh.
+*   **Hoạt ảnh chuyển động (Framer Motion) & Cố định Navbar:**
+    *   Bổ sung hiệu ứng motion transition (`motion.div`) cho trang **Thu Nhập** và **Tiết Kiệm** đồng bộ với các trang khác.
+    *   Cố định nhãn tên "Sổ Chi Tiêu" và biểu tượng icon `BookOpen` trên thanh điều hướng khi click chọn các sub-options trong Dropdown.
+*   **Chi tiêu định kỳ & Nhập chi tiêu lặp lại (Recurring Expenses):**
+    *   Thêm tab cấu hình các khoản chi cố định hàng tuần/tháng (như tiền nhà, mạng internet).
+    *   **Dropdown định kỳ trong biểu mẫu nhập nhanh:** Cung cấp hộp chọn "Chi tiêu định kỳ (Lặp lại)" (Không lặp lại, Lặp lại hàng tuần, Lặp lại hàng tháng) ngay tại `AddExpenseModal` khi tạo khoản chi mới.
+    *   **Phân luồng ghi nhận dữ liệu định kỳ:**
+        *   *Không lặp lại:* Chỉ ghi nhận giao dịch hiện tại vào Lịch sử chi tiêu (normal Expense).
+        *   *Lặp lại (Tuần/Tháng):* Chỉ tạo cấu hình trong danh sách Chi tiêu định kỳ (Recurring Expense) để tự động sinh hóa đơn trong tương lai, không ghi nhận giao dịch chi tiêu lập tức vào lịch sử.
+    *   **Thuộc tính Lặp lại theo ngày/thứ (`repeatOn`):** Thêm thuộc tính mới `repeatOn` (kiểu chuỗi chứa chữ "tháng" hoặc "tuần" tương ứng, ví dụ: `"Ngày 15 hàng tháng"`, `"Thứ Hai hàng tuần"`) được tạo tự động dựa trên ngày bắt đầu. Cập nhật giao diện thẻ định kỳ để hiển thị rõ tần suất và ngày lặp.
+    *   **Xử lý tự động trừ tiền khi đến hạn:** Bộ sinh tự động trên server Express quét chu kỳ định kỳ mỗi phút, đối chiếu ngày hiện tại với ngày lặp (`repeatOn`), tự động tạo giao dịch chi tiêu thực tế tương ứng để trừ tiền trong Ví người dùng khi đến kỳ hạn.
+    *   **Tái cấu trúc điều hướng (Navigation Dropdown & Mobile Toggle):** Loại bỏ tab "Định Kỳ" độc lập khỏi thanh điều hướng chính. Trên desktop, khi hover qua tab "Sổ Chi Tiêu" sẽ hiển thị dropdown chứa hai tùy chọn: "Lịch sử chi tiêu" và "Chi tiêu định kỳ". Trên mobile, tab "Sổ Chi Tiêu" tự động đóng vai trò nút bấm chuyển đổi động (toggle) giữa hai chế độ "Sổ chi tiêu" và "Định kỳ", tối ưu hóa tuyệt đối không gian hiển thị.
+    *   **Custom Alert Box khi xóa Chi tiêu định kỳ:** Thay thế hộp thoại `confirm(...)` mặc định của trình duyệt bằng một Modal tự thiết kế dạng thẻ nổi, sử dụng icon cảnh báo `AlertTriangle` màu vàng hổ phách, hiển thị rõ tên của khoản chi định kỳ muốn hủy bỏ, đồng bộ trải nghiệm người dùng hiện đại và mượt mà.
+*   **🔧 Sửa lỗi nút lưu Thu nhập & Tiết kiệm (Save Buttons Fix):**
+    *   **Khắc phục lỗi xác thực token (Auth token fix):** Bổ sung trích xuất ID người dùng linh hoạt (`decoded.user_id || decoded.sub`) trong `authMiddleware` tại backend server Express, giúp giải mã chính xác token ID Firebase khi đăng nhập bằng Google/Email.
+    *   **Khởi tạo token offline cho Chế độ khách:** Tự động gán token cục bộ `'demo_offline_token_xyz'` khi người dùng trải nghiệm Chế độ Khách (Offline), đảm bảo mọi cuộc gọi API thử nghiệm tới backend được phê duyệt hợp lệ.
+    *   **Cơ chế lưu trữ ngoại tuyến dự phòng (LocalStorage Fallback):** Bổ sung logic lưu trữ và nạp dữ liệu cục bộ vào LocalStorage dự phòng cho `SavingGoals.tsx` và `Incomes.tsx`. Nếu kết nối mạng đứt hoặc Express API trả lỗi, các nút lưu vẫn ghi nhận hoạt động bình thường trên trình duyệt của người dùng.
+
+---
+
 ### [v3.2.0] - 2026-06-07
 #### ✍️ Bổ sung Tính năng Chỉnh sửa Chi tiêu (Edit Expense Support)
 *   **Chỉnh sửa đa điểm (Multi-entry Point Editing):**

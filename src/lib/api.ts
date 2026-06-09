@@ -1,9 +1,10 @@
-import { User, Expense, Budget, Notification } from '../types';
+import { User, Expense, Budget, Notification, Income, RecurringExpense, SavingGoal } from '../types';
 import { db, auth } from './firebase';
 import { 
   collection, 
   doc, 
   getDocs, 
+  addDoc,
   setDoc, 
   updateDoc, 
   deleteDoc, 
@@ -304,6 +305,168 @@ export class ApiService {
     } catch (err) {
        handleFirestoreError(err, OperationType.WRITE, 'budgets');
        return false;
+    }
+  }
+
+  // --- INCOMES ---
+  public static async getIncomes(month?: string): Promise<Income[]> {
+    const userId = auth.currentUser?.uid;
+    if (!userId) return [];
+
+    try {
+      const q = query(collection(db, 'incomes'), where('userId', '==', userId));
+      const snapshot = await getDocs(q);
+      let results = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Income));
+      if (month) {
+        results = results.filter(i => i.date.startsWith(month));
+      }
+      return results;
+    } catch (err) {
+      handleFirestoreError(err, OperationType.LIST, 'incomes');
+      return [];
+    }
+  }
+
+  public static async createIncome(income: Omit<Income, 'id' | 'userId'>): Promise<Income> {
+    const userId = auth.currentUser?.uid;
+    if (!userId) throw new Error('Not authenticated');
+
+    const newId = `inc_${generateRandomId()}`;
+    const full: any = { ...income, amount: Number(income.amount), userId };
+    if (full.note === undefined) delete full.note;
+
+    try {
+      await setDoc(doc(db, 'incomes', newId), full);
+      return { id: newId, ...full } as Income;
+    } catch (err) {
+      handleFirestoreError(err, OperationType.CREATE, 'incomes');
+      throw err;
+    }
+  }
+
+  public static async deleteIncome(id: string): Promise<boolean> {
+    const userId = auth.currentUser?.uid;
+    if (!userId) return false;
+
+    try {
+      await deleteDoc(doc(db, 'incomes', id));
+      return true;
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, 'incomes');
+      return false;
+    }
+  }
+
+  // --- RECURRING EXPENSES ---
+  public static async getRecurringExpenses(): Promise<RecurringExpense[]> {
+    const userId = auth.currentUser?.uid;
+    if (!userId) return [];
+
+    try {
+      const q = query(collection(db, 'recurringExpenses'), where('userId', '==', userId));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as RecurringExpense));
+    } catch (err) {
+      handleFirestoreError(err, OperationType.LIST, 'recurringExpenses');
+      return [];
+    }
+  }
+
+  public static async createRecurringExpense(rec: Omit<RecurringExpense, 'id' | 'userId'>): Promise<RecurringExpense> {
+    const userId = auth.currentUser?.uid;
+    if (!userId) throw new Error('Not authenticated');
+
+    const newId = `rec_${generateRandomId()}`;
+    const full: any = { ...rec, amount: Number(rec.amount), userId };
+    if (full.note === undefined) delete full.note;
+    if (full.repeatOn === undefined) delete full.repeatOn;
+
+    try {
+      await setDoc(doc(db, 'recurringExpenses', newId), full);
+      return { id: newId, ...full } as RecurringExpense;
+    } catch (err) {
+      handleFirestoreError(err, OperationType.CREATE, 'recurringExpenses');
+      throw err;
+    }
+  }
+
+  public static async deleteRecurringExpense(id: string): Promise<boolean> {
+    const userId = auth.currentUser?.uid;
+    if (!userId) return false;
+
+    try {
+      await deleteDoc(doc(db, 'recurringExpenses', id));
+      return true;
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, 'recurringExpenses');
+      return false;
+    }
+  }
+
+  // --- SAVING GOALS ---
+  public static async getSavingGoals(): Promise<SavingGoal[]> {
+    const userId = auth.currentUser?.uid;
+    if (!userId) return [];
+
+    try {
+      const q = query(collection(db, 'savingGoals'), where('userId', '==', userId));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as SavingGoal));
+    } catch (err) {
+      handleFirestoreError(err, OperationType.LIST, 'savingGoals');
+      return [];
+    }
+  }
+
+  public static async createSavingGoal(goal: Omit<SavingGoal, 'id' | 'userId'>): Promise<SavingGoal> {
+    const userId = auth.currentUser?.uid;
+    if (!userId) throw new Error('Not authenticated');
+
+    const newId = `goal_${generateRandomId()}`;
+    const full: any = {
+      ...goal,
+      targetAmount: Number(goal.targetAmount),
+      currentAmount: Number(goal.currentAmount ?? 0),
+      userId
+    };
+    if (full.categoryId === undefined) delete full.categoryId;
+
+    try {
+      await setDoc(doc(db, 'savingGoals', newId), full);
+      return { id: newId, ...full } as SavingGoal;
+    } catch (err) {
+      handleFirestoreError(err, OperationType.CREATE, 'savingGoals');
+      throw err;
+    }
+  }
+
+  public static async updateSavingGoal(id: string, data: Partial<SavingGoal>): Promise<SavingGoal> {
+    const userId = auth.currentUser?.uid;
+    if (!userId) throw new Error('Not authenticated');
+
+    try {
+      const { id: _, userId: __, ...updateData } = data as any;
+      if ('targetAmount' in updateData) updateData.targetAmount = Number(updateData.targetAmount);
+      if ('currentAmount' in updateData) updateData.currentAmount = Number(updateData.currentAmount);
+
+      await updateDoc(doc(db, 'savingGoals', id), updateData);
+      return { id, ...updateData } as SavingGoal;
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, 'savingGoals');
+      throw err;
+    }
+  }
+
+  public static async deleteSavingGoal(id: string): Promise<boolean> {
+    const userId = auth.currentUser?.uid;
+    if (!userId) return false;
+
+    try {
+      await deleteDoc(doc(db, 'savingGoals', id));
+      return true;
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, 'savingGoals');
+      return false;
     }
   }
 

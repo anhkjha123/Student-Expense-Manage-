@@ -25,7 +25,7 @@ export const expensesController = {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ error: 'Ngoại lệ phiên đăng nhập' });
 
-      const { amount, categoryId, title, date, note, isNecessary } = req.body;
+      const { amount, categoryId, title, date, note, isNecessary, isRecurring } = req.body;
       if (!amount || !categoryId || !title || !date) {
         return res.status(400).json({ error: 'Vui lòng điền các trường bắt buộc của khoản chi' });
       }
@@ -38,7 +38,8 @@ export const expensesController = {
         title,
         date,
         note: note || '',
-        isNecessary: !!isNecessary
+        isNecessary: !!isNecessary,
+        isRecurring: !!isRecurring
       };
 
       dbInstance.saveExpense(newExpense);
@@ -94,7 +95,7 @@ export const expensesController = {
       if (!userId) return res.status(401).json({ error: 'Ngoại lệ phiên đăng nhập' });
 
       const { id } = req.params;
-      const { amount, categoryId, title, date, note, isNecessary } = req.body;
+      const { amount, categoryId, title, date, note, isNecessary, isRecurring } = req.body;
 
       const allExpenses = dbInstance.getExpenses();
       const existing = allExpenses.find(e => e.id === id);
@@ -114,7 +115,8 @@ export const expensesController = {
         title: title || existing.title,
         date: date || existing.date,
         note: note !== undefined ? note : existing.note,
-        isNecessary: isNecessary !== undefined ? !!isNecessary : existing.isNecessary
+        isNecessary: isNecessary !== undefined ? !!isNecessary : existing.isNecessary,
+        isRecurring: isRecurring !== undefined ? !!isRecurring : existing.isRecurring
       };
 
       dbInstance.saveExpense(updatedExpense);
