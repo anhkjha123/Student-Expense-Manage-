@@ -232,8 +232,8 @@ export default function Dashboard({
   const variableIncomeTotal = variableIncomes.reduce((sum, i) => sum + i.amount, 0);
   const totalIncome = user.monthlyIncome + variableIncomeTotal; // Tổng thu
   
-  // --- Chi = chi thường + chi định kỳ tháng này ---
-  const loggedExpenseTotal = currentMonthExpenses.reduce((sum, item) => sum + item.amount, 0);
+  // --- Chi = chi thường (không có tag định kỳ) + chi định kỳ tháng này ---
+  const loggedExpenseTotal = currentMonthExpenses.filter(exp => !exp.isRecurring).reduce((sum, item) => sum + item.amount, 0);
   const totalSpentThisMonth = loggedExpenseTotal + recurringThisMonth.total;
 
   const savingGoal = user.savingGoal;
