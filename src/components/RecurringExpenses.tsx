@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Repeat, Plus, Calendar } from 'lucide-react';
+import { Repeat, Plus, Calendar, AlertTriangle } from 'lucide-react';
 import { RecurringExpense, User, Category } from '../types';
 
 interface RecurringExpensesProps {
@@ -11,6 +11,7 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
   const [recs, setRecs] = useState<RecurringExpense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<RecurringExpense | null>(null);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -111,8 +112,9 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Bạn có chắc muốn hủy bỏ khoản chi định kỳ này?')) return;
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    const id = deleteTarget.id;
     const localRecsKey = `sem_${user.id}_recurring_expenses`;
     try {
       const res = await fetch(`/api/recurring-expenses/${id}`, {
@@ -133,6 +135,8 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
         localStorage.setItem(localRecsKey, JSON.stringify(updated));
         loadRecs();
       }
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -211,7 +215,7 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
                 <div className="flex-1">
                   <div className="flex justify-between items-start mb-1">
                     <h3 className="font-bold text-slate-800">{item.title}</h3>
-                    <button onClick={() => handleDelete(item.id)} className="text-xs font-medium text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">Hủy</button>
+                    <button onClick={() => setDeleteTarget(item)} className="text-xs font-medium text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">Hủy</button>
                   </div>
                   <div className="text-emerald-600 font-extrabold text-lg mb-2">
                     {new Intl.NumberFormat('vi-VN').format(item.amount)}đ
@@ -228,6 +232,40 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Custom Alert Modal for Delete Confirmation */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-slate-100 transform scale-100 transition-all duration-300 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 text-amber-500 mb-4">
+              <div className="p-3 bg-amber-50 rounded-xl">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-800">Xác nhận xóa chi tiêu định kỳ</h3>
+            </div>
+            <p className="text-slate-600 text-sm mb-6 leading-relaxed">
+              Bạn có chắc chắn muốn xóa chi tiêu định kỳ <strong className="text-slate-800">"{deleteTarget.title}"</strong>? 
+              Hành động này không thể hoàn tác và hệ thống sẽ dừng tự động ghi nhận các khoản chi này trong tương lai.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-sm transition-all"
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl text-sm shadow-sm shadow-red-200 transition-all"
+              >
+                Xác nhận xóa
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
