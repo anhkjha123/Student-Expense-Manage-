@@ -468,13 +468,6 @@ export default function Groups({ user }: GroupsProps) {
 
             {/* Side tools (Create group / Join Group) */}
             <div className="md:col-span-4 space-y-6">
-              <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-800">Nhóm chi tiêu</h3>
-                  <p className="text-xs text-slate-500 mt-1">Tạo và quản lý nhóm chi tiêu chung.</p>
-                </div>
-              </div>
-
               {/* Join group box */}
               <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm space-y-3">
                 <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">

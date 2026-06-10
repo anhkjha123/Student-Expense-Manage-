@@ -20,6 +20,10 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
     *   Cập nhật `App.tsx` và `Navbar.tsx` để gỡ bỏ tab "Tiết kiệm" và các icon biểu tượng khỏi menu.
     *   Tái thiết kế trang `Dashboard.tsx`, xóa bỏ widget hiển thị tiến trình tiết kiệm tích lũy và chuyển đổi grid tổng quan tài chính sang 2 cột cho cân đối.
     *   Dọn dẹp các API Client trong `api.ts` và Express routes trong `app.ts`.
+*   **Cập nhật UI trang Nhóm (Groups):**
+    *   Khôi phục lại banner đầu trang `Quỹ Nhóm & Chia Tiền` với tiêu đề và mô tả rõ ràng.
+    *   Xóa thẻ `Tính năng Sprint 5` trên banner để tránh gây nhiễu nội dung.
+    *   Gỡ bỏ một số nhãn và nút tạo nhóm thừa trên sidebar `Tham gia nhóm bằng mã mời`, giữ giao diện gọn và tập trung hơn.
 
 ---
 
