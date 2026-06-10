@@ -372,20 +372,26 @@ export default function Dashboard({
         {/* Wallet Balance Box */}
         <motion.div 
           whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
-          className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-500 to-teal-600 p-5 shadow-sm relative transition-all duration-300 text-white"
+          className={`rounded-3xl border p-5 shadow-sm relative transition-all duration-300 text-white bg-gradient-to-br ${
+            walletBalance < 0 
+              ? 'from-rose-500 to-red-600 border-rose-200 shadow-rose-100' 
+              : walletBalance < savingGoal 
+                ? 'from-amber-500 to-orange-600 border-amber-200 shadow-amber-100' 
+                : 'from-emerald-500 to-teal-600 border-emerald-100 shadow-emerald-100'
+          }`}
         >
           <div className="flex justify-between items-start relative z-10">
             <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-100 font-mono">
+              <span className={`text-[10px] font-bold uppercase tracking-wider font-mono ${
+                walletBalance < 0 
+                  ? 'text-rose-100' 
+                  : walletBalance < savingGoal 
+                    ? 'text-amber-100' 
+                    : 'text-emerald-100'
+              }`}>
                 Số Dư Ví Tháng Này
               </span>
-              <div className={`text-3xl font-black font-mono drop-shadow-md ${
-                walletBalance < 0 
-                  ? 'text-red-300' 
-                  : walletBalance < savingGoal 
-                    ? 'text-yellow-300' 
-                    : 'text-white'
-              }`}>
+              <div className="text-3xl font-black font-mono drop-shadow-md text-white">
                 {walletBalance < 0 ? '-' : ''}{new Intl.NumberFormat('vi-VN').format(Math.abs(walletBalance))}đ
               </div>
             </div>
@@ -398,7 +404,7 @@ export default function Dashboard({
           </div>
 
           {/* Thu / Chi row with hover tooltips */}
-          <div className="flex justify-between text-[10px] text-emerald-50 font-semibold mt-4 pt-3 border-t border-emerald-400/50 relative z-10 gap-2">
+          <div className="flex justify-between text-[10px] text-white/95 font-semibold mt-4 pt-3 border-t border-white/20 relative z-10 gap-2">
             {/* THU tooltip - simplified: 2 operands only */}
             <div
               className="relative cursor-help flex items-center gap-0.5"
