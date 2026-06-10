@@ -379,7 +379,13 @@ export default function Dashboard({
               <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-100 font-mono">
                 Số Dư Ví Tháng Này
               </span>
-              <div className={`text-3xl font-black font-mono drop-shadow-md ${walletBalance < 0 ? 'text-red-200' : ''}`}>
+              <div className={`text-3xl font-black font-mono drop-shadow-md ${
+                walletBalance < 0 
+                  ? 'text-red-300' 
+                  : walletBalance < savingGoal 
+                    ? 'text-yellow-300' 
+                    : 'text-white'
+              }`}>
                 {walletBalance < 0 ? '-' : ''}{new Intl.NumberFormat('vi-VN').format(Math.abs(walletBalance))}đ
               </div>
             </div>
