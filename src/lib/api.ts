@@ -410,6 +410,32 @@ export class ApiService {
   public static async getCategoryStats() {}
   public static async getTopSpending() {}
 
+  private static async getAuthToken(): Promise<string | null> {
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      try {
+        const refreshedToken = await currentUser.getIdToken();
+        localStorage.setItem('sem_token', refreshedToken);
+        return refreshedToken;
+      } catch (err) {
+        console.warn('Unable to refresh auth token', err);
+      }
+    }
+
+    return localStorage.getItem('sem_token');
+  }
+
+  private static async buildAuthHeaders(baseHeaders: Record<string, string> = {}): Promise<Record<string, string>> {
+    const token = await this.getAuthToken();
+    if (token) {
+      return {
+        ...baseHeaders,
+        Authorization: `Bearer ${token}`
+      };
+    }
+    return baseHeaders;
+  }
+
   // --- OCR SCANNING ---
   private static async safeFetchJson(url: string, options: RequestInit): Promise<any> {
     let response;
@@ -439,109 +465,79 @@ export class ApiService {
   }
 
   public static async scanReceipt(imageBase64: string, filename: string, mimeType: string): Promise<any> {
-    const token = localStorage.getItem('sem_token');
+    const headers = await this.buildAuthHeaders({ 'Content-Type': 'application/json' });
     return this.safeFetchJson('/api/expenses/scan-receipt', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers,
       body: JSON.stringify({ image: imageBase64, name: filename, mimeType })
     });
   }
 
   // --- GROUPS CLIENT APIS ---
   public static async createGroup(name: string): Promise<{ group: Group, members: GroupMember[] }> {
-    const token = localStorage.getItem('sem_token');
+    const headers = await this.buildAuthHeaders({ 'Content-Type': 'application/json' });
     return this.safeFetchJson('/api/groups', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers,
       body: JSON.stringify({ name })
     });
   }
 
   public static async getGroups(): Promise<Group[]> {
-    const token = localStorage.getItem('sem_token');
-    return this.safeFetchJson('/api/groups', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const headers = await this.buildAuthHeaders();
+    return this.safeFetchJson('/api/groups', { headers });
   }
 
   public static async getGroup(id: string): Promise<{ group: Group, members: GroupMember[], expenses: GroupExpense[], debts: GroupSettlement[] }> {
-    const token = localStorage.getItem('sem_token');
-    return this.safeFetchJson(`/api/groups/${id}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const headers = await this.buildAuthHeaders();
+    return this.safeFetchJson(`/api/groups/${id}`, { headers });
   }
 
   public static async generateInvite(id: string): Promise<Group> {
-    const token = localStorage.getItem('sem_token');
+    const headers = await this.buildAuthHeaders();
     return this.safeFetchJson(`/api/groups/${id}/invite`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers
     });
   }
 
   public static async revokeInvite(id: string): Promise<Group> {
-    const token = localStorage.getItem('sem_token');
+    const headers = await this.buildAuthHeaders();
     return this.safeFetchJson(`/api/groups/${id}/invite/revoke`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers
     });
   }
 
   public static async joinGroup(code: string): Promise<{ message: string, group: Group }> {
-    const token = localStorage.getItem('sem_token');
+    const headers = await this.buildAuthHeaders();
     return this.safeFetchJson(`/api/groups/join/${code}`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers
     });
   }
 
   public static async addGroupExpense(id: string, payload: { description: string, amount: number, date: string, splitType: 'EQUAL' | 'CUSTOM', customSplits?: any[] }): Promise<GroupExpense> {
-    const token = localStorage.getItem('sem_token');
+    const headers = await this.buildAuthHeaders({ 'Content-Type': 'application/json' });
     return this.safeFetchJson(`/api/groups/${id}/expenses`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers,
       body: JSON.stringify(payload)
     });
   }
 
   public static async settleDebt(id: string, payload: { fromUserId: string, fromUserName: string, toUserId: string, toUserName: string, amount: number }): Promise<GroupExpense> {
-    const token = localStorage.getItem('sem_token');
+    const headers = await this.buildAuthHeaders({ 'Content-Type': 'application/json' });
     return this.safeFetchJson(`/api/groups/${id}/settle`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers,
       body: JSON.stringify(payload)
     });
   }
 
   public static async exportGroupCSV(id: string): Promise<Blob> {
-    const token = localStorage.getItem('sem_token');
-    const response = await fetch(`/api/groups/${id}/export`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const headers = await this.buildAuthHeaders();
+    const response = await fetch(`/api/groups/${id}/export`, { headers });
     if (!response.ok) {
       throw new Error('Lỗi xuất dữ liệu CSV');
     }
