@@ -95,7 +95,7 @@ export default function Navbar({
         </div>
 
         {/* NAVIGATION DESKTOP */}
-        <nav className="hidden md:flex items-center space-x-1">
+        <nav className="hidden md:flex items-center gap-1 lg:gap-1.5 xl:gap-2">
           {tabs.map((tab) => {
             const isActive = tab.id === 'history'
               ? (activeTab === 'history' || activeTab === 'recurring')
@@ -107,17 +107,18 @@ export default function Navbar({
                   <button
                     id={`nav-tab-${tab.id}`}
                     onClick={() => setActiveTab('history')}
-                    className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                    className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs xl:text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
                       isActive
                         ? 'bg-emerald-50 text-emerald-600'
                         : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }`}
+                    title={tab.name}
                   >
-                    <BookOpen className="h-4 w-4" />
-                    {tab.name}
+                    <BookOpen className="h-4 w-4 shrink-0" />
+                    <span className="hidden xl:inline">{tab.name}</span>
                   </button>
                   {/* Dropdown Menu on Hover */}
-                  <div className="absolute left-0 mt-1 hidden group-hover:block bg-white border border-slate-100 rounded-xl shadow-lg p-2 min-w-[150px] z-50">
+                  <div className="absolute left-0 mt-1 hidden group-hover:block bg-white border border-slate-100 rounded-xl shadow-lg p-2 min-w-[150px] z-50 animate-fade-in">
                     <button
                       onClick={() => setActiveTab('history')}
                       className={`w-full text-left px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
@@ -146,19 +147,20 @@ export default function Navbar({
                 key={tab.id}
                 id={`nav-tab-${tab.id}`}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs xl:text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
                   isActive
                     ? 'bg-emerald-50 text-emerald-600'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
+                title={tab.name}
               >
-                {tab.id === 'dashboard' && <Home className="h-4 w-4" />}
-                {tab.id === 'budget' && <Settings className="h-4 w-4" />}
-                {tab.id === 'reports' && <PieChart className="h-4 w-4" />}
-                {tab.id === 'incomes' && <DollarSign className="h-4 w-4" />}
-                {tab.id === 'groups' && <Users className="h-4 w-4" />}
-                {tab.id === 'calendar' && <Calendar className="h-4 w-4" />}
-                {tab.name}
+                {tab.id === 'dashboard' && <Home className="h-4 w-4 shrink-0" />}
+                {tab.id === 'budget' && <Settings className="h-4 w-4 shrink-0" />}
+                {tab.id === 'reports' && <PieChart className="h-4 w-4 shrink-0" />}
+                {tab.id === 'incomes' && <DollarSign className="h-4 w-4 shrink-0" />}
+                {tab.id === 'groups' && <Users className="h-4 w-4 shrink-0" />}
+                {tab.id === 'calendar' && <Calendar className="h-4 w-4 shrink-0" />}
+                <span className="hidden xl:inline">{tab.name}</span>
               </button>
             );
           })}
