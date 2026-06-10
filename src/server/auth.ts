@@ -48,6 +48,7 @@ export function generateToken(user: { id: string; email: string; name: string })
 }
 
 // Giải mã và xác thực token JWT gửi lên từ Authorization header
+// Hỗ trợ cả Firebase ID Token (từ Firebase Auth) lẫn custom JWT (từ auth server local)
 export function verifyToken(token: string): any {
   try {
     if (token === 'demo_offline_token_xyz') {
@@ -57,7 +58,7 @@ export function verifyToken(token: string): any {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
 
-    const [header, payload, signature] = parts;
+    const [, payload] = parts;
     const decodedPayload = JSON.parse(base64Decode(payload));
 
     // Kiểm tra hết hạn token
@@ -65,6 +66,7 @@ export function verifyToken(token: string): any {
       return null;
     }
 
+    // Firebase ID Token dùng 'sub' làm UID người dùng, custom token dùng 'id'
     return decodedPayload;
   } catch (e) {
     return null;
@@ -91,10 +93,12 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
     return res.status(403).json({ error: 'Token không hợp lệ hoặc đã hết hạn' });
   }
 
+  // Firebase ID Token: uid ở 'sub' hoặc 'user_id'; custom JWT: uid ở 'id'
+  const userId = decoded.id || decoded.user_id || decoded.sub || decoded.uid;
   req.user = {
-    id: decoded.id || decoded.user_id || decoded.sub,
-    email: decoded.email,
-    name: decoded.name
+    id: userId,
+    email: decoded.email || '',
+    name: decoded.name || decoded.email?.split('@')[0] || 'User'
   };
   next();
 }
