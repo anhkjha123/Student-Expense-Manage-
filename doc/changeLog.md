@@ -6,7 +6,11 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
 ---
 
 ### [v5.1.0] - 2026-06-10
-#### 🌟 Nâng cấp AI OCR & Xóa bỏ tính năng Tiết kiệm (Saving Goals)
+#### 🌟 Nâng cấp AI OCR, Xóa bỏ tính năng Tiết kiệm (Saving Goals) & Sửa lỗi Vercel 500
+*   **Khắc phục lỗi Vercel 500 (FUNCTION_INVOCATION_FAILED):**
+    *   Cập nhật [api/index.ts](file:///c:/Users/ADMIN/Desktop/New%20folder/Student-Expense-Manage-/api/index.ts) để export trực tiếp Express `app` làm default handler thay vì wrap trong hàm custom. Việc này giúp Vercel Serverless Node bridge tự động quản lý vòng đời request chính xác và không bị treo.
+    *   Thêm cấu hình `functions` và `includeFiles` trong [vercel.json](file:///c:/Users/ADMIN/Desktop/New%20folder/Student-Expense-Manage-/vercel.json) để bundle file dữ liệu mẫu `data/db.json` vào môi trường Serverless Function, tránh lỗi thiếu file database mẫu lúc runtime.
+    *   Thêm các global uncaught exception và unhandled rejection event listeners để bắt và ghi log tất cả lỗi runtime bất ngờ trên Vercel.
 *   **Nâng cấp AI OCR & Regex Fallback:**
     *   Tối ưu hóa **System Instruction** của Gemini API giúp trích xuất chính xác tên cửa hàng (Merchant), tổng tiền thanh toán cuối cùng (Amount), ngày giao dịch (Date) định dạng chuẩn `YYYY-MM-DD`, và danh sách các mặt hàng chi tiết (Note/Items).
     *   Cấu trúc lại **responseSchema** sử dụng kiểu dữ liệu chữ thường chuẩn tương thích tốt với SDK mới `@google/genai`.

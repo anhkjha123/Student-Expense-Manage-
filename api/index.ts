@@ -1,8 +1,13 @@
 import app from '../src/server/app';
-import type { IncomingMessage, ServerResponse } from 'http';
 
-// Wrap Express app as a Vercel Serverless Function handler
-export default function handler(req: IncomingMessage, res: ServerResponse) {
-  return app(req, res);
-}
+// Bắt lỗi runtime toàn cục để ghi nhận vào Vercel logs nếu xảy ra crash bất ngờ
+process.on('uncaughtException', (err) => {
+  console.error('[CRITICAL] Uncaught Exception on Vercel Serverless:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[CRITICAL] Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+export default app;
 
