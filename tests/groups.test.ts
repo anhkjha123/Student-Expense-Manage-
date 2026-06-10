@@ -9,11 +9,11 @@ describe('Group splitting & rounding calculation logic', () => {
     { userId: 'user_03', email: 'user3@hust.edu.vn' }
   ];
 
-  it('chia đều 10.000đ cho 3 người, làm tròn về 1.000đ, phần dư tính cho người đầu tiên (AC3)', () => {
+  it('chia đều 10.000đ cho 3 người, làm tròn về 1.000đ, phần dư tính cho người đầu tiên', () => {
     // 10000 / 3 = 3333.33 => làm tròn thành 3000
     // phần dư = 10000 - (3000 * 2) = 4000 cho người đầu tiên
     const splits = ApiService.calculateEqualSplits(10000, members);
-    
+
     expect(splits).toHaveLength(3);
     expect(splits[0].userId).toBe('user_01');
     expect(splits[0].amount).toBe(4000);
@@ -26,11 +26,11 @@ describe('Group splitting & rounding calculation logic', () => {
     expect(totalCalculated).toBe(10000);
   });
 
-  it('chia đều 11.000đ cho 3 người, làm tròn về 1.000đ, phần dư tính cho người đầu tiên (AC3)', () => {
+  it('chia đều 11.000đ cho 3 người, làm tròn về 1.000đ, phần dư tính cho người đầu tiên', () => {
     // 11000 / 3 = 3666.67 => làm tròn thành 4000
     // phần dư = 11000 - (4000 * 2) = 3000 cho người đầu tiên
     const splits = ApiService.calculateEqualSplits(11000, members);
-    
+
     expect(splits).toHaveLength(3);
     expect(splits[0].userId).toBe('user_01');
     expect(splits[0].amount).toBe(3000);
@@ -71,7 +71,7 @@ describe('Group splitting & rounding calculation logic', () => {
 
     let debts = ApiService.calculateDebts('g1', groupMembers, expenses);
     expect(debts).toHaveLength(2);
-    
+
     // Tuấn nợ Đức 30k
     const tuanDebt = debts.find(d => d.fromUserId === 'user_02' && d.toUserId === 'user_01');
     expect(tuanDebt).toBeDefined();

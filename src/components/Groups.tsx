@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Users, 
-  Plus, 
-  Copy, 
-  Check, 
-  Trash2, 
-  FileSpreadsheet, 
-  ArrowLeft, 
-  DollarSign, 
-  Calendar, 
+import {
+  Users,
+  Plus,
+  Copy,
+  Check,
+  Trash2,
+  FileSpreadsheet,
+  ArrowLeft,
+  DollarSign,
+  Calendar,
   FileText,
   UserCheck,
   RefreshCw,
@@ -38,7 +38,7 @@ export default function Groups({ user }: GroupsProps) {
     debts: GroupSettlement[];
   } | null>(null);
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
-  
+
   // UI states
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -109,7 +109,7 @@ export default function Groups({ user }: GroupsProps) {
     setGroupError(null);
 
     if (newGroupName.trim().length < 3 || newGroupName.trim().length > 50) {
-      setGroupError('Tên nhóm phải từ 3 đến 50 ký tự (AC1)');
+      setGroupError('Tên nhóm phải từ 3 đến 50 ký tự');
       return;
     }
 
@@ -154,7 +154,7 @@ export default function Groups({ user }: GroupsProps) {
           group: updated
         });
       }
-      setSuccessMessage('Đã tạo liên kết mời mới hiệu lực 7 ngày (AC2)');
+      setSuccessMessage('Đã tạo liên kết mời mới hiệu lực 7 ngày');
     } catch (err: any) {
       setGroupError('Lỗi khi làm mới mã mời.');
     }
@@ -170,7 +170,7 @@ export default function Groups({ user }: GroupsProps) {
           group: updated
         });
       }
-      setSuccessMessage('Đã vô hiệu hóa thành công liên kết mời này (AC2)');
+      setSuccessMessage('Đã vô hiệu hóa thành công liên kết mời này');
     } catch (err: any) {
       setGroupError('Lỗi khi thu hồi liên kết mời.');
     }
@@ -210,7 +210,7 @@ export default function Groups({ user }: GroupsProps) {
     if (expSplitType === 'CUSTOM') {
       const customSplits: any[] = [];
       let sum = 0;
-      
+
       for (const m of activeGroupData!.members) {
         if (!m.userId) continue;
         const val = parseFloat(customShares[m.userId] || '0');
@@ -304,7 +304,7 @@ export default function Groups({ user }: GroupsProps) {
         toUserName: debt.toUserName,
         amount: debt.amount
       });
-      
+
       // Save an individual personal expense for the debtor in client DB (Firestore or localStorage)
       if (debt.fromUserId === user.id) {
         try {
@@ -331,9 +331,9 @@ export default function Groups({ user }: GroupsProps) {
         }
       }
 
-      setSuccessMessage(`Đã đánh dấu đã thanh toán thành công giữa ${debt.fromUserName} và ${debt.toUserName} (AC4)`);
+      setSuccessMessage(`Đã đánh dấu đã thanh toán thành công giữa ${debt.fromUserName} và ${debt.toUserName}`);
       loadActiveGroup(activeGroupId!);
-      
+
       if (debt.fromUserId === user.id) {
         setTimeout(() => {
           window.location.reload();
@@ -394,8 +394,8 @@ export default function Groups({ user }: GroupsProps) {
     const isExpired = expDate.getTime() < Date.now();
     return {
       isExpired,
-      text: isExpired 
-        ? 'Đã hết hạn' 
+      text: isExpired
+        ? 'Đã hết hạn'
         : `Còn hiệu lực đến ${expDate.toLocaleDateString('vi-VN')} ${expDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`
     };
   };
@@ -407,11 +407,11 @@ export default function Groups({ user }: GroupsProps) {
       initial="hidden"
       animate="visible"
     >
-      
+
       {/* Messages */}
       <AnimatePresence>
         {successMessage && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
@@ -425,7 +425,7 @@ export default function Groups({ user }: GroupsProps) {
         )}
 
         {groupError && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
@@ -465,11 +465,11 @@ export default function Groups({ user }: GroupsProps) {
       {!activeGroupId ? (
         <div className="space-y-6">
           <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-12 gap-6">
-            
+
             {/* Groups List */}
             <div className="md:col-span-8 space-y-4">
               <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Danh sách nhóm của bạn</h3>
-              
+
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-slate-100 shadow-sm space-y-2">
                   <RefreshCw className="h-8 w-8 text-emerald-500 animate-spin" />
@@ -486,7 +486,7 @@ export default function Groups({ user }: GroupsProps) {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {groups.map(g => (
-                    <motion.div 
+                    <motion.div
                       whileHover={{ y: -4, boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}
                       onClick={() => setActiveGroupId(g.id)}
                       key={g.id}
@@ -500,7 +500,7 @@ export default function Groups({ user }: GroupsProps) {
                         <h4 className="font-bold text-slate-800 truncate text-base">{g.name}</h4>
                         <span className="text-[10px] text-slate-400 block font-mono">Ngày tạo: {g.createdAt}</span>
                       </div>
-                      
+
                       <div className="flex items-center justify-between pt-4 mt-4 border-t border-slate-50 text-xs text-slate-600 font-bold">
                         <span>Bấm để quản lý nhóm</span>
                         <ChevronRight className="h-4 w-4 text-emerald-500" />
@@ -539,7 +539,7 @@ export default function Groups({ user }: GroupsProps) {
 
               {/* Create Group Box (Direct Entry) */}
               {isCreating && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   className="rounded-3xl border border-emerald-100 bg-emerald-50/20 p-5 shadow-sm space-y-3"
@@ -579,7 +579,7 @@ export default function Groups({ user }: GroupsProps) {
       ) : (
         /* Detailed Selected Group Dashboard */
         <div className="space-y-6">
-          
+
           {/* Detailed View Header */}
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white/60 backdrop-blur-md p-5 rounded-3xl border border-slate-200/50 shadow-xs">
             <div className="flex items-center gap-3">
@@ -596,7 +596,7 @@ export default function Groups({ user }: GroupsProps) {
                 </h2>
               </div>
             </div>
-            
+
             <div className="flex gap-2">
               <button
                 onClick={() => setIsAddExpenseOpen(true)}
@@ -610,7 +610,7 @@ export default function Groups({ user }: GroupsProps) {
                 className="rounded-xl border border-slate-200 hover:bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-600 flex items-center gap-1.5 cursor-pointer"
                 id="export-group-csv-btn"
               >
-                <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> Xuất CSV (AC5)
+                <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> Xuất CSV
               </button>
             </div>
           </motion.div>
@@ -622,10 +622,10 @@ export default function Groups({ user }: GroupsProps) {
             </div>
           ) : (
             <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              
+
               {/* Left Column: Invite codes, debts board, members lists */}
               <div className="lg:col-span-8 space-y-6">
-                
+
                 {/* Invite link panel (AC2) */}
                 <motion.div variants={itemVariants} className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
                   <div>
@@ -641,7 +641,7 @@ export default function Groups({ user }: GroupsProps) {
                         `${window.location.origin}/?invite=${activeGroupData.group.inviteCode}`
                       )}
                     </div>
-                    
+
                     <div className="flex gap-2">
                       {!activeGroupData.group.inviteRevoked && (
                         <button
@@ -652,7 +652,7 @@ export default function Groups({ user }: GroupsProps) {
                           {copiedInvite ? 'Đã sao chép' : 'Sao chép link'}
                         </button>
                       )}
-                      
+
                       {!activeGroupData.group.inviteRevoked ? (
                         <button
                           onClick={handleRevokeInvite}
@@ -670,7 +670,7 @@ export default function Groups({ user }: GroupsProps) {
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="text-[10px] text-slate-500 font-bold font-mono">
                     Trạng thái: <span className={getInviteStatusInfo().isExpired ? 'text-red-500' : 'text-emerald-600'}>{getInviteStatusInfo().text}</span>
                   </div>
@@ -695,15 +695,14 @@ export default function Groups({ user }: GroupsProps) {
                         const isMeCreditor = debt.toUserId === user.id;
 
                         return (
-                          <div 
+                          <div
                             key={idx}
-                            className={`rounded-2xl p-4 border flex flex-col justify-between space-y-3 ${
-                              isMeDebtor 
-                                ? 'bg-amber-50/50 border-amber-200' 
-                                : isMeCreditor 
+                            className={`rounded-2xl p-4 border flex flex-col justify-between space-y-3 ${isMeDebtor
+                              ? 'bg-amber-50/50 border-amber-200'
+                              : isMeCreditor
                                 ? 'bg-emerald-50/50 border-emerald-200'
                                 : 'bg-slate-50 border-slate-200'
-                            }`}
+                              }`}
                           >
                             <div className="text-xs leading-relaxed">
                               <span className="font-bold text-slate-800">{debt.fromUserName}</span>
@@ -713,13 +712,13 @@ export default function Groups({ user }: GroupsProps) {
                                 {new Intl.NumberFormat('vi-VN').format(debt.amount)}đ
                               </div>
                             </div>
-                            
+
                             {isMeCreditor ? (
                               <span
                                 className="w-full rounded-xl bg-emerald-100/80 border border-emerald-200 font-bold py-1.5 text-[11px] text-emerald-700 flex items-center justify-center gap-1 cursor-default select-none"
                                 id={`settle-status-${debt.fromUserId}-${debt.toUserId}`}
                               >
-                                <RefreshCw className="h-3.5 w-3.5 animate-spin" style={{ animationDuration: '3s' }} /> đang trả
+                                <RefreshCw className="h-3.5 w-3.5 animate-spin" style={{ animationDuration: '3s' }} /> Đang trả
                               </span>
                             ) : (
                               <button
@@ -727,7 +726,7 @@ export default function Groups({ user }: GroupsProps) {
                                 className="w-full rounded-xl bg-white border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 font-bold py-1.5 text-[11px] text-slate-700 hover:text-emerald-700 transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-1"
                                 id={`settle-btn-${debt.fromUserId}-${debt.toUserId}`}
                               >
-                                <Check className="h-3.5 w-3.5" /> Đánh dấu đã thanh toán (AC4)
+                                <Check className="h-3.5 w-3.5" /> Đánh dấu đã thanh toán
                               </button>
                             )}
                           </div>
@@ -740,7 +739,7 @@ export default function Groups({ user }: GroupsProps) {
                 {/* History transactions log */}
                 <motion.div variants={itemVariants} className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
                   <h3 className="text-sm font-bold text-slate-800">Lịch sử chi tiêu nhóm</h3>
-                  
+
                   {activeGroupData.expenses.length === 0 ? (
                     <div className="py-12 text-center text-slate-400 text-xs">
                       Chưa ghi nhận khoản chi dùng nhóm nào. Hãy thêm khoản chi tiêu đầu tiên nhé!
@@ -810,7 +809,7 @@ export default function Groups({ user }: GroupsProps) {
 
               {/* Right Column: Members lists */}
               <div className="lg:col-span-4 space-y-6">
-                
+
                 {/* Members list (AC1 limit warning) */}
                 <motion.div variants={itemVariants} className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
                   <div className="flex justify-between items-center pb-2 border-b border-slate-50">
@@ -847,7 +846,7 @@ export default function Groups({ user }: GroupsProps) {
       {isAddExpenseOpen && activeGroupData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsAddExpenseOpen(false)} />
-          <motion.div 
+          <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             className="relative z-50 w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 overflow-hidden max-h-[90vh] flex flex-col"
@@ -932,7 +931,7 @@ export default function Groups({ user }: GroupsProps) {
                   onChange={(e) => setExpSplitType(e.target.value as any)}
                   className="w-full rounded-2xl border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 bg-white focus:outline-none focus:border-emerald-500"
                 >
-                  <option value="EQUAL">Chia đều tự động (Round 1000 VND - AC3)</option>
+                  <option value="EQUAL">Chia đều tự động (Làm tròn 1000đ)</option>
                   <option value="CUSTOM">Nhập số tiền tự chọn theo người (CUSTOM)</option>
                 </select>
               </div>
