@@ -282,6 +282,7 @@ export default function BudgetSettings({
                     {cat.id === 'transport' && '🏍️'}
                     {cat.id === 'entertainment' && '🥤'}
                     {cat.id === 'shopping' && '🛍️'}
+                    {cat.id === 'group_fund' && '👥'}
                     {cat.id === 'other' && '🔄'}
                   </div>
                   <div className="min-w-0 flex-1">

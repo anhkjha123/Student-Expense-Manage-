@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from './auth';
 import { dbInstance } from './db';
-import { Group, GroupMember, GroupExpense, GroupExpenseSplit, GroupSettlement } from '../types';
+import { Group, GroupMember, GroupExpense, GroupExpenseSplit, GroupSettlement, Notification } from '../types';
 
 // Equal splitting with rounding to 1000 VND (AC3)
 export function calculateEqualSplits(amount: number, members: { userId: string, email: string }[]): GroupExpenseSplit[] {
@@ -388,6 +388,25 @@ export const groupsController = {
       };
 
       dbInstance.saveGroupExpense(newExpense);
+
+      const groups = dbInstance.getGroups();
+      const group = groups.find(g => g.id === id);
+      const groupName = group?.name || 'nhóm chi tiêu';
+
+      splits.forEach(split => {
+        if (split.userId && split.userId !== userId) {
+          const debtNotif: Notification = {
+            id: `notif_sys_${Date.now()}_${split.userId}_${Math.random().toString(36).substr(2, 4)}`,
+            userId: split.userId,
+            type: 'info',
+            title: 'Phát sinh công nợ nhóm',
+            message: `Bạn có khoản nợ ${new Intl.NumberFormat('vi-VN').format(split.amount)}đ trong nhóm "${groupName}" từ hóa đơn "${description.trim()}".`,
+            date: new Date().toISOString().replace('T', ' ').substring(0, 19),
+            read: false
+          };
+          dbInstance.saveNotification(debtNotif);
+        }
+      });
 
       res.status(201).json(newExpense);
     } catch (e: any) {

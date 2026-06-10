@@ -55,7 +55,7 @@ export default function Groups({ user }: GroupsProps) {
   const [expDate, setExpDate] = useState(new Date().toISOString().substring(0, 10));
   const [expSplitType, setExpSplitType] = useState<'EQUAL' | 'CUSTOM'>('EQUAL');
   const [customShares, setCustomShares] = useState<Record<string, string>>({}); // userId -> amount string
-  const [expCategory, setExpCategory] = useState('other');
+  const [expCategory, setExpCategory] = useState('group_fund');
   const [expError, setExpError] = useState<string | null>(null);
 
   // Load user groups
@@ -239,7 +239,7 @@ export default function Groups({ user }: GroupsProps) {
       setIsAddExpenseOpen(false);
       setExpDescription('');
       setExpAmount('');
-      setExpCategory('other');
+      setExpCategory('group_fund');
       loadActiveGroup(activeGroupId!);
     } catch (err: any) {
       setExpError(err.message || 'Lỗi thêm khoản chi tiêu nhóm');
@@ -324,6 +324,23 @@ export default function Groups({ user }: GroupsProps) {
     }
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { type: 'spring', stiffness: 300, damping: 24 }
+    }
+  };
+
   const getInviteStatusInfo = () => {
     if (!activeGroupData) return { isExpired: true, text: 'Chưa có liên kết' };
     const { inviteExpiresAt, inviteRevoked } = activeGroupData.group;
@@ -339,7 +356,12 @@ export default function Groups({ user }: GroupsProps) {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+    <motion.div
+      className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       
       {/* Messages */}
       <AnimatePresence>
@@ -381,7 +403,7 @@ export default function Groups({ user }: GroupsProps) {
       {!activeGroupId ? (
         <div className="space-y-6">
           {/* Header Banner */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-3xl p-6 text-white shadow-xl shadow-emerald-100">
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-3xl p-6 text-white shadow-xl shadow-emerald-100">
             <div className="space-y-1">
               <span className="inline-block rounded-full bg-white/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider font-mono border border-white/30">
                 Tính năng Sprint 5
@@ -399,9 +421,9 @@ export default function Groups({ user }: GroupsProps) {
             >
               + Tạo nhóm chi tiêu mới
             </button>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+          <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-12 gap-6">
             
             {/* Groups List */}
             <div className="md:col-span-8 space-y-4">
@@ -512,14 +534,14 @@ export default function Groups({ user }: GroupsProps) {
               )}
 
             </div>
-          </div>
+          </motion.div>
         </div>
       ) : (
         /* Detailed Selected Group Dashboard */
         <div className="space-y-6">
           
           {/* Detailed View Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white/60 backdrop-blur-md p-5 rounded-3xl border border-slate-200/50 shadow-xs animate-fade-in">
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white/60 backdrop-blur-md p-5 rounded-3xl border border-slate-200/50 shadow-xs">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setActiveGroupId(null)}
@@ -551,7 +573,7 @@ export default function Groups({ user }: GroupsProps) {
                 <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> Xuất CSV (AC5)
               </button>
             </div>
-          </div>
+          </motion.div>
 
           {!activeGroupData ? (
             <div className="flex flex-col items-center justify-center py-24 bg-white rounded-3xl border border-slate-100 shadow-sm space-y-2 animate-pulse">
@@ -559,13 +581,13 @@ export default function Groups({ user }: GroupsProps) {
               <span className="text-xs font-bold text-slate-400">Đang đồng bộ dữ liệu nhóm...</span>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               
               {/* Left Column: Invite codes, debts board, members lists */}
               <div className="lg:col-span-8 space-y-6">
                 
                 {/* Invite link panel (AC2) */}
-                <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
+                <motion.div variants={itemVariants} className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
                   <div>
                     <h3 className="text-sm font-bold text-slate-800">Mời bạn cùng phòng tham gia</h3>
                     <p className="text-[11px] text-slate-400 mt-0.5">Liên kết mời tự động vô hiệu hóa sau 7 ngày hoặc có thể thu hồi bất cứ lúc nào.</p>
@@ -612,10 +634,10 @@ export default function Groups({ user }: GroupsProps) {
                   <div className="text-[10px] text-slate-500 font-bold font-mono">
                     Trạng thái: <span className={getInviteStatusInfo().isExpired ? 'text-red-500' : 'text-emerald-600'}>{getInviteStatusInfo().text}</span>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* AI Settlement board ("Ai nợ ai bao nhiêu" - AC4) */}
-                <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
+                <motion.div variants={itemVariants} className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
                   <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
                     <UserCheck className="h-4.5 w-4.5 text-emerald-500 animate-pulse" /> Bảng tính công nợ hiện tại
                   </h3>
@@ -652,22 +674,31 @@ export default function Groups({ user }: GroupsProps) {
                               </div>
                             </div>
                             
-                            <button
-                              onClick={() => handleSettleDebt(debt)}
-                              className="w-full rounded-xl bg-white border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 font-bold py-1.5 text-[11px] text-slate-700 hover:text-emerald-700 transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-1"
-                              id={`settle-btn-${debt.fromUserId}-${debt.toUserId}`}
-                            >
-                              <Check className="h-3.5 w-3.5" /> Đánh dấu đã thanh toán (AC4)
-                            </button>
+                            {isMeCreditor ? (
+                              <span
+                                className="w-full rounded-xl bg-emerald-100/80 border border-emerald-200 font-bold py-1.5 text-[11px] text-emerald-700 flex items-center justify-center gap-1 cursor-default select-none"
+                                id={`settle-status-${debt.fromUserId}-${debt.toUserId}`}
+                              >
+                                <RefreshCw className="h-3.5 w-3.5 animate-spin" style={{ animationDuration: '3s' }} /> đang trả
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleSettleDebt(debt)}
+                                className="w-full rounded-xl bg-white border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 font-bold py-1.5 text-[11px] text-slate-700 hover:text-emerald-700 transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-1"
+                                id={`settle-btn-${debt.fromUserId}-${debt.toUserId}`}
+                              >
+                                <Check className="h-3.5 w-3.5" /> Đánh dấu đã thanh toán (AC4)
+                              </button>
+                            )}
                           </div>
                         );
                       })}
                     </div>
                   )}
-                </div>
+                </motion.div>
 
                 {/* History transactions log */}
-                <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
+                <motion.div variants={itemVariants} className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
                   <h3 className="text-sm font-bold text-slate-800">Lịch sử chi tiêu nhóm</h3>
                   
                   {activeGroupData.expenses.length === 0 ? (
@@ -733,7 +764,7 @@ export default function Groups({ user }: GroupsProps) {
                       </table>
                     </div>
                   )}
-                </div>
+                </motion.div>
 
               </div>
 
@@ -741,7 +772,7 @@ export default function Groups({ user }: GroupsProps) {
               <div className="lg:col-span-4 space-y-6">
                 
                 {/* Members list (AC1 limit warning) */}
-                <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
+                <motion.div variants={itemVariants} className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
                   <div className="flex justify-between items-center pb-2 border-b border-slate-50">
                     <h3 className="text-sm font-bold text-slate-800">Thành viên ({activeGroupData.members.length})</h3>
                     {activeGroupData.members.length >= 20 && (
@@ -762,11 +793,11 @@ export default function Groups({ user }: GroupsProps) {
                       </div>
                     ))}
                   </div>
-                </div>
+                </motion.div>
 
               </div>
 
-            </div>
+            </motion.div>
           )}
 
         </div>
@@ -833,21 +864,12 @@ export default function Groups({ user }: GroupsProps) {
                 />
               </div>
 
-              {/* Category */}
+              {/* Category — group expenses always use group_fund */}
               <div className="space-y-1">
-                <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">Danh mục khoản chi <span className="text-red-500">*</span></label>
-                <select
-                  value={expCategory}
-                  onChange={(e) => setExpCategory(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 bg-white focus:outline-none focus:border-emerald-500"
-                  required
-                >
-                  {DEFAULT_CATEGORIES.map(cat => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
+                <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">Danh mục khoản chi</label>
+                <div className="w-full rounded-2xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-emerald-700 flex items-center gap-1.5">
+                  <span>👥</span> Quỹ nhóm
+                </div>
               </div>
 
               {/* Date */}
@@ -929,6 +951,6 @@ export default function Groups({ user }: GroupsProps) {
         </div>
       )}
 
-    </div>
+    </motion.div>
   );
 }

@@ -1932,6 +1932,23 @@ var groupsController = {
         categoryId: categoryId || "other"
       };
       dbInstance.saveGroupExpense(newExpense);
+      const groups = dbInstance.getGroups();
+      const group = groups.find((g) => g.id === id);
+      const groupName = group?.name || "nh\xF3m chi ti\xEAu";
+      splits.forEach((split) => {
+        if (split.userId && split.userId !== userId) {
+          const debtNotif = {
+            id: `notif_sys_${Date.now()}_${split.userId}_${Math.random().toString(36).substr(2, 4)}`,
+            userId: split.userId,
+            type: "info",
+            title: "Ph\xE1t sinh c\xF4ng n\u1EE3 nh\xF3m",
+            message: `B\u1EA1n c\xF3 kho\u1EA3n n\u1EE3 ${new Intl.NumberFormat("vi-VN").format(split.amount)}\u0111 trong nh\xF3m "${groupName}" t\u1EEB h\xF3a \u0111\u01A1n "${description.trim()}".`,
+            date: (/* @__PURE__ */ new Date()).toISOString().replace("T", " ").substring(0, 19),
+            read: false
+          };
+          dbInstance.saveNotification(debtNotif);
+        }
+      });
       res.status(201).json(newExpense);
     } catch (e) {
       res.status(500).json({ error: e.message });

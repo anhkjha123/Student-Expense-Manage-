@@ -66,8 +66,9 @@ export default function AddExpenseModal({
         setHighlightedFields({});
       } else {
         setAmount('');
-        if (categories.length > 0) {
-          setCategoryId(categories[0].id);
+        const selectableCategories = categories.filter(c => c.id !== 'group_fund');
+        if (selectableCategories.length > 0) {
+          setCategoryId(selectableCategories[0].id);
         }
         setTitle('');
         setDate(new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
@@ -426,7 +427,7 @@ export default function AddExpenseModal({
                 id="expense-category-input"
                 required
               >
-                {categories.map((cat) => (
+                {categories.filter(cat => cat.id !== 'group_fund').map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.name}
                   </option>

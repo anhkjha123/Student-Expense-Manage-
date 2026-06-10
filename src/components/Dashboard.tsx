@@ -722,6 +722,7 @@ export default function Dashboard({
                         {cat.id === 'transport' && '🏍️'}
                         {cat.id === 'entertainment' && '🥤'}
                         {cat.id === 'shopping' && '🛍️'}
+                        {cat.id === 'group_fund' && '👥'}
                         {cat.id === 'other' && '🔄'}
                       </span>
                       {cat.name}
@@ -795,6 +796,7 @@ export default function Dashboard({
                           {exp.categoryId === 'transport' && '🏍️'}
                           {exp.categoryId === 'entertainment' && '🥤'}
                           {exp.categoryId === 'shopping' && '🛍️'}
+                          {exp.categoryId === 'group_fund' && '👥'}
                           {exp.categoryId === 'other' && '🔄'}
                         </div>
                         <div>
