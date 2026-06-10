@@ -85,4 +85,36 @@ app.post('/api/groups/:id/expenses', authMiddleware as any, groupsController.add
 app.post('/api/groups/:id/settle', authMiddleware as any, groupsController.settleDebt);
 app.get('/api/groups/:id/export', authMiddleware as any, groupsController.exportCSV);
 
+// Notifications synchronization (SH-01)
+app.get('/api/notifications', authMiddleware as any, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Ngoại lệ phiên đăng nhập' });
+    const allNotifs = dbInstance.getNotifications();
+    const userNotifs = allNotifs.filter(n => n.userId === userId);
+    res.json(userNotifs);
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/notifications/mark-read', authMiddleware as any, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Ngoại lệ phiên đăng nhập' });
+    
+    const allNotifs = dbInstance.getNotifications();
+    const updatedNotifs = allNotifs.map(n => {
+      if (n.userId === userId) {
+        return { ...n, read: true };
+      }
+      return n;
+    });
+    dbInstance.saveAllNotifications(updatedNotifs);
+    res.json({ success: true });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 export default app;

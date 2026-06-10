@@ -543,4 +543,27 @@ export class ApiService {
     }
     return response.blob();
   }
+
+  public static async getBackendNotifications(): Promise<Notification[]> {
+    const headers = await this.buildAuthHeaders();
+    try {
+      return await this.safeFetchJson('/api/notifications', { headers });
+    } catch (err) {
+      console.warn('Failed to fetch backend notifications:', err);
+      return [];
+    }
+  }
+
+  public static async markBackendNotificationsRead(): Promise<void> {
+    const headers = await this.buildAuthHeaders();
+    try {
+      await this.safeFetchJson('/api/notifications/mark-read', {
+        method: 'POST',
+        headers
+      });
+    } catch (err) {
+      console.warn('Failed to mark backend notifications as read:', err);
+    }
+  }
 }
+

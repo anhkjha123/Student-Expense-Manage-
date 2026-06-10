@@ -5,6 +5,15 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
 
 ---
 
+### [v5.2.0] - 2026-06-10
+#### 🌟 Cải tiến & Đồng bộ hóa Quỹ nhóm (Group Fund Refinements)
+*   **Đồng bộ Hiệu ứng tab Quỹ nhóm:** Thêm hiệu ứng Framer Motion `motion.div` cho trang Quỹ nhóm đồng bộ với Dashboard/Reports.
+*   **Sửa lỗi tự trừ tiền & lịch sử chi tiêu của người tạo khoản chi:** Sau khi tạo khoản chi nhóm thành công, hệ thống tự động ghi nhận phần tiền chia sẻ (split share) của người tạo vào lịch sử chi tiêu cá nhân để cập nhật số dư ví và hạn mức (hỗ trợ cả online Firestore và guest LocalStorage). Điều chỉnh backend để tránh nhân bản nợ.
+*   **Hiển thị Icon cho Quỹ nhóm:** Thêm icon đại diện `👥` cho danh mục `group_fund` ở Budget Settings, Reports và Dashboard.
+*   **Đóng băng nút Tất toán đối với Chủ nợ:** Chủ nợ (người tạo công nợ) sẽ hiển thị trạng thái "đang trả" không tương tác được thay vì nút "Đánh dấu đã thanh toán".
+*   **Thông báo công nợ & Đồng bộ hóa:** Tự động tạo và gửi thông báo công nợ từ server Express cho các con nợ liên quan khi có khoản chi mới. Bổ sung endpoint backend `/api/notifications` và logic hợp nhất (merge) đồng bộ thông báo trên client.
+*   **Ẩn Quỹ nhóm trong dropdown chọn danh mục:** Loại bỏ "Quỹ nhóm" khỏi ô chọn danh mục thủ công (Add Personal Expense) và cố định danh mục của hóa đơn nhóm luôn là "Quỹ nhóm".
+
 ### [v5.1.0] - 2026-06-10
 #### 🌟 Nâng cấp AI OCR, Xóa bỏ tính năng Tiết kiệm (Saving Goals) & Sửa lỗi Vercel 500
 *   **Khắc phục lỗi Vercel 500 (FUNCTION_INVOCATION_FAILED):**

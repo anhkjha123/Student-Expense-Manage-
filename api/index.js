@@ -597,7 +597,7 @@ var Database = class {
     this.write(schema);
   }
 };
-var dbInstance = new Database();
+var dbInstance2 = new Database();
 
 // src/server/auth.ts
 function base64Encode(str) {
@@ -674,7 +674,7 @@ var authController = {
       if (!email || !password || !name) {
         return res.status(400).json({ error: "Vui l\xF2ng cung c\u1EA5p \u0111\u1EA7y \u0111\u1EE7 email, m\u1EADt kh\u1EA9u v\xE0 h\u1ECD t\xEAn" });
       }
-      const users = dbInstance.getUsers();
+      const users = dbInstance2.getUsers();
       const exists = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
       if (exists) {
         return res.status(400).json({ error: "Email sinh vi\xEAn n\xE0y \u0111\xE3 \u0111\u01B0\u1EE3c \u0111\u0103ng k\xFD h\u1EC7 th\u1ED1ng" });
@@ -690,7 +690,7 @@ var authController = {
         passwordHash: `hash_${password}`
         // Băm mô phỏng súc tích bảo mật
       };
-      dbInstance.saveUser(newUser);
+      dbInstance2.saveUser(newUser);
       const token = generateToken({ id: newUser.id, email: newUser.email, name: newUser.name });
       const defaultBudgets = [
         { categoryId: "rent", amount: 0 },
@@ -701,7 +701,7 @@ var authController = {
         { categoryId: "shopping", amount: 0 },
         { categoryId: "other", amount: 0 }
       ];
-      dbInstance.saveBudgetsForUser(newUser.id, defaultBudgets);
+      dbInstance2.saveBudgetsForUser(newUser.id, defaultBudgets);
       res.status(201).json({
         message: "\u0110\u0103ng k\xFD t\xE0i kho\u1EA3n sinh vi\xEAn th\xE0nh c\xF4ng",
         token,
@@ -726,7 +726,7 @@ var authController = {
       if (!email || !password) {
         return res.status(400).json({ error: "Vui l\xF2ng cung c\u1EA5p \u0111\u1EA7y \u0111\u1EE7 email v\xE0 m\u1EADt kh\u1EA9u" });
       }
-      const users = dbInstance.getUsers();
+      const users = dbInstance2.getUsers();
       const user = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
       if (!user) {
         return res.status(404).json({ error: "Kh\xF4ng t\xECm th\u1EA5y t\xE0i kho\u1EA3n sinh vi\xEAn n\xE0y" });
@@ -762,7 +762,7 @@ var expensesController = {
     try {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ error: "Ngo\u1EA1i l\u1EC7 phi\xEAn \u0111\u0103ng nh\u1EADp" });
-      const allExpenses = dbInstance.getExpenses();
+      const allExpenses = dbInstance2.getExpenses();
       const userExpenses = allExpenses.filter((e) => e.userId === userId);
       res.json(userExpenses);
     } catch (e) {
@@ -789,12 +789,12 @@ var expensesController = {
         isNecessary: !!isNecessary,
         isRecurring: !!isRecurring
       };
-      dbInstance.saveExpense(newExpense);
-      const budgets = dbInstance.getBudgets().filter((b) => b.userId === userId);
+      dbInstance2.saveExpense(newExpense);
+      const budgets = dbInstance2.getBudgets().filter((b) => b.userId === userId);
       const catBudget = budgets.find((b) => b.categoryId === categoryId);
       if (catBudget && catBudget.amount > 0) {
         const yearMonth = date.substring(0, 7);
-        const catExpenses = dbInstance.getExpenses().filter(
+        const catExpenses = dbInstance2.getExpenses().filter(
           (e) => e.userId === userId && e.categoryId === categoryId && e.date.startsWith(yearMonth)
         );
         const totalSpent = catExpenses.reduce((s, item) => s + item.amount, 0);
@@ -809,7 +809,7 @@ var expensesController = {
             date: (/* @__PURE__ */ new Date()).toISOString().replace("T", " ").substring(0, 19),
             read: false
           };
-          dbInstance.saveNotification(alertNotif);
+          dbInstance2.saveNotification(alertNotif);
         } else if (percent >= 80) {
           const warnNotif = {
             id: `notif_sys_${Date.now()}_warning_80`,
@@ -820,7 +820,7 @@ var expensesController = {
             date: (/* @__PURE__ */ new Date()).toISOString().replace("T", " ").substring(0, 19),
             read: false
           };
-          dbInstance.saveNotification(warnNotif);
+          dbInstance2.saveNotification(warnNotif);
         }
       }
       res.status(201).json(newExpense);
@@ -835,7 +835,7 @@ var expensesController = {
       if (!userId) return res.status(401).json({ error: "Ngo\u1EA1i l\u1EC7 phi\xEAn \u0111\u0103ng nh\u1EADp" });
       const { id } = req.params;
       const { amount, categoryId, title, date, note, isNecessary, isRecurring } = req.body;
-      const allExpenses = dbInstance.getExpenses();
+      const allExpenses = dbInstance2.getExpenses();
       const existing = allExpenses.find((e) => e.id === id);
       if (!existing) {
         return res.status(404).json({ error: "Kh\xF4ng t\xECm th\u1EA5y kho\u1EA3n chi ti\xEAu c\u1EA7n c\u1EADp nh\u1EADt" });
@@ -853,7 +853,7 @@ var expensesController = {
         isNecessary: isNecessary !== void 0 ? !!isNecessary : existing.isNecessary,
         isRecurring: isRecurring !== void 0 ? !!isRecurring : existing.isRecurring
       };
-      dbInstance.saveExpense(updatedExpense);
+      dbInstance2.saveExpense(updatedExpense);
       res.json(updatedExpense);
     } catch (e) {
       res.status(500).json({ error: e.message });
@@ -865,7 +865,7 @@ var expensesController = {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ error: "Ngo\u1EA1i l\u1EC7 phi\xEAn \u0111\u0103ng nh\u1EADp" });
       const { id } = req.params;
-      const allExpenses = dbInstance.getExpenses();
+      const allExpenses = dbInstance2.getExpenses();
       const existing = allExpenses.find((e) => e.id === id);
       if (!existing) {
         return res.status(404).json({ error: "Kh\xF4ng t\xECm th\u1EA5y kho\u1EA3n chi \u0111\u1EC3 x\xF3a" });
@@ -873,7 +873,7 @@ var expensesController = {
       if (existing.userId !== userId) {
         return res.status(403).json({ error: "Kh\xF4ng c\xF3 quy\u1EC1n x\xF3a kho\u1EA3n chi ti\xEAu c\u1EE7a ng\u01B0\u1EDDi kh\xE1c" });
       }
-      dbInstance.deleteExpense(id);
+      dbInstance2.deleteExpense(id);
       res.json({ message: "\u0110\xE3 x\xF3a kho\u1EA3n chi ti\xEAu th\xE0nh c\xF4ng", id });
     } catch (e) {
       res.status(500).json({ error: e.message });
@@ -888,7 +888,7 @@ var budgetsController = {
     try {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ error: "Ngo\u1EA1i l\u1EC7 phi\xEAn \u0111\u0103ng nh\u1EADp" });
-      const allBudgets = dbInstance.getBudgets();
+      const allBudgets = dbInstance2.getBudgets();
       const userBudgets = allBudgets.filter((b) => b.userId === userId).map((b) => ({
         categoryId: b.categoryId,
         amount: b.amount
@@ -907,7 +907,7 @@ var budgetsController = {
       if (!Array.isArray(budgets)) {
         return res.status(400).json({ error: "\u0110\u1EA7u v\xE0o budgets ph\u1EA3i l\xE0 m\u1ED9t danh s\xE1ch h\u1EE3p l\u1EC7" });
       }
-      dbInstance.saveBudgetsForUser(userId, budgets);
+      dbInstance2.saveBudgetsForUser(userId, budgets);
       const newNotif = {
         id: `notif_sys_${Date.now()}_budget_upd`,
         userId,
@@ -917,7 +917,7 @@ var budgetsController = {
         date: (/* @__PURE__ */ new Date()).toISOString().replace("T", " ").substring(0, 19),
         read: false
       };
-      dbInstance.saveNotification(newNotif);
+      dbInstance2.saveNotification(newNotif);
       res.json({ message: "L\u01B0u ng\xE2n s\xE1ch h\u1EA1n m\u1EE9c th\xE0nh c\xF4ng", budgets });
     } catch (e) {
       res.status(500).json({ error: e.message });
@@ -934,7 +934,7 @@ var reportsController = {
       if (!userId) return res.status(401).json({ error: "Ngo\u1EA1i l\u1EC7 phi\xEAn \u0111\u0103ng nh\u1EADp" });
       const { month } = req.query;
       const targetMonth = month || (/* @__PURE__ */ new Date()).toISOString().substring(0, 7);
-      const allExpenses = dbInstance.getExpenses();
+      const allExpenses = dbInstance2.getExpenses();
       const userExpenses = allExpenses.filter((e) => e.userId === userId && e.date.startsWith(targetMonth));
       const aggregation = {};
       let totalSpent = 0;
@@ -966,7 +966,7 @@ var reportsController = {
     try {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ error: "Ngo\u1EA1i l\u1EC7 phi\xEAn \u0111\u0103ng nh\u1EADp" });
-      const allExpenses = dbInstance.getExpenses();
+      const allExpenses = dbInstance2.getExpenses();
       const userExpenses = allExpenses.filter((e) => e.userId === userId);
       const weeks = {
         "Tu\u1EA7n 1": 0,
@@ -997,7 +997,7 @@ var reportsController = {
     try {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ error: "Ngo\u1EA1i l\u1EC7 phi\xEAn \u0111\u0103ng nh\u1EADp" });
-      const allExpenses = dbInstance.getExpenses();
+      const allExpenses = dbInstance2.getExpenses();
       const userExpenses = allExpenses.filter((e) => e.userId === userId);
       const stats = {};
       userExpenses.forEach((exp) => {
@@ -1017,7 +1017,7 @@ var reportsController = {
     try {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ error: "Ngo\u1EA1i l\u1EC7 phi\xEAn \u0111\u0103ng nh\u1EADp" });
-      const allExpenses = dbInstance.getExpenses();
+      const allExpenses = dbInstance2.getExpenses();
       const userExpenses = allExpenses.filter((e) => e.userId === userId);
       const totals = {};
       userExpenses.forEach((exp) => {
@@ -1044,11 +1044,11 @@ var reportsController = {
     try {
       const userId = req.user?.id;
       if (!userId) return res.status(401).send("Vui l\xF2ng \u0111\u0103ng nh\u1EADp");
-      const user = dbInstance.getUsers().find((u) => u.id === userId);
+      const user = dbInstance2.getUsers().find((u) => u.id === userId);
       if (!user) return res.status(404).send("Kh\xF4ng t\xECm th\u1EA5y user");
       const { month } = req.query;
       const targetMonth = month || (/* @__PURE__ */ new Date()).toISOString().substring(0, 7);
-      const expenses = dbInstance.getExpenses().filter((e) => e.userId === userId && e.date.startsWith(targetMonth) && !e.isRecurring);
+      const expenses = dbInstance2.getExpenses().filter((e) => e.userId === userId && e.date.startsWith(targetMonth) && !e.isRecurring);
       const totalSpent = expenses.reduce((sum, item) => sum + item.amount, 0);
       const html = `
         <!DOCTYPE html>
@@ -1134,11 +1134,11 @@ var reportsController = {
     try {
       const userId = req.user?.id;
       if (!userId) return res.status(401).send("Vui l\xF2ng \u0111\u0103ng nh\u1EADp");
-      const user = dbInstance.getUsers().find((u) => u.id === userId);
+      const user = dbInstance2.getUsers().find((u) => u.id === userId);
       if (!user) return res.status(404).send("Kh\xF4ng t\xECm th\u1EA5y user");
       const { month } = req.query;
       const targetMonth = month || (/* @__PURE__ */ new Date()).toISOString().substring(0, 7);
-      const expenses = dbInstance.getExpenses().filter((e) => e.userId === userId && e.date.startsWith(targetMonth) && !e.isRecurring);
+      const expenses = dbInstance2.getExpenses().filter((e) => e.userId === userId && e.date.startsWith(targetMonth) && !e.isRecurring);
       let csvContent = "\uFEFF";
       csvContent += "M\xE3 kho\u1EA3n chi,L\u1ECBch ng\xE0y,Chi ti\u1EBFt ti\xEAu d\xF9ng,M\u1EE5c \u0111\xEDch danh m\u1EE5c,Nh\xF3m ph\xE2n lo\u1EA1i,S\u1ED1 ti\u1EC1n chi (VND),Ghi ch\xFA th\xEAm\n";
       expenses.forEach((e) => {
@@ -1163,7 +1163,7 @@ var incomesController = {
     const userId = req.user?.id || "user_01";
     const month = req.query.month;
     const source = req.query.source;
-    let incomes = dbInstance.getIncomes().filter((i) => i.userId === userId);
+    let incomes = dbInstance2.getIncomes().filter((i) => i.userId === userId);
     if (month) {
       incomes = incomes.filter((i) => i.date.startsWith(month));
     }
@@ -1179,24 +1179,24 @@ var incomesController = {
       id: `inc_${Date.now()}`,
       userId
     };
-    dbInstance.saveIncome(newIncome);
+    dbInstance2.saveIncome(newIncome);
     res.status(201).json(newIncome);
   },
   updateIncome: (req, res) => {
     const userId = req.user?.id || "user_01";
     const { id } = req.params;
-    const incomes = dbInstance.getIncomes().filter((i) => i.userId === userId);
+    const incomes = dbInstance2.getIncomes().filter((i) => i.userId === userId);
     const existing = incomes.find((i) => i.id === id);
     if (!existing) {
       return res.status(404).json({ error: "Income not found" });
     }
     const updated = { ...existing, ...req.body };
-    dbInstance.saveIncome(updated);
+    dbInstance2.saveIncome(updated);
     res.json(updated);
   },
   deleteIncome: (req, res) => {
     const { id } = req.params;
-    const success = dbInstance.deleteIncome(id);
+    const success = dbInstance2.deleteIncome(id);
     if (success) {
       res.json({ message: "Deleted successfully" });
     } else {
@@ -1210,8 +1210,8 @@ var walletController = {
   getBalance: (req, res) => {
     const userId = req.user?.id || "user_01";
     const month = req.query.month;
-    let incomes = dbInstance.getIncomes().filter((i) => i.userId === userId);
-    let expenses = dbInstance.getExpenses().filter((e) => e.userId === userId);
+    let incomes = dbInstance2.getIncomes().filter((i) => i.userId === userId);
+    let expenses = dbInstance2.getExpenses().filter((e) => e.userId === userId);
     if (month) {
       incomes = incomes.filter((i) => i.date.startsWith(month));
       expenses = expenses.filter((e) => e.date.startsWith(month));
@@ -1231,8 +1231,8 @@ var walletController = {
     if (!month) {
       return res.status(400).json({ error: "Month parameter is required (YYYY-MM)" });
     }
-    const incomes = dbInstance.getIncomes().filter((i) => i.userId === userId && i.date.startsWith(month));
-    const expenses = dbInstance.getExpenses().filter((e) => e.userId === userId && e.date.startsWith(month));
+    const incomes = dbInstance2.getIncomes().filter((i) => i.userId === userId && i.date.startsWith(month));
+    const expenses = dbInstance2.getExpenses().filter((e) => e.userId === userId && e.date.startsWith(month));
     const flowMap = {};
     const [yearStr, monthStr] = month.split("-");
     const daysInMonth = new Date(parseInt(yearStr), parseInt(monthStr), 0).getDate();
@@ -1268,7 +1268,7 @@ var insightsController = {
       lastYear -= 1;
     }
     const lastMonthStr = `${lastYear}-${lastMonth.toString().padStart(2, "0")}`;
-    const expenses = dbInstance.getExpenses().filter((e) => e.userId === userId);
+    const expenses = dbInstance2.getExpenses().filter((e) => e.userId === userId);
     const currentMonthExpenses = expenses.filter((e) => e.date.startsWith(currentMonthStr));
     const lastMonthExpenses = expenses.filter((e) => e.date.startsWith(lastMonthStr));
     const insights = [];
@@ -1329,7 +1329,7 @@ var insightsController = {
 var recurringExpensesController = {
   getRecurringExpenses: (req, res) => {
     const userId = req.user?.id || "user_01";
-    const recs = dbInstance.getRecurringExpenses().filter((r) => r.userId === userId);
+    const recs = dbInstance2.getRecurringExpenses().filter((r) => r.userId === userId);
     res.json(recs);
   },
   createRecurringExpense: (req, res) => {
@@ -1339,24 +1339,24 @@ var recurringExpensesController = {
       id: `rec_${Date.now()}`,
       userId
     };
-    dbInstance.saveRecurringExpense(newRec);
+    dbInstance2.saveRecurringExpense(newRec);
     res.status(201).json(newRec);
   },
   updateRecurringExpense: (req, res) => {
     const userId = req.user?.id || "user_01";
     const { id } = req.params;
-    const recs = dbInstance.getRecurringExpenses().filter((r) => r.userId === userId);
+    const recs = dbInstance2.getRecurringExpenses().filter((r) => r.userId === userId);
     const existing = recs.find((r) => r.id === id);
     if (!existing) {
       return res.status(404).json({ error: "Recurring expense not found" });
     }
     const updated = { ...existing, ...req.body };
-    dbInstance.saveRecurringExpense(updated);
+    dbInstance2.saveRecurringExpense(updated);
     res.json(updated);
   },
   deleteRecurringExpense: (req, res) => {
     const { id } = req.params;
-    const success = dbInstance.deleteRecurringExpense(id);
+    const success = dbInstance2.deleteRecurringExpense(id);
     if (success) {
       res.json({ message: "Deleted successfully" });
     } else {
@@ -1756,7 +1756,7 @@ var groupsController = {
         inviteCode,
         inviteExpiresAt: inviteExpiresAt.toISOString()
       };
-      dbInstance.saveGroup(newGroup);
+      dbInstance2.saveGroup(newGroup);
       const creatorMember = {
         id: `member_${groupId}_${userId}`,
         groupId,
@@ -1765,7 +1765,7 @@ var groupsController = {
         name: req.user?.name || "Ng\u01B0\u1EDDi d\xF9ng",
         joinedAt: (/* @__PURE__ */ new Date()).toISOString().substring(0, 10)
       };
-      dbInstance.saveGroupMember(creatorMember);
+      dbInstance2.saveGroupMember(creatorMember);
       res.status(201).json({ group: newGroup, members: [creatorMember] });
     } catch (e) {
       res.status(500).json({ error: e.message });
@@ -1775,8 +1775,8 @@ var groupsController = {
     try {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ error: "Ngo\u1EA1i l\u1EC7 phi\xEAn \u0111\u0103ng nh\u1EADp" });
-      const allGroups = dbInstance.getGroups();
-      const allMembers = dbInstance.getGroupMembers();
+      const allGroups = dbInstance2.getGroups();
+      const allMembers = dbInstance2.getGroupMembers();
       const userGroupIds = allMembers.filter((m) => m.userId === userId).map((m) => m.groupId);
       const userGroups = allGroups.filter((g) => userGroupIds.includes(g.id));
       res.json(userGroups);
@@ -1789,18 +1789,18 @@ var groupsController = {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ error: "Ngo\u1EA1i l\u1EC7 phi\xEAn \u0111\u0103ng nh\u1EADp" });
       const { id } = req.params;
-      const groups = dbInstance.getGroups();
+      const groups = dbInstance2.getGroups();
       const group = groups.find((g) => g.id === id);
       if (!group) {
         return res.status(404).json({ error: "Kh\xF4ng t\xECm th\u1EA5y nh\xF3m chi ti\xEAu" });
       }
-      const allMembers = dbInstance.getGroupMembers();
+      const allMembers = dbInstance2.getGroupMembers();
       const groupMembers = allMembers.filter((m) => m.groupId === id);
       const isMember = groupMembers.some((m) => m.userId === userId);
       if (!isMember) {
         return res.status(403).json({ error: "B\u1EA1n kh\xF4ng ph\u1EA3i l\xE0 th\xE0nh vi\xEAn nh\xF3m n\xE0y" });
       }
-      const allExpenses = dbInstance.getGroupExpenses();
+      const allExpenses = dbInstance2.getGroupExpenses();
       const groupExpenses = allExpenses.filter((e) => e.groupId === id);
       const debts = calculateDebts(id, groupMembers, groupExpenses);
       res.json({
@@ -1818,7 +1818,7 @@ var groupsController = {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ error: "Ngo\u1EA1i l\u1EC7 phi\xEAn \u0111\u0103ng nh\u1EADp" });
       const { id } = req.params;
-      const groups = dbInstance.getGroups();
+      const groups = dbInstance2.getGroups();
       const group = groups.find((g) => g.id === id);
       if (!group) {
         return res.status(404).json({ error: "Kh\xF4ng t\xECm th\u1EA5y nh\xF3m chi ti\xEAu" });
@@ -1829,7 +1829,7 @@ var groupsController = {
       group.inviteCode = inviteCode;
       group.inviteExpiresAt = inviteExpiresAt.toISOString();
       group.inviteRevoked = false;
-      dbInstance.saveGroup(group);
+      dbInstance2.saveGroup(group);
       res.json(group);
     } catch (e) {
       res.status(500).json({ error: e.message });
@@ -1840,13 +1840,13 @@ var groupsController = {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ error: "Ngo\u1EA1i l\u1EC7 phi\xEAn \u0111\u0103ng nh\u1EADp" });
       const { id } = req.params;
-      const groups = dbInstance.getGroups();
+      const groups = dbInstance2.getGroups();
       const group = groups.find((g) => g.id === id);
       if (!group) {
         return res.status(404).json({ error: "Kh\xF4ng t\xECm th\u1EA5y nh\xF3m chi ti\xEAu" });
       }
       group.inviteRevoked = true;
-      dbInstance.saveGroup(group);
+      dbInstance2.saveGroup(group);
       res.json(group);
     } catch (e) {
       res.status(500).json({ error: e.message });
@@ -1857,7 +1857,7 @@ var groupsController = {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ error: "Ngo\u1EA1i l\u1EC7 phi\xEAn \u0111\u0103ng nh\u1EADp" });
       const { code } = req.params;
-      const groups = dbInstance.getGroups();
+      const groups = dbInstance2.getGroups();
       const group = groups.find((g) => g.inviteCode === code.toUpperCase());
       if (!group) {
         return res.status(404).json({ error: "M\xE3 m\u1EDDi nh\xF3m kh\xF4ng t\u1ED3n t\u1EA1i" });
@@ -1869,7 +1869,7 @@ var groupsController = {
       if (expiry.getTime() < Date.now()) {
         return res.status(400).json({ error: "Li\xEAn k\u1EBFt m\u1EDDi nh\xF3m \u0111\xE3 h\u1EBFt h\u1EA1n s\u1EED d\u1EE5ng" });
       }
-      const allMembers = dbInstance.getGroupMembers();
+      const allMembers = dbInstance2.getGroupMembers();
       const groupMembers = allMembers.filter((m) => m.groupId === group.id);
       if (groupMembers.length >= 20) {
         return res.status(400).json({ error: "Nh\xF3m chi ti\xEAu \u0111\xE3 \u0111\u1EA1t s\u1ED1 l\u01B0\u1EE3ng t\u1ED1i \u0111a 20 th\xE0nh vi\xEAn" });
@@ -1886,7 +1886,7 @@ var groupsController = {
         name: req.user?.name || "Ng\u01B0\u1EDDi d\xF9ng",
         joinedAt: (/* @__PURE__ */ new Date()).toISOString().substring(0, 10)
       };
-      dbInstance.saveGroupMember(newMember);
+      dbInstance2.saveGroupMember(newMember);
       res.json({ message: "Tham gia nh\xF3m th\xE0nh c\xF4ng", group });
     } catch (e) {
       res.status(500).json({ error: e.message });
@@ -1902,7 +1902,7 @@ var groupsController = {
       if (!description || !amount || amount <= 0 || !date || !splitType) {
         return res.status(400).json({ error: "Vui l\xF2ng cung c\u1EA5p \u0111\u1EA7y \u0111\u1EE7 th\xF4ng tin kho\u1EA3n chi nh\xF3m" });
       }
-      const allMembers = dbInstance.getGroupMembers();
+      const allMembers = dbInstance2.getGroupMembers();
       const groupMembers = allMembers.filter((m) => m.groupId === id);
       const isMember = groupMembers.some((m) => m.userId === userId);
       if (!isMember) {
@@ -1946,8 +1946,8 @@ var groupsController = {
         splits,
         categoryId: categoryId || "other"
       };
-      dbInstance.saveGroupExpense(newExpense);
-      const groups = dbInstance.getGroups();
+      dbInstance2.saveGroupExpense(newExpense);
+      const groups = dbInstance2.getGroups();
       const group = groups.find((g) => g.id === id);
       const groupName = group?.name || "nh\xF3m chi ti\xEAu";
       splits.forEach((split) => {
@@ -1963,7 +1963,7 @@ var groupsController = {
             isNecessary: true,
             note: `Nh\xF3m: ${groupName} | Ng\u01B0\u1EDDi tr\u1EA3 tr\u01B0\u1EDBc: ${req.user?.name || "Ng\u01B0\u1EDDi d\xF9ng"}`
           };
-          dbInstance.saveExpense(personalExpense);
+          dbInstance2.saveExpense(personalExpense);
         }
         if (split.userId !== userId) {
           const debtNotif = {
@@ -1975,7 +1975,7 @@ var groupsController = {
             date: (/* @__PURE__ */ new Date()).toISOString().replace("T", " ").substring(0, 19),
             read: false
           };
-          dbInstance.saveNotification(debtNotif);
+          dbInstance2.saveNotification(debtNotif);
         }
       });
       res.status(201).json(newExpense);
@@ -2009,7 +2009,7 @@ var groupsController = {
           }
         ]
       };
-      dbInstance.saveGroupExpense(settlementExpense);
+      dbInstance2.saveGroupExpense(settlementExpense);
       const personalExpense = {
         id: `exp_settle_${Date.now()}`,
         userId: fromUserId,
@@ -2020,7 +2020,7 @@ var groupsController = {
         isNecessary: true,
         note: `T\u1EA5t to\xE1n n\u1EE3 trong nh\xF3m`
       };
-      dbInstance.saveExpense(personalExpense);
+      dbInstance2.saveExpense(personalExpense);
       res.json(settlementExpense);
     } catch (e) {
       res.status(500).json({ error: e.message });
@@ -2032,17 +2032,17 @@ var groupsController = {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ error: "Ngo\u1EA1i l\u1EC7 phi\xEAn \u0111\u0103ng nh\u1EADp" });
       const { id } = req.params;
-      const groups = dbInstance.getGroups();
+      const groups = dbInstance2.getGroups();
       const group = groups.find((g) => g.id === id);
       if (!group) {
         return res.status(404).json({ error: "Kh\xF4ng t\xECm th\u1EA5y nh\xF3m chi ti\xEAu" });
       }
-      const allMembers = dbInstance.getGroupMembers();
+      const allMembers = dbInstance2.getGroupMembers();
       const isMember = allMembers.some((m) => m.groupId === id && m.userId === userId);
       if (!isMember) {
         return res.status(403).json({ error: "B\u1EA1n kh\xF4ng ph\u1EA3i l\xE0 th\xE0nh vi\xEAn nh\xF3m n\xE0y" });
       }
-      const allExpenses = dbInstance.getGroupExpenses();
+      const allExpenses = dbInstance2.getGroupExpenses();
       const groupExpenses = allExpenses.filter((e) => e.groupId === id);
       let csvContent = "\uFEFF";
       csvContent += "M\xE3 giao d\u1ECBch,N\u1ED9i dung chi ti\xEAu,Ng\u01B0\u1EDDi tr\u1EA3,S\u1ED1 ti\u1EC1n (VND),Ng\xE0y chi,Ki\u1EC3u ph\xE2n chia\n";
@@ -2103,6 +2103,34 @@ app.get("/api/groups/join/:code", (req, res) => {
 app.post("/api/groups/:id/expenses", authMiddleware, groupsController.addGroupExpense);
 app.post("/api/groups/:id/settle", authMiddleware, groupsController.settleDebt);
 app.get("/api/groups/:id/export", authMiddleware, groupsController.exportCSV);
+app.get("/api/notifications", authMiddleware, (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "Ngo\u1EA1i l\u1EC7 phi\xEAn \u0111\u0103ng nh\u1EADp" });
+    const allNotifs = dbInstance.getNotifications();
+    const userNotifs = allNotifs.filter((n) => n.userId === userId);
+    res.json(userNotifs);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+app.post("/api/notifications/mark-read", authMiddleware, (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "Ngo\u1EA1i l\u1EC7 phi\xEAn \u0111\u0103ng nh\u1EADp" });
+    const allNotifs = dbInstance.getNotifications();
+    const updatedNotifs = allNotifs.map((n) => {
+      if (n.userId === userId) {
+        return { ...n, read: true };
+      }
+      return n;
+    });
+    dbInstance.saveAllNotifications(updatedNotifs);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 var app_default = app;
 
 // src/server/api-entry.ts

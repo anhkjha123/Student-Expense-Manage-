@@ -328,18 +328,35 @@ export default function App() {
         setExpenses(finalExpenses);
         setBudgets(finalBudgets);
       } finally {
-        // Tải thông báo từ local storage
+        // Tải thông báo từ local storage và đồng bộ với backend
         const userNotifsKey = `sem_${currentUser.id}_notifs`;
         const storedNotifs = localStorage.getItem(userNotifsKey);
-        let finalNotifs: Notification[] = [];
+        let localNotifs: Notification[] = [];
 
         if (storedNotifs) {
-          finalNotifs = JSON.parse(storedNotifs);
+          localNotifs = JSON.parse(storedNotifs);
         } else {
-          finalNotifs = INITIAL_NOTIFICATIONS.filter(n => n.userId === currentUser.id);
-          localStorage.setItem(userNotifsKey, JSON.stringify(finalNotifs));
+          localNotifs = INITIAL_NOTIFICATIONS.filter(n => n.userId === currentUser.id);
         }
-        setNotifications(finalNotifs);
+
+        try {
+          const backendNotifs = await ApiService.getBackendNotifications();
+          const mergedNotifs = [...localNotifs];
+          backendNotifs.forEach((bn: Notification) => {
+            const exists = mergedNotifs.some(ln => ln.id === bn.id);
+            if (!exists) {
+              mergedNotifs.unshift(bn);
+            }
+          });
+          mergedNotifs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          
+          setNotifications(mergedNotifs);
+          localStorage.setItem(userNotifsKey, JSON.stringify(mergedNotifs));
+        } catch (err) {
+          console.warn('Failed to sync backend notifications:', err);
+          setNotifications(localNotifs);
+          localStorage.setItem(userNotifsKey, JSON.stringify(localNotifs));
+        }
         setIsLoading(false);
       }
     };
@@ -814,10 +831,12 @@ export default function App() {
       return n;
     });
     saveNotifications(updated);
+    ApiService.markBackendNotificationsRead();
   };
 
   const clearNotifications = () => {
     saveNotifications([]);
+    ApiService.markBackendNotificationsRead();
   };
 
   if (isLoading) {
