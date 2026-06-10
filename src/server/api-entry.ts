@@ -1,4 +1,4 @@
-import app from '../src/server/app';
+import app from './app';
 
 // Bắt lỗi runtime toàn cục để ghi nhận vào Vercel logs nếu xảy ra crash bất ngờ
 process.on('uncaughtException', (err) => {
@@ -10,4 +10,3 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 export default app;
-
