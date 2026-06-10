@@ -8,7 +8,6 @@ import { walletController } from './wallet';
 import { insightsController } from './insights';
 import { recurringExpensesController } from './recurringExpenses';
 import { ocrController } from './ocrController';
-import { groupsController } from './groups';
 
 const app = express();
 
@@ -70,51 +69,5 @@ app.delete('/api/recurring-expenses/:id', authMiddleware as any, recurringExpens
 // --- SPRINT 5 APIs ---
 // OCR Scan Receipt (MH-02)
 app.post('/api/expenses/scan-receipt', authMiddleware as any, ocrController.scanReceipt);
-
-// Group split (SH-01)
-app.post('/api/groups', authMiddleware as any, groupsController.createGroup);
-app.get('/api/groups', authMiddleware as any, groupsController.getGroups);
-app.get('/api/groups/:id', authMiddleware as any, groupsController.getGroup);
-app.post('/api/groups/:id/invite', authMiddleware as any, groupsController.generateInvite);
-app.post('/api/groups/:id/invite/revoke', authMiddleware as any, groupsController.revokeInvite);
-app.post('/api/groups/join/:code', authMiddleware as any, groupsController.joinGroup);
-app.get('/api/groups/join/:code', (req: Request, res: Response) => {
-  res.redirect(`/?invite=${req.params.code}`);
-});
-app.post('/api/groups/:id/expenses', authMiddleware as any, groupsController.addGroupExpense);
-app.post('/api/groups/:id/settle', authMiddleware as any, groupsController.settleDebt);
-app.get('/api/groups/:id/export', authMiddleware as any, groupsController.exportCSV);
-
-// Notifications synchronization (SH-01)
-app.get('/api/notifications', authMiddleware as any, (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: 'Ngoại lệ phiên đăng nhập' });
-    const allNotifs = dbInstance.getNotifications();
-    const userNotifs = allNotifs.filter(n => n.userId === userId);
-    res.json(userNotifs);
-  } catch (e: any) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.post('/api/notifications/mark-read', authMiddleware as any, (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: 'Ngoại lệ phiên đăng nhập' });
-    
-    const allNotifs = dbInstance.getNotifications();
-    const updatedNotifs = allNotifs.map(n => {
-      if (n.userId === userId) {
-        return { ...n, read: true };
-      }
-      return n;
-    });
-    dbInstance.saveAllNotifications(updatedNotifs);
-    res.json({ success: true });
-  } catch (e: any) {
-    res.status(500).json({ error: e.message });
-  }
-});
 
 export default app;

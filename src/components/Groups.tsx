@@ -178,7 +178,7 @@ export default function Groups({ user }: GroupsProps) {
 
   const handleCopyInviteLink = () => {
     if (!activeGroupData) return;
-    const link = `${window.location.origin}/api/groups/join/${activeGroupData.group.inviteCode}`;
+    const link = `${window.location.origin}/?invite=${activeGroupData.group.inviteCode}`;
     navigator.clipboard.writeText(link);
     setCopiedInvite(true);
     setTimeout(() => setCopiedInvite(false), 2000);
@@ -638,7 +638,7 @@ export default function Groups({ user }: GroupsProps) {
                       {activeGroupData.group.inviteRevoked ? (
                         <span className="text-red-500 flex items-center gap-1 font-bold"><Lock className="h-3 w-3" /> Liên kết đã bị thu hồi</span>
                       ) : (
-                        `${window.location.origin}/api/groups/join/${activeGroupData.group.inviteCode}`
+                        `${window.location.origin}/?invite=${activeGroupData.group.inviteCode}`
                       )}
                     </div>
                     

@@ -6,13 +6,15 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
 ---
 
 ### [v5.2.0] - 2026-06-10
-#### 🌟 Cải tiến & Đồng bộ hóa Quỹ nhóm (Group Fund Refinements)
+#### 🌟 Cải tiến & Di chuyển Quỹ nhóm lên Firebase Firestore (Group Fund Refinements & Firestore Migration)
+*   **Di chuyển Quỹ nhóm và Thông báo lên Firebase Firestore:** Viết lại toàn bộ logic API của Quỹ nhóm và Thông báo sử dụng trực tiếp Firebase Firestore SDK phía Client. Gỡ bỏ hoàn toàn routes `/api/groups` và `/api/notifications` trên backend server Express, loại bỏ sự phụ thuộc vào tệp ghi tạm thời `/tmp/db.json` trên Vercel nhằm tránh tuyệt đối lỗi mất dữ liệu khi serverless function cold-start.
+*   **Định dạng Link mời tham gia trực tiếp:** Thay đổi URL mời thành dạng query parameter trực tiếp `/index.html?invite=CODE` hoặc `/?invite=CODE`, xử lý tham gia nhóm trực tiếp trên Firestore ở phía Client.
 *   **Đồng bộ Hiệu ứng tab Quỹ nhóm:** Thêm hiệu ứng Framer Motion `motion.div` cho trang Quỹ nhóm đồng bộ với Dashboard/Reports.
-*   **Sửa lỗi tự trừ tiền & lịch sử chi tiêu của người tạo khoản chi:** Sau khi tạo khoản chi nhóm thành công, hệ thống tự động ghi nhận phần tiền chia sẻ (split share) của người tạo vào lịch sử chi tiêu cá nhân để cập nhật số dư ví và hạn mức (hỗ trợ cả online Firestore và guest LocalStorage). Điều chỉnh backend để tránh nhân bản nợ.
+*   **Sửa lỗi tự trừ tiền & lịch sử chi tiêu của người tạo khoản chi:** Sau khi tạo khoản chi nhóm thành công, hệ thống tự động ghi nhận phần tiền chia sẻ (split share) của người tạo vào lịch sử chi tiêu cá nhân để cập nhật số dư ví và hạn mức (hỗ trợ cả online Firestore và guest LocalStorage).
 *   **Hiển thị Icon cho Quỹ nhóm:** Thêm icon đại diện `👥` cho danh mục `group_fund` ở Budget Settings, Reports và Dashboard.
 *   **Đóng băng nút Tất toán đối với Chủ nợ:** Chủ nợ (người tạo công nợ) sẽ hiển thị trạng thái "đang trả" không tương tác được thay vì nút "Đánh dấu đã thanh toán".
-*   **Thông báo công nợ & Đồng bộ hóa:** Tự động tạo và gửi thông báo công nợ từ server Express cho các con nợ liên quan khi có khoản chi mới. Bổ sung endpoint backend `/api/notifications` và logic hợp nhất (merge) đồng bộ thông báo trên client.
 *   **Ẩn Quỹ nhóm trong dropdown chọn danh mục:** Loại bỏ "Quỹ nhóm" khỏi ô chọn danh mục thủ công (Add Personal Expense) và cố định danh mục của hóa đơn nhóm luôn là "Quỹ nhóm".
+
 
 ### [v5.1.0] - 2026-06-10
 #### 🌟 Nâng cấp AI OCR, Xóa bỏ tính năng Tiết kiệm (Saving Goals) & Sửa lỗi Vercel 500

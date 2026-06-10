@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateEqualSplits, calculateDebts } from '../src/server/groups';
+import { ApiService } from '../src/lib/api';
 import { GroupMember, GroupExpense } from '../src/types';
 
 describe('Group splitting & rounding calculation logic', () => {
@@ -12,7 +12,7 @@ describe('Group splitting & rounding calculation logic', () => {
   it('chia đều 10.000đ cho 3 người, làm tròn về 1.000đ, phần dư tính cho người đầu tiên (AC3)', () => {
     // 10000 / 3 = 3333.33 => làm tròn thành 3000
     // phần dư = 10000 - (3000 * 2) = 4000 cho người đầu tiên
-    const splits = calculateEqualSplits(10000, members);
+    const splits = ApiService.calculateEqualSplits(10000, members);
     
     expect(splits).toHaveLength(3);
     expect(splits[0].userId).toBe('user_01');
@@ -29,7 +29,7 @@ describe('Group splitting & rounding calculation logic', () => {
   it('chia đều 11.000đ cho 3 người, làm tròn về 1.000đ, phần dư tính cho người đầu tiên (AC3)', () => {
     // 11000 / 3 = 3666.67 => làm tròn thành 4000
     // phần dư = 11000 - (4000 * 2) = 3000 cho người đầu tiên
-    const splits = calculateEqualSplits(11000, members);
+    const splits = ApiService.calculateEqualSplits(11000, members);
     
     expect(splits).toHaveLength(3);
     expect(splits[0].userId).toBe('user_01');
@@ -69,7 +69,7 @@ describe('Group splitting & rounding calculation logic', () => {
       }
     ];
 
-    let debts = calculateDebts('g1', groupMembers, expenses);
+    let debts = ApiService.calculateDebts('g1', groupMembers, expenses);
     expect(debts).toHaveLength(2);
     
     // Tuấn nợ Đức 30k
@@ -103,7 +103,7 @@ describe('Group splitting & rounding calculation logic', () => {
     // Tuấn: -15,000đ (đã đóng 30k, nợ 45k)
     // Lan: -45,000đ (đã đóng 0k, nợ 45k)
     // Nợ mới: Tuấn nợ Đức 15k, Lan nợ Đức 45k
-    debts = calculateDebts('g1', groupMembers, expenses);
+    debts = ApiService.calculateDebts('g1', groupMembers, expenses);
     expect(debts).toHaveLength(2);
 
     const tuanDebt2 = debts.find(d => d.fromUserId === 'user_02' && d.toUserId === 'user_01');
