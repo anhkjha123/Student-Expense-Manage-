@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { User, Expense, Budget, Notification, SavingGoal, Income, RecurringExpense } from '../types';
+import { User, Expense, Budget, Notification, SavingGoal, Income, RecurringExpense, Group, GroupMember, GroupExpense, GroupSettlement } from '../types';
 
 export interface DBUser extends User {
   passwordHash: string;
@@ -18,6 +18,10 @@ export interface Schema {
   savingGoals: SavingGoal[];
   incomes: Income[];
   recurringExpenses: RecurringExpense[];
+  groups?: Group[];
+  groupMembers?: GroupMember[];
+  groupExpenses?: GroupExpense[];
+  groupSettlements?: GroupSettlement[];
 }
 
 const DB_DIR = path.join(process.cwd(), 'data');
@@ -307,7 +311,11 @@ function initDB() {
           cycle: 'MONTHLY',
           startDate: '2026-06-01'
         }
-      ]
+      ],
+      groups: [],
+      groupMembers: [],
+      groupExpenses: [],
+      groupSettlements: []
     };
     fs.writeFileSync(DB_FILE, JSON.stringify(initialSchema, null, 2), 'utf-8');
   }
@@ -321,10 +329,18 @@ export class Database {
   private read(): Schema {
     try {
       const data = fs.readFileSync(DB_FILE, 'utf-8');
-      return JSON.parse(data) as Schema;
+      const schema = JSON.parse(data) as Schema;
+      if (!schema.groups) schema.groups = [];
+      if (!schema.groupMembers) schema.groupMembers = [];
+      if (!schema.groupExpenses) schema.groupExpenses = [];
+      if (!schema.groupSettlements) schema.groupSettlements = [];
+      return schema;
     } catch (e) {
       console.error('Lỗi khi đọc file database:', e);
-      return { users: [], expenses: [], budgets: [], notifications: [], savingGoals: [], incomes: [], recurringExpenses: [] };
+      return { 
+        users: [], expenses: [], budgets: [], notifications: [], savingGoals: [], incomes: [], recurringExpenses: [],
+        groups: [], groupMembers: [], groupExpenses: [], groupSettlements: []
+      };
     }
   }
 
@@ -498,6 +514,110 @@ export class Database {
     schema.recurringExpenses = filter;
     this.write(schema);
     return true;
+  }
+
+  // --- GROUPS ---
+  public getGroups(): Group[] {
+    return this.read().groups || [];
+  }
+
+  public saveGroup(group: Group): void {
+    const schema = this.read();
+    if (!schema.groups) schema.groups = [];
+    const idx = schema.groups.findIndex(g => g.id === group.id);
+    if (idx >= 0) {
+      schema.groups[idx] = group;
+    } else {
+      schema.groups.push(group);
+    }
+    this.write(schema);
+  }
+
+  public deleteGroup(groupId: string): boolean {
+    const schema = this.read();
+    if (!schema.groups) return false;
+    const filtered = schema.groups.filter(g => g.id !== groupId);
+    if (filtered.length === schema.groups.length) return false;
+    schema.groups = filtered;
+    
+    // Cleanup members, expenses, and settlements for this group too
+    if (schema.groupMembers) {
+      schema.groupMembers = schema.groupMembers.filter(m => m.groupId !== groupId);
+    }
+    if (schema.groupExpenses) {
+      schema.groupExpenses = schema.groupExpenses.filter(e => e.groupId !== groupId);
+    }
+    if (schema.groupSettlements) {
+      schema.groupSettlements = schema.groupSettlements.filter(s => s.groupId !== groupId);
+    }
+    
+    this.write(schema);
+    return true;
+  }
+
+  // --- GROUP MEMBERS ---
+  public getGroupMembers(): GroupMember[] {
+    return this.read().groupMembers || [];
+  }
+
+  public saveGroupMember(member: GroupMember): void {
+    const schema = this.read();
+    if (!schema.groupMembers) schema.groupMembers = [];
+    const idx = schema.groupMembers.findIndex(m => m.id === member.id);
+    if (idx >= 0) {
+      schema.groupMembers[idx] = member;
+    } else {
+      schema.groupMembers.push(member);
+    }
+    this.write(schema);
+  }
+
+  public saveGroupMembers(members: GroupMember[]): void {
+    const schema = this.read();
+    if (!schema.groupMembers) schema.groupMembers = [];
+    members.forEach(m => {
+      const idx = schema.groupMembers!.findIndex(gm => gm.id === m.id);
+      if (idx >= 0) {
+        schema.groupMembers![idx] = m;
+      } else {
+        schema.groupMembers!.push(m);
+      }
+    });
+    this.write(schema);
+  }
+
+  // --- GROUP EXPENSES ---
+  public getGroupExpenses(): GroupExpense[] {
+    return this.read().groupExpenses || [];
+  }
+
+  public saveGroupExpense(expense: GroupExpense): void {
+    const schema = this.read();
+    if (!schema.groupExpenses) schema.groupExpenses = [];
+    const idx = schema.groupExpenses.findIndex(e => e.id === expense.id);
+    if (idx >= 0) {
+      schema.groupExpenses[idx] = expense;
+    } else {
+      schema.groupExpenses.push(expense);
+    }
+    this.write(schema);
+  }
+
+  // --- GROUP SETTLEMENTS ---
+  public getGroupSettlements(): GroupSettlement[] {
+    return this.read().groupSettlements || [];
+  }
+
+  public saveGroupSettlement(settlement: GroupSettlement): void {
+    const schema = this.read();
+    if (!schema.groupSettlements) schema.groupSettlements = [];
+    const idx = schema.groupSettlements.findIndex(s => s.id === settlement.id);
+    if (idx >= 0) {
+      schema.groupSettlements[idx] = settlement;
+    } else {
+      schema.groupSettlements.push(settlement);
+    }
+    this.write(schema);
   }
 }
 

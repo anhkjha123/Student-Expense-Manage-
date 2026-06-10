@@ -1,4 +1,4 @@
-import { User, Expense, Budget, Notification, Income, RecurringExpense, SavingGoal } from '../types';
+import { User, Expense, Budget, Notification, Income, RecurringExpense, SavingGoal, Group, GroupMember, GroupExpense, GroupSettlement } from '../types';
 import { db, auth } from './firebase';
 import { 
   collection, 
@@ -475,4 +475,157 @@ export class ApiService {
   public static async getWeeklyReport() {}
   public static async getCategoryStats() {}
   public static async getTopSpending() {}
+
+  // --- OCR SCANNING ---
+  public static async scanReceipt(imageBase64: string, filename: string, mimeType: string): Promise<any> {
+    const token = localStorage.getItem('sem_token');
+    const response = await fetch('/api/expenses/scan-receipt', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ image: imageBase64, name: filename, mimeType })
+    });
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Lỗi quét hóa đơn');
+    }
+    return response.json();
+  }
+
+  // --- GROUPS CLIENT APIS ---
+  public static async createGroup(name: string): Promise<{ group: Group, members: GroupMember[] }> {
+    const token = localStorage.getItem('sem_token');
+    const response = await fetch('/api/groups', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ name })
+    });
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Lỗi tạo nhóm');
+    }
+    return response.json();
+  }
+
+  public static async getGroups(): Promise<Group[]> {
+    const token = localStorage.getItem('sem_token');
+    const response = await fetch('/api/groups', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (!response.ok) {
+      throw new Error('Lỗi tải danh sách nhóm');
+    }
+    return response.json();
+  }
+
+  public static async getGroup(id: string): Promise<{ group: Group, members: GroupMember[], expenses: GroupExpense[], debts: GroupSettlement[] }> {
+    const token = localStorage.getItem('sem_token');
+    const response = await fetch(`/api/groups/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Lỗi tải chi tiết nhóm');
+    }
+    return response.json();
+  }
+
+  public static async generateInvite(id: string): Promise<Group> {
+    const token = localStorage.getItem('sem_token');
+    const response = await fetch(`/api/groups/${id}/invite`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (!response.ok) {
+      throw new Error('Lỗi làm mới mã mời');
+    }
+    return response.json();
+  }
+
+  public static async revokeInvite(id: string): Promise<Group> {
+    const token = localStorage.getItem('sem_token');
+    const response = await fetch(`/api/groups/${id}/invite/revoke`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (!response.ok) {
+      throw new Error('Lỗi thu hồi mã mời');
+    }
+    return response.json();
+  }
+
+  public static async joinGroup(code: string): Promise<{ message: string, group: Group }> {
+    const token = localStorage.getItem('sem_token');
+    const response = await fetch(`/api/groups/join/${code}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Lỗi tham gia nhóm');
+    }
+    return response.json();
+  }
+
+  public static async addGroupExpense(id: string, payload: { description: string, amount: number, date: string, splitType: 'EQUAL' | 'CUSTOM', customSplits?: any[] }): Promise<GroupExpense> {
+    const token = localStorage.getItem('sem_token');
+    const response = await fetch(`/api/groups/${id}/expenses`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Lỗi thêm khoản chi nhóm');
+    }
+    return response.json();
+  }
+
+  public static async settleDebt(id: string, payload: { fromUserId: string, fromUserName: string, toUserId: string, toUserName: string, amount: number }): Promise<GroupExpense> {
+    const token = localStorage.getItem('sem_token');
+    const response = await fetch(`/api/groups/${id}/settle`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Lỗi thanh toán nợ');
+    }
+    return response.json();
+  }
+
+  public static async exportGroupCSV(id: string): Promise<Blob> {
+    const token = localStorage.getItem('sem_token');
+    const response = await fetch(`/api/groups/${id}/export`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (!response.ok) {
+      throw new Error('Lỗi xuất dữ liệu CSV');
+    }
+    return response.blob();
+  }
 }

@@ -11,13 +11,15 @@ import { incomesController } from './src/server/incomes';
 import { walletController } from './src/server/wallet';
 import { insightsController } from './src/server/insights';
 import { recurringExpensesController, checkAndGenerateRecurringExpenses } from './src/server/recurringExpenses';
+import { ocrController } from './src/server/ocrController';
+import { groupsController } from './src/server/groups';
 
 async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  // Cấu hình phân tích nhân body JSON
-  app.use(express.json());
+  // Cấu hình phân tích nhân body JSON hỗ trợ ảnh hóa đơn base64 tối đa 10MB
+  app.use(express.json({ limit: '15mb' }));
 
   // --- API ROUTING SYSTEMS (S1, S2, S3 APIs) ---
 
@@ -76,6 +78,21 @@ async function startServer() {
   app.post('/api/recurring-expenses', authMiddleware as any, recurringExpensesController.createRecurringExpense);
   app.put('/api/recurring-expenses/:id', authMiddleware as any, recurringExpensesController.updateRecurringExpense);
   app.delete('/api/recurring-expenses/:id', authMiddleware as any, recurringExpensesController.deleteRecurringExpense);
+
+  // --- SPRINT 5 APIs ---
+  // OCR Scan Receipt (MH-02)
+  app.post('/api/expenses/scan-receipt', authMiddleware as any, ocrController.scanReceipt);
+
+  // Group split (SH-01)
+  app.post('/api/groups', authMiddleware as any, groupsController.createGroup);
+  app.get('/api/groups', authMiddleware as any, groupsController.getGroups);
+  app.get('/api/groups/:id', authMiddleware as any, groupsController.getGroup);
+  app.post('/api/groups/:id/invite', authMiddleware as any, groupsController.generateInvite);
+  app.post('/api/groups/:id/invite/revoke', authMiddleware as any, groupsController.revokeInvite);
+  app.post('/api/groups/join/:code', authMiddleware as any, groupsController.joinGroup);
+  app.post('/api/groups/:id/expenses', authMiddleware as any, groupsController.addGroupExpense);
+  app.post('/api/groups/:id/settle', authMiddleware as any, groupsController.settleDebt);
+  app.get('/api/groups/:id/export', authMiddleware as any, groupsController.exportCSV);
 
   // Bật bộ kiểm tra recurring expenses mỗi phút
   setInterval(() => {

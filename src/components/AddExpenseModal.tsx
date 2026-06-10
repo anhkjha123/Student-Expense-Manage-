@@ -5,10 +5,15 @@ import {
   Calendar, 
   FileText, 
   Check, 
-  AlertCircle 
+  AlertCircle,
+  Camera,
+  UploadCloud,
+  Loader2,
+  Trash2
 } from 'lucide-react';
 import { Category, Expense } from '../types';
 import { motion } from 'motion/react';
+import { ApiService } from '../lib/api';
 
 interface AddExpenseModalProps {
   isOpen: boolean;
@@ -39,6 +44,13 @@ export default function AddExpenseModal({
   const [recurringCycle, setRecurringCycle] = useState<'NONE' | 'WEEKLY' | 'MONTHLY'>('NONE');
   const [error, setError] = useState<string | null>(null);
 
+  // OCR States (MH-02)
+  const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [ocrError, setOcrError] = useState<string | null>(null);
+  const [receiptImage, setReceiptImage] = useState<string | null>(null);
+  const [isAmountMissing, setIsAmountMissing] = useState<boolean>(false);
+  const [highlightedFields, setHighlightedFields] = useState<{ amount?: boolean; date?: boolean; title?: boolean }>({});
+
   useEffect(() => {
     if (isOpen) {
       if (editingExpense) {
@@ -49,6 +61,9 @@ export default function AddExpenseModal({
         setNote(editingExpense.note || '');
         setIsNecessary(editingExpense.isNecessary);
         setIsRecurring(editingExpense.isRecurring || false);
+        setReceiptImage(editingExpense.receiptImage || null);
+        setIsAmountMissing(false);
+        setHighlightedFields({});
       } else {
         setAmount('');
         if (categories.length > 0) {
@@ -60,8 +75,12 @@ export default function AddExpenseModal({
         setIsNecessary(true);
         setIsRecurring(false);
         setRecurringCycle('NONE');
+        setReceiptImage(null);
+        setIsAmountMissing(false);
+        setHighlightedFields({});
       }
       setError(null);
+      setOcrError(null);
     }
   }, [editingExpense, isOpen, categories]);
 
@@ -100,7 +119,8 @@ export default function AddExpenseModal({
       note: note.trim() || undefined,
       isNecessary,
       isRecurring: editingExpense ? isRecurring : (recurringCycle !== 'NONE'),
-      recurringCycle: editingExpense ? undefined : recurringCycle
+      recurringCycle: editingExpense ? undefined : recurringCycle,
+      receiptImage: receiptImage || undefined // Pass scanned receipt image (AC6)
     };
 
     if (editingExpense && onEditExpense) {
@@ -117,9 +137,107 @@ export default function AddExpenseModal({
       setIsNecessary(true);
       setIsRecurring(false);
       setRecurringCycle('NONE');
+      setReceiptImage(null);
+      setIsAmountMissing(false);
+      setHighlightedFields({});
     }
     setError(null);
     onClose();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate size (max 10MB) - AC1
+    if (file.size > 10 * 1024 * 1024) {
+      setOcrError('Kích thước ảnh vượt quá giới hạn 10MB cho phép');
+      return;
+    }
+
+    // Validate type (JPG, PNG, HEIC) - AC1
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    const isAllowed = ['jpg', 'jpeg', 'png', 'heic'].includes(fileExtension || '');
+    if (!isAllowed) {
+      setOcrError('Định dạng tệp không hỗ trợ. Vui lòng chọn JPG, PNG hoặc HEIC.');
+      return;
+    }
+
+    setIsScanning(true);
+    setOcrError(null);
+    setIsAmountMissing(false);
+    setHighlightedFields({});
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64String = reader.result as string;
+        setReceiptImage(base64String);
+
+        try {
+          const res = await ApiService.scanReceipt(base64String, file.name, file.type);
+          
+          if (res.amount) {
+            setAmount(new Intl.NumberFormat('en-US').format(res.amount));
+            setHighlightedFields(prev => ({ ...prev, amount: true }));
+          } else {
+            setAmount('');
+            setIsAmountMissing(true); // AC4 highlight Amount in red
+          }
+
+          if (res.date) {
+            setDate(res.date);
+            setHighlightedFields(prev => ({ ...prev, date: true }));
+          }
+
+          if (res.merchant) {
+            setTitle(res.merchant);
+            setHighlightedFields(prev => ({ ...prev, title: true }));
+          }
+
+          if (res.note) {
+            setNote(res.note);
+          }
+
+          // Suggest category if matching name
+          const matchedCategory = categories.find(c => 
+            res.merchant && new RegExp(c.name, 'i').test(res.merchant)
+          );
+          if (matchedCategory) {
+            setCategoryId(matchedCategory.id);
+          } else {
+            // default categorization based on keywords
+            const text = `${res.merchant || ''} ${res.note || ''}`.toLowerCase();
+            if (text.includes('cơm') || text.includes('ăn') || text.includes('uống') || text.includes('coffee') || text.includes('phở') || text.includes('lẩu')) {
+              setCategoryId('food');
+            } else if (text.includes('xăng') || text.includes('xe') || text.includes('grab') || text.includes('be')) {
+              setCategoryId('transport');
+            } else if (text.includes('sách') || text.includes('vở') || text.includes('giáo trình') || text.includes('học')) {
+              setCategoryId('study');
+            } else if (text.includes('phim') || text.includes('vé') || text.includes('sữa') || text.includes('chơi')) {
+              setCategoryId('entertainment');
+            } else if (text.includes('áo') || text.includes('quần') || text.includes('shopee') || text.includes('tiki')) {
+              setCategoryId('shopping');
+            } else if (text.includes('phòng') || text.includes('trọ') || text.includes('điện') || text.includes('nước')) {
+              setCategoryId('rent');
+            }
+          }
+
+        } catch (apiErr: any) {
+          setOcrError(apiErr.message || 'Lỗi quét hóa đơn');
+        } finally {
+          setIsScanning(false);
+        }
+      };
+      reader.onerror = () => {
+        setOcrError('Lỗi đọc tệp ảnh');
+        setIsScanning(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err: any) {
+      setOcrError(err.message || 'Lỗi đọc tệp ảnh');
+      setIsScanning(false);
+    }
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -173,12 +291,73 @@ export default function AddExpenseModal({
             </div>
           )}
 
+          {/* Scanned Receipt Upload / Camera preview block (AC1, AC5, AC6) */}
+          {!editingExpense && (
+            <div className="space-y-1 bg-slate-50 p-4 rounded-2xl border border-slate-200/60 shadow-inner">
+              <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                Quét hóa đơn bằng AI (Camera / Tệp)
+              </label>
+
+              {ocrError && (
+                <div className="mb-2 flex items-center gap-2 rounded-xl bg-red-50 p-2.5 text-[11px] font-semibold text-red-700">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <span>{ocrError}</span>
+                </div>
+              )}
+
+              {isScanning ? (
+                <div className="flex flex-col items-center justify-center py-6 bg-white border border-slate-100 rounded-xl space-y-2">
+                  <Loader2 className="h-8 w-8 text-emerald-500 animate-spin" />
+                  <span className="text-xs font-bold text-slate-500 animate-pulse font-mono">Đang quét và phân tích hóa đơn...</span>
+                </div>
+              ) : receiptImage ? (
+                <div className="flex items-center gap-4 bg-white p-3 rounded-xl border border-slate-100 animate-fade-in">
+                  <img src={receiptImage} alt="Receipt Preview" className="h-16 w-16 object-cover rounded-lg border border-slate-200 shadow-sm" />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[11px] font-bold text-slate-700 block truncate">Ảnh hóa đơn đã tải lên</span>
+                    <span className="text-[9px] text-emerald-600 font-mono block font-bold">✨ Nhận diện bằng AI</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReceiptImage(null);
+                      setIsAmountMissing(false);
+                      setHighlightedFields({});
+                    }}
+                    className="p-2 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-emerald-400 bg-white rounded-xl py-4 transition-all cursor-pointer group">
+                    <UploadCloud className="h-6 w-6 text-slate-400 group-hover:text-emerald-500 transition-colors" />
+                    <span className="text-[10px] font-bold text-slate-500 group-hover:text-slate-700 mt-1">Chọn ảnh hóa đơn</span>
+                    <input type="file" accept="image/png, image/jpeg, image/heic" onChange={handleFileChange} className="hidden" />
+                  </label>
+                  <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-emerald-400 bg-white rounded-xl py-4 transition-all cursor-pointer group">
+                    <Camera className="h-6 w-6 text-slate-400 group-hover:text-emerald-500 transition-colors" />
+                    <span className="text-[10px] font-bold text-slate-500 group-hover:text-slate-700 mt-1">Chụp bằng Camera</span>
+                    <input type="file" accept="image/png, image/jpeg, image/heic" capture="environment" onChange={handleFileChange} className="hidden" />
+                  </label>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Amount Input */}
           <div className="space-y-1">
             <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
               Số tiền chi tiêu (VND) <span className="text-red-500">*</span>
             </label>
-            <div className="relative rounded-2xl border border-slate-200 focus-within:border-emerald-400 shadow-sm transition-all focus-within:ring-2 focus-within:ring-emerald-500/15 overflow-hidden">
+            <div className={`relative rounded-2xl border focus-within:border-emerald-400 shadow-sm transition-all focus-within:ring-2 focus-within:ring-emerald-500/15 overflow-hidden ${
+              isAmountMissing 
+                ? 'border-red-500 bg-red-50/10' 
+                : highlightedFields.amount 
+                ? 'border-emerald-500 bg-emerald-50/10 ring-2 ring-emerald-500/10' 
+                : 'border-slate-200'
+            }`}>
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400 font-mono">
                 đ
               </span>
@@ -187,11 +366,21 @@ export default function AddExpenseModal({
                 value={amount}
                 onChange={handleAmountChange}
                 placeholder="0"
-                className="w-full py-2.5 sm:py-3.5 pl-9 pr-4 text-base sm:text-xl font-bold font-mono text-slate-900 focus:outline-none"
+                className="w-full py-2.5 sm:py-3.5 pl-9 pr-4 text-base sm:text-xl font-bold font-mono text-slate-900 focus:outline-none bg-transparent"
                 id="expense-amount-input"
                 required
               />
             </div>
+            {isAmountMissing && (
+              <p className="text-[10px] text-red-500 font-bold mt-1 animate-pulse" id="expense-amount-warning">
+                ⚠️ Không nhận dạng được số tiền từ hóa đơn. Vui lòng nhập thủ công!
+              </p>
+            )}
+            {highlightedFields.amount && (
+              <p className="text-[10px] text-emerald-600 font-bold mt-1">
+                ✓ Đã tự động điền số tiền từ hóa đơn
+              </p>
+            )}
           </div>
 
           {/* Title Text Input */}
@@ -199,17 +388,24 @@ export default function AddExpenseModal({
             <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
               Nội dung chi tiêu <span className="text-red-500">*</span>
             </label>
-            <div className="relative rounded-2xl border border-slate-200 focus-within:border-emerald-500 shadow-sm transition-all overflow-hidden">
+            <div className={`relative rounded-2xl border focus-within:border-emerald-500 shadow-sm transition-all overflow-hidden ${
+              highlightedFields.title ? 'border-emerald-500 bg-emerald-50/10 ring-2 ring-emerald-500/10' : 'border-slate-200'
+            }`}>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ăn trưa cơm bụi, trà sữa, xăng xe..."
-                className="w-full py-2.5 sm:py-3 px-4 text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none"
+                className="w-full py-2.5 sm:py-3 px-4 text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none bg-transparent"
                 id="expense-title-input"
                 required
               />
             </div>
+            {highlightedFields.title && (
+              <p className="text-[10px] text-emerald-600 font-bold mt-1">
+                ✓ Đã tự động điền tên cửa hàng từ hóa đơn
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -238,7 +434,9 @@ export default function AddExpenseModal({
               <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
                 Ngày thực hiện <span className="text-red-500">*</span>
               </label>
-              <div className="relative rounded-2xl border border-slate-200 focus-within:border-emerald-500 shadow-sm transition-all">
+              <div className={`relative rounded-2xl border focus-within:border-emerald-500 shadow-sm transition-all ${
+                highlightedFields.date ? 'border-emerald-500 bg-emerald-50/10 ring-2 ring-emerald-500/10' : 'border-slate-200'
+              }`}>
                 <input
                   type="date"
                   value={date}
@@ -248,6 +446,11 @@ export default function AddExpenseModal({
                   required
                 />
               </div>
+              {highlightedFields.date && (
+                <p className="text-[10px] text-emerald-600 font-bold mt-1">
+                  ✓ Đã tự động điền ngày từ hóa đơn
+                </p>
+              )}
             </div>
           </div>
 

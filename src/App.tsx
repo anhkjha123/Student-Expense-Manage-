@@ -30,6 +30,7 @@ import SavingGoals from './components/SavingGoals';
 import Incomes from './components/Incomes';
 import CalendarView from './components/CalendarView';
 import RecurringExpenses from './components/RecurringExpenses';
+import Groups from './components/Groups';
 
 export default function App() {
   // --- CORE STATE ---
@@ -886,6 +887,10 @@ export default function App() {
 
           {activeTab === 'recurring' && (
             <RecurringExpenses user={currentUser} categories={DEFAULT_CATEGORIES} />
+          )}
+
+          {activeTab === 'groups' && (
+            <Groups user={currentUser} />
           )}
         </main>
 

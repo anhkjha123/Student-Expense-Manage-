@@ -14,7 +14,8 @@ import {
   DollarSign,
   Target,
   Calendar,
-  Repeat
+  Repeat,
+  Users
 } from 'lucide-react';
 import { User, Notification } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -52,6 +53,7 @@ export default function Navbar({
     { id: 'reports', name: 'Báo Cáo' },
     { id: 'incomes', name: 'Thu Nhập' },
     { id: 'saving-goals', name: 'Tiết Kiệm' },
+    { id: 'groups', name: 'Quỹ Nhóm' },
     { id: 'calendar', name: 'Lịch' }
   ];
 
@@ -156,6 +158,7 @@ export default function Navbar({
                 {tab.id === 'reports' && <PieChart className="h-4 w-4" />}
                 {tab.id === 'incomes' && <DollarSign className="h-4 w-4" />}
                 {tab.id === 'saving-goals' && <Target className="h-4 w-4" />}
+                {tab.id === 'groups' && <Users className="h-4 w-4" />}
                 {tab.id === 'calendar' && <Calendar className="h-4 w-4" />}
                 {tab.name}
               </button>
@@ -314,6 +317,7 @@ export default function Navbar({
               {tab.id === 'reports' && <PieChart className="h-4.5 w-4.5" />}
               {tab.id === 'incomes' && <DollarSign className="h-4.5 w-4.5" />}
               {tab.id === 'saving-goals' && <Target className="h-4.5 w-4.5" />}
+              {tab.id === 'groups' && <Users className="h-4.5 w-4.5" />}
               {tab.id === 'calendar' && <Calendar className="h-4.5 w-4.5" />}
               <span>{tab.name}</span>
             </button>

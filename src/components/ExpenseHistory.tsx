@@ -260,12 +260,30 @@ export default function ExpenseHistory({
                     className="hover:bg-slate-50/50 transition-colors"
                   >
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-slate-800">{exp.title}</div>
-                      {exp.note && (
-                        <div className="text-[11px] text-slate-400 leading-relaxed max-w-[280px] break-words">
-                          💡 {exp.note}
+                      <div className="flex items-center gap-3">
+                        {exp.receiptImage && (
+                          <div className="relative group shrink-0">
+                            <img 
+                              src={exp.receiptImage} 
+                              alt="Receipt Thumbnail" 
+                              className="h-9 w-9 object-cover rounded-lg border border-slate-200 cursor-zoom-in shadow-xs transition-transform hover:scale-105"
+                            />
+                            {/* Hover zoom preview */}
+                            <div className="absolute left-11 top-0 hidden group-hover:block z-50 bg-white p-1.5 rounded-xl border border-slate-200 shadow-2xl min-w-[200px]">
+                              <img src={exp.receiptImage} alt="Receipt zoom" className="max-h-64 max-w-[240px] object-contain rounded-lg" />
+                              <div className="text-[9px] font-bold text-center text-slate-400 mt-1 font-mono">Ảnh hóa đơn đính kèm</div>
+                            </div>
+                          </div>
+                        )}
+                        <div>
+                          <div className="font-semibold text-slate-800">{exp.title}</div>
+                          {exp.note && (
+                            <div className="text-[11px] text-slate-400 leading-relaxed max-w-[280px] break-words">
+                              💡 {exp.note}
+                            </div>
+                          )}
                         </div>
-                      )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center rounded-xl px-2.5 py-0.5 text-[11px] font-semibold border ${getCategoryTheme(exp.categoryId)}`}>
