@@ -335,13 +335,21 @@ function initDB() {
       groupSettlements: []
     };
   }
-  fs.writeFileSync(DB_FILE, JSON.stringify(initialSchema, null, 2), 'utf-8');
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(initialSchema, null, 2), 'utf-8');
+  } catch (e) {
+    console.error('Failed to write default db.json:', e);
+  }
   }
 }
 
 export class Database {
   constructor() {
-    initDB();
+    try {
+      initDB();
+    } catch (e) {
+      console.error('Failed to initialize database:', e);
+    }
   }
 
   private read(): Schema {
