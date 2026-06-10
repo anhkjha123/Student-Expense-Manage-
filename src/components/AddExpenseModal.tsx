@@ -68,6 +68,7 @@ export default function AddExpenseModal({
   const hasParsedRef = useRef<boolean>(false);
   const latestTranscriptRef = useRef<string>('');
   const voiceRetryCountRef = useRef<number>(0);
+  const isRetryingRef = useRef<boolean>(false);
 
   const applyParsedResults = (parsed: any) => {
     if (parsed.amount) {
@@ -143,8 +144,15 @@ export default function AddExpenseModal({
       hasParsedRef.current = false;
       latestTranscriptRef.current = '';
       voiceRetryCountRef.current = 0;
+      isRetryingRef.current = false;
     } else {
-      console.log(`Đang kết nối lại micro (lần thử ${voiceRetryCountRef.current}/3)...`);
+      console.log(`Đang kết nối lại micro (lần thử ${voiceRetryCountRef.current}/5)...`);
+    }
+
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.abort();
+      } catch (e) {}
     }
 
     const recognition = new SpeechRecognition();
@@ -152,14 +160,13 @@ export default function AddExpenseModal({
     recognition.lang = 'vi-VN';
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
-    recognition.continuous = false;
+    recognition.continuous = true;
 
-    // Sound/Speech start and end events for active animation control
     recognition.onsoundstart = () => {
       setIsSoundActive(true);
     };
     recognition.onsoundend = () => {
-      setIsSoundActive(false);
+      // Keep state alive during result pauses
     };
     recognition.onspeechstart = () => {
       setIsSoundActive(true);
@@ -169,22 +176,21 @@ export default function AddExpenseModal({
     };
 
     recognition.onresult = (event: any) => {
-      // Keep sound active when result event triggers
       setIsSoundActive(true);
       
       let interimTranscript = '';
       let finalTranscript = '';
 
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
+      for (let i = 0; i < event.results.length; ++i) {
         if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript;
+          finalTranscript += event.results[i][0].transcript + ' ';
         } else {
           interimTranscript += event.results[i][0].transcript;
         }
       }
 
-      const displayedText = finalTranscript || interimTranscript;
-      if (displayedText.trim()) {
+      const displayedText = (finalTranscript + interimTranscript).trim();
+      if (displayedText) {
         setVoiceText(displayedText);
         latestTranscriptRef.current = displayedText;
 
@@ -203,10 +209,16 @@ export default function AddExpenseModal({
       
       // Auto-retry silently for network errors (transient connection drops)
       if (event.error === 'network') {
-        if (voiceRetryCountRef.current < 3) {
+        if (voiceRetryCountRef.current < 5) {
           voiceRetryCountRef.current += 1;
+          isRetryingRef.current = true;
+          
+          try {
+            recognition.abort();
+          } catch (e) {}
+
           setTimeout(() => {
-            if (recognitionRef.current === recognition) {
+            if (isOpen && helperTab === 'voice') {
               startSpeechRecognition(true);
             }
           }, 400);
@@ -216,58 +228,85 @@ export default function AddExpenseModal({
 
       // Ignore no-speech errors (silence timeouts) during listening, keep listening state active
       if (event.error === 'no-speech') {
-        if (recognitionRef.current === recognition) {
-          setIsSoundActive(false);
-          // Restart silently
-          setTimeout(() => {
-            if (recognitionRef.current === recognition) {
-              try {
-                recognition.start();
-              } catch (_) {}
-            }
-          }, 300);
-          return;
-        }
+        isRetryingRef.current = true;
+        try {
+          recognition.abort();
+        } catch (e) {}
+
+        setTimeout(() => {
+          if (isOpen && helperTab === 'voice') {
+            startSpeechRecognition(true);
+          }
+        }, 300);
+        return;
       }
 
-      if (recognitionRef.current === recognition) {
-        if (event.error === 'not-allowed') {
-          setVoiceError('Quyền truy cập Micro bị từ chối. Vui lòng bật Micro trong cài đặt trình duyệt.');
-        } else {
-          setVoiceError(`Lỗi kết nối giọng nói: ${event.error}. Vui lòng thử lại.`);
-        }
-        setIsListening(false);
-        setIsSoundActive(false);
-        recognitionRef.current = null;
+      if (event.error === 'not-allowed') {
+        setVoiceError('Quyền truy cập Micro bị từ chối. Vui lòng bật Micro trong cài đặt trình duyệt.');
+      } else {
+        setVoiceError(`Lỗi kết nối giọng nói: ${event.error}. Vui lòng thử lại.`);
       }
+      setIsListening(false);
+      setIsSoundActive(false);
+      recognitionRef.current = null;
     };
 
     recognition.onend = () => {
-      if (recognitionRef.current === recognition) {
-        setIsListening(false);
-        setIsSoundActive(false);
-        recognitionRef.current = null;
+      if (isRetryingRef.current) {
+        isRetryingRef.current = false;
+        return;
+      }
 
-        // Fallback: If we haven't parsed a final result yet but have captured some voice text, parse it now
-        if (!hasParsedRef.current && latestTranscriptRef.current.trim()) {
-          hasParsedRef.current = true;
-          const parsed = parseVietnameseVoiceCommand(latestTranscriptRef.current);
-          applyParsedResults(parsed);
+      if (recognitionRef.current === recognition) {
+        if (isOpen && helperTab === 'voice' && isListening) {
+          isRetryingRef.current = true;
+          setTimeout(() => {
+            if (isOpen && helperTab === 'voice') {
+              startSpeechRecognition(true);
+            }
+          }, 300);
+        } else {
+          setIsListening(false);
+          setIsSoundActive(false);
+          recognitionRef.current = null;
+
+          // Fallback: If we haven't parsed a final result yet but have captured some voice text, parse it now
+          if (!hasParsedRef.current && latestTranscriptRef.current.trim()) {
+            hasParsedRef.current = true;
+            const parsed = parseVietnameseVoiceCommand(latestTranscriptRef.current);
+            applyParsedResults(parsed);
+          }
         }
       }
     };
 
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (e) {
+      console.error('Error starting recognition:', e);
+    }
   };
 
   useEffect(() => {
-    if (isOpen && helperTab === 'voice' && startWithVoice && !editingExpense) {
-      const timer = setTimeout(() => {
+    let timer: any;
+    if (isOpen && helperTab === 'voice' && !editingExpense) {
+      timer = setTimeout(() => {
         startSpeechRecognition();
       }, 300);
-      return () => clearTimeout(timer);
     }
-  }, [isOpen, helperTab, startWithVoice]);
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort();
+        } catch (e) {}
+        recognitionRef.current = null;
+      }
+      setIsListening(false);
+      setIsSoundActive(false);
+    };
+  }, [isOpen, helperTab]);
 
   if (!isOpen) return null;
 
@@ -610,24 +649,24 @@ export default function AddExpenseModal({
                   <div className="flex flex-col items-center justify-center py-6 bg-white border border-slate-100 rounded-2xl space-y-4 shadow-xs relative overflow-hidden">
                     {isListening ? (
                       <div className="flex flex-col items-center space-y-4 w-full">
-                        {/* Siri glowing wave container */}
-                        <div className="relative w-72 h-24 flex items-center justify-center overflow-hidden rounded-3xl bg-slate-950 shadow-lg border border-slate-800">
+                        {/* Siri glowing wave container - Theme matching the white background */}
+                        <div className="relative w-72 h-24 flex items-center justify-center overflow-hidden rounded-3xl bg-linear-to-br from-slate-50 to-white border border-slate-200/60 shadow-inner">
                           {/* Siri glowing spheres background */}
                           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div className={`absolute w-40 h-14 bg-rose-500/25 rounded-full filter blur-xl ${isSoundActive ? 'animate-siri-glow-1' : ''}`}></div>
-                            <div className={`absolute w-36 h-12 bg-purple-600/30 rounded-full filter blur-xl ${isSoundActive ? 'animate-siri-glow-2' : ''}`}></div>
-                            <div className={`absolute w-32 h-16 bg-cyan-500/20 rounded-full filter blur-xl ${isSoundActive ? 'animate-siri-glow-3' : ''}`}></div>
+                            <div className={`absolute w-40 h-14 bg-emerald-400/15 rounded-full filter blur-xl ${isSoundActive ? 'animate-siri-glow-1' : ''}`}></div>
+                            <div className={`absolute w-36 h-12 bg-teal-500/20 rounded-full filter blur-xl ${isSoundActive ? 'animate-siri-glow-2' : ''}`}></div>
+                            <div className={`absolute w-32 h-16 bg-cyan-400/15 rounded-full filter blur-xl ${isSoundActive ? 'animate-siri-glow-3' : ''}`}></div>
                           </div>
                           
                           {/* Colorful pulsing bars */}
                           <div className="relative flex items-center justify-center gap-1.5 h-12 z-10">
-                            <div className={`w-1.5 bg-gradient-to-t from-cyan-400 to-blue-500 rounded-full shadow-[0_0_10px_rgba(34,211,238,0.5)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-1' : 'h-2'}`}></div>
-                            <div className={`w-1.5 bg-gradient-to-t from-blue-500 to-purple-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.5)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-2' : 'h-2'}`}></div>
-                            <div className={`w-1.5 bg-gradient-to-t from-purple-500 to-pink-500 rounded-full shadow-[0_0_10px_rgba(236,72,153,0.5)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-3' : 'h-2'}`}></div>
-                            <div className={`w-1.5 bg-gradient-to-t from-pink-500 to-rose-400 rounded-full shadow-[0_0_10px_rgba(244,63,94,0.5)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-4' : 'h-2'}`}></div>
-                            <div className={`w-1.5 bg-gradient-to-t from-rose-400 to-orange-400 rounded-full shadow-[0_0_10px_rgba(251,146,60,0.5)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-5' : 'h-2'}`}></div>
-                            <div className={`w-1.5 bg-gradient-to-t from-orange-400 to-yellow-400 rounded-full shadow-[0_0_10px_rgba(250,204,21,0.5)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-6' : 'h-2'}`}></div>
-                            <div className={`w-1.5 bg-gradient-to-t from-yellow-400 to-cyan-400 rounded-full shadow-[0_0_10px_rgba(34,211,238,0.5)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-7' : 'h-2'}`}></div>
+                            <div className={`w-1.5 bg-gradient-to-t from-emerald-400 to-teal-500 rounded-full shadow-[0_0_8px_rgba(52,211,153,0.4)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-1' : 'h-2'}`}></div>
+                            <div className={`w-1.5 bg-gradient-to-t from-teal-500 to-cyan-500 rounded-full shadow-[0_0_8px_rgba(20,184,166,0.4)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-2' : 'h-2'}`}></div>
+                            <div className={`w-1.5 bg-gradient-to-t from-cyan-500 to-blue-500 rounded-full shadow-[0_0_8px_rgba(6,182,212,0.4)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-3' : 'h-2'}`}></div>
+                            <div className={`w-1.5 bg-gradient-to-t from-blue-500 to-indigo-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.4)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-4' : 'h-2'}`}></div>
+                            <div className={`w-1.5 bg-gradient-to-t from-indigo-500 to-purple-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.4)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-5' : 'h-2'}`}></div>
+                            <div className={`w-1.5 bg-gradient-to-t from-purple-500 to-emerald-400 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.4)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-6' : 'h-2'}`}></div>
+                            <div className={`w-1.5 bg-gradient-to-t from-emerald-400 to-cyan-400 rounded-full shadow-[0_0_8px_rgba(52,211,153,0.4)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-7' : 'h-2'}`}></div>
                           </div>
                         </div>
 
@@ -648,8 +687,13 @@ export default function AddExpenseModal({
                         <button
                           type="button"
                           onClick={() => {
+                            setIsListening(false);
+                            setIsSoundActive(false);
                             if (recognitionRef.current) {
-                              recognitionRef.current.stop();
+                              try {
+                                recognitionRef.current.stop();
+                              } catch (e) {}
+                              recognitionRef.current = null;
                             }
                           }}
                           className="mt-1 rounded-2xl bg-rose-500 hover:bg-rose-600 px-5 py-2 text-xs font-bold text-white shadow-md shadow-rose-200 flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95 border border-rose-600/20"
