@@ -1461,20 +1461,39 @@ function parseReceiptText(text) {
     return true;
   });
   const cleanedText = cleanedLines.join("\n");
+  const normalizeNumber = (value) => {
+    const numeric = value.replace(/[^\d]/g, "");
+    return numeric ? parseInt(numeric, 10) : NaN;
+  };
+  const parseCandidateAmounts = (text2) => {
+    const candidates = [];
+    const regex = /([\d,.]{3,})/g;
+    let match;
+    while (match = regex.exec(text2)) {
+      const parsed = normalizeNumber(match[1]);
+      if (!isNaN(parsed) && parsed > 1e3 && parsed < 1e8) {
+        candidates.push(parsed);
+      }
+    }
+    return candidates;
+  };
+  const bestCandidate = (candidates) => {
+    if (!candidates.length) return null;
+    return candidates.sort((a, b) => b - a)[0];
+  };
   const priorityAmountRegexes = [
     /(?:tiền\s+mặt|tien\s+mat|cash)\s*[:=]?\s*([\d,.]+)/i,
-    /(?:tổng\s+cộng|tong\s+cong|t\.?\s*cộng)\s*\d*\s*[:=]?\s*([\d,.]+)/i,
-    /(?:grand\s+total|total\s+due|total\s+amount|amount\s+paid)\s*[:=]?\s*([\d,.]+)/i,
-    /(?:thành\s+tiền|thanh\s+tien)\s*[:=]?\s*([\d,.]+)/i,
+    /(?:tổng\s+cộng|tong\s+cong|t\.\s*cộng|t\s*cong)\s*(?:[:=]?\s*)?([\d,.]+)/i,
+    /(?:grand\s+total|total\s+due|total\s+amount|amount\s+paid|amount)\s*[:=]?\s*([\d,.]+)/i,
+    /(?:thành\s+tiền|thanh\s+tien|thanh\s+tiền)\s*[:=]?\s*([\d,.]+)/i,
     /(?:khách\s+(?:phải\s+)?trả|khach\s+tra)\s*[:=]?\s*([\d,.]+)/i,
     /(?:tổng\s+thanh\s+toán|tong\s+thanh\s+toan|thanh\s+toán|thanh\s+toan)\s*[:=]?\s*([\d,.]+)/i,
-    /\bamount\b\s*[:=]?\s*([\d,.]+)/i
+    /\btotal\b\s*[:=]?\s*([\d,.]+)/i
   ];
   for (const regex of priorityAmountRegexes) {
     const match = cleanedText.match(regex);
     if (match) {
-      const numStr = match[1].replace(/[,.]/g, "");
-      const parsed = parseInt(numStr, 10);
+      const parsed = normalizeNumber(match[1]);
       if (!isNaN(parsed) && parsed > 1e3 && parsed < 1e8) {
         amount = parsed;
         break;
@@ -1482,21 +1501,17 @@ function parseReceiptText(text) {
     }
   }
   if (!amount) {
-    const fallbackRegexes = [
-      /([\d,.]+)\s*(?:vnd|đ)\b/i,
-      /total\s*[:=]?\s*([\d,.]+)/i
-    ];
-    for (const regex of fallbackRegexes) {
-      const match = cleanedText.match(regex);
-      if (match) {
-        const numStr = match[1].replace(/[,.]/g, "");
-        const parsed = parseInt(numStr, 10);
-        if (!isNaN(parsed) && parsed > 1e3 && parsed < 1e8) {
-          amount = parsed;
-          break;
-        }
+    const lineCandidates = [];
+    for (const line of cleanedLines) {
+      const lowerLine = line.toLowerCase();
+      if (/(?:tổng|thành tiền|total|amount|vnđ|vnd|đ)\b/.test(lowerLine)) {
+        lineCandidates.push(...parseCandidateAmounts(line));
       }
     }
+    if (!lineCandidates.length) {
+      lineCandidates.push(...parseCandidateAmounts(cleanedText));
+    }
+    amount = bestCandidate(lineCandidates);
   }
   const itemLines = [];
   for (const line of lines) {
@@ -1936,7 +1951,21 @@ var groupsController = {
       const group = groups.find((g) => g.id === id);
       const groupName = group?.name || "nh\xF3m chi ti\xEAu";
       splits.forEach((split) => {
-        if (split.userId && split.userId !== userId) {
+        if (!split.userId || split.amount <= 0) return;
+        if (split.userId === userId) {
+          const personalExpense = {
+            id: `exp_group_${Date.now()}_${split.userId}_${Math.random().toString(36).substr(2, 4)}`,
+            userId: split.userId,
+            amount: split.amount,
+            categoryId: categoryId || "group_fund",
+            title: `Chi ph\xED nh\xF3m: ${description.trim()}`,
+            date,
+            isNecessary: true,
+            note: `Nh\xF3m: ${groupName} | Ng\u01B0\u1EDDi tr\u1EA3 tr\u01B0\u1EDBc: ${req.user?.name || "Ng\u01B0\u1EDDi d\xF9ng"}`
+          };
+          dbInstance.saveExpense(personalExpense);
+        }
+        if (split.userId !== userId) {
           const debtNotif = {
             id: `notif_sys_${Date.now()}_${split.userId}_${Math.random().toString(36).substr(2, 4)}`,
             userId: split.userId,

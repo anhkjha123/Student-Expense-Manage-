@@ -235,12 +235,57 @@ export default function Groups({ user }: GroupsProps) {
 
     try {
       await ApiService.addGroupExpense(activeGroupId!, payload);
+
+      // Save personal expense for the creator's share in client DB
+      try {
+        const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+        let creatorAmount = 0;
+        if (expSplitType === 'EQUAL') {
+          if (activeGroupData && activeGroupData.members.length > 0) {
+            creatorAmount = Math.round(amountNum / activeGroupData.members.length);
+          }
+        } else if (payload.customSplits) {
+          const mySplit = payload.customSplits.find((s: any) => s.userId === user.id);
+          if (mySplit) {
+            creatorAmount = Number(mySplit.amount);
+          }
+        }
+
+        if (creatorAmount > 0) {
+          const personalExpenseData = {
+            amount: creatorAmount,
+            categoryId: expCategory,
+            title: `Chi phí nhóm: ${expDescription.trim()}`,
+            date: expDate,
+            note: `Nhóm: ${activeGroupData?.group.name || ''}`,
+            isNecessary: true
+          };
+
+          if (isGuest) {
+            const localExpensesKey = `sem_${user.id}_expenses`;
+            const stored = localStorage.getItem(localExpensesKey);
+            const list = stored ? JSON.parse(stored) : [];
+            const newExp = { ...personalExpenseData, id: `exp_added_${Date.now()}`, userId: user.id };
+            localStorage.setItem(localExpensesKey, JSON.stringify([newExp, ...list]));
+          } else {
+            await ApiService.createExpense(personalExpenseData);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to save creator's share locally/online:", e);
+      }
+
       setSuccessMessage('Đã thêm khoản chi nhóm và tự động phân nợ thành công');
       setIsAddExpenseOpen(false);
       setExpDescription('');
       setExpAmount('');
       setExpCategory('group_fund');
       loadActiveGroup(activeGroupId!);
+
+      // Reload window after 1s so personal statistics / dashboard get synced
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (err: any) {
       setExpError(err.message || 'Lỗi thêm khoản chi tiêu nhóm');
     }
