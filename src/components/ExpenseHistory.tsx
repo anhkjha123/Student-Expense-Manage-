@@ -74,7 +74,7 @@ export default function ExpenseHistory({
   };
 
   const getCategoryTheme = (id: string) => {
-    return categories.find(c => c.id === id)?.color || 'bg-slate-100 text-slate-700';
+    return categories.find(c => c.id === id)?.color || 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-100';
   };
 
   const toggleSort = (field: SortField) => {
@@ -107,20 +107,20 @@ export default function ExpenseHistory({
       {/* Stats Summary Panel */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <motion.div whileHover={{ y: -5 }} className="rounded-3xl bg-white dark:bg-slate-900 p-5 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-          <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">
             Tổng chi tiêu lọc ra
           </span>
-          <span className="text-xl font-extrabold font-mono text-slate-800 drop-shadow-sm">
+          <span className="text-xl font-extrabold font-mono text-slate-900 dark:text-slate-100 drop-shadow-sm">
             {new Intl.NumberFormat('vi-VN').format(totalFilteredAmount)}đ
           </span>
           <p className="text-[10px] text-slate-400 mt-1">Trong các bộ lọc tìm kiếm hiện tại</p>
         </motion.div>
 
-        <motion.div whileHover={{ y: -5 }} className="rounded-3xl bg-gradient-to-br from-emerald-50/80 to-teal-50/50 p-5 border border-emerald-100/50 shadow-sm hover:shadow-md transition-shadow">
-          <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-500">
+          <motion.div whileHover={{ y: -5 }} className="rounded-3xl bg-gradient-to-br from-emerald-50/80 to-teal-50/50 p-5 border border-emerald-100/50 shadow-sm hover:shadow-md transition-shadow dark:bg-emerald-950">
+          <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-500 dark:text-emerald-300">
             Cần thiết (Needs)
           </span>
-          <span className="text-xl font-extrabold font-mono text-emerald-600 drop-shadow-sm">
+          <span className="text-xl font-extrabold font-mono text-emerald-600 drop-shadow-sm dark:text-emerald-300">
             {new Intl.NumberFormat('vi-VN').format(totalNeeds)}đ
           </span>
           <p className="text-[10px] text-emerald-500/70 mt-1 font-medium">
@@ -128,11 +128,11 @@ export default function ExpenseHistory({
           </p>
         </motion.div>
 
-        <motion.div whileHover={{ y: -5 }} className="rounded-3xl bg-gradient-to-br from-amber-50/80 to-orange-50/50 p-5 border border-amber-100/50 shadow-sm hover:shadow-md transition-shadow">
-          <span className="block text-[10px] font-bold uppercase tracking-wider text-amber-600">
+          <motion.div whileHover={{ y: -5 }} className="rounded-3xl bg-gradient-to-br from-amber-50/80 to-orange-50/50 p-5 border border-amber-100/50 shadow-sm hover:shadow-md transition-shadow dark:bg-amber-950">
+          <span className="block text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-300">
             Sở thích / Mong muốn (Wants)
           </span>
-          <span className="text-xl font-extrabold font-mono text-amber-700 drop-shadow-sm">
+          <span className="text-xl font-extrabold font-mono text-amber-700 drop-shadow-sm dark:text-amber-300">
             {new Intl.NumberFormat('vi-VN').format(totalWants)}đ
           </span>
           <p className="text-[10px] text-amber-600/70 mt-1 font-medium">
@@ -234,8 +234,8 @@ export default function ExpenseHistory({
         {sortedExpenses.length === 0 ? (
           <div className="py-20 text-center">
             <span className="block text-4xl mb-2">🔍</span>
-            <h3 className="text-sm font-bold text-slate-800">Không tìm thấy giao dịch nào</h3>
-            <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Không tìm thấy giao dịch nào</h3>
+            <p className="text-xs text-slate-400 dark:text-slate-400 mt-1 max-w-md mx-auto">
               Không tìm thấy giao dịch nào tương khớp với bộ lọc hoặc tìm kiếm hiện hành của bạn.
             </p>
           </div>
@@ -276,9 +276,9 @@ export default function ExpenseHistory({
                           </div>
                         )}
                         <div>
-                          <div className="font-semibold text-slate-800">{exp.title}</div>
+                          <div className="font-semibold text-slate-900 dark:text-slate-100">{exp.title}</div>
                           {exp.note && (
-                            <div className="text-[11px] text-slate-400 leading-relaxed max-w-[280px] break-words">
+                            <div className="text-[11px] text-slate-400 dark:text-slate-400 leading-relaxed max-w-[280px] break-words">
                               💡 {exp.note}
                             </div>
                           )}
@@ -290,7 +290,7 @@ export default function ExpenseHistory({
                         {getCategoryName(exp.categoryId)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-xs font-medium text-slate-500 font-mono">
+                    <td className="px-6 py-4 text-xs font-medium text-slate-500 dark:text-slate-400 font-mono">
                       {exp.date}
                     </td>
                     <td className="px-6 py-4">

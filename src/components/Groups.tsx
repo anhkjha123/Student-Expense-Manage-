@@ -478,8 +478,8 @@ export default function Groups({ user }: GroupsProps) {
               ) : groups.length === 0 ? (
                 <div className="py-20 text-center bg-white dark:bg-slate-950 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
                   <span className="block text-4xl mb-2">👥</span>
-                  <h4 className="text-sm font-bold text-slate-800">Chưa tham gia nhóm nào</h4>
-                  <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
+                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">Chưa tham gia nhóm nào</h4>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-xs mx-auto">
                     Hãy tạo nhóm mới hoặc nhập mã mời của bạn cùng phòng gửi để bắt đầu chia tiền hóa đơn nhé!
                   </p>
                 </div>
@@ -497,8 +497,8 @@ export default function Groups({ user }: GroupsProps) {
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
                           <Users className="h-5 w-5" />
                         </div>
-                        <h4 className="font-bold text-slate-800 truncate text-base">{g.name}</h4>
-                        <span className="text-[10px] text-slate-400 block font-mono">Ngày tạo: {g.createdAt}</span>
+                        <h4 className="font-bold text-slate-900 dark:text-slate-100 truncate text-base">{g.name}</h4>
+                        <span className="text-[10px] text-slate-400 dark:text-slate-400 block font-mono">Ngày tạo: {g.createdAt}</span>
                       </div>
 
                       <div className="flex items-center justify-between pt-4 mt-4 border-t border-slate-50 text-xs text-slate-600 font-bold">
@@ -515,7 +515,7 @@ export default function Groups({ user }: GroupsProps) {
             <div className="md:col-span-4 space-y-6">
               {/* Join group box */}
               <div className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm space-y-3">
-                <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
                   <Send className="h-4.5 w-4.5 text-emerald-500" /> Tham gia nhóm bằng mã mời
                 </h3>
                 <form onSubmit={handleJoinGroup} className="space-y-3">
@@ -591,7 +591,7 @@ export default function Groups({ user }: GroupsProps) {
               </button>
               <div>
                 <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest font-mono">Quản lý nhóm chi tiêu</span>
-                <h2 className="font-display text-2xl font-black text-slate-900 leading-tight">
+                <h2 className="font-display text-2xl font-black text-slate-900 dark:text-slate-100 leading-tight">
                   {activeGroupData?.group.name || 'Đang tải...'}
                 </h2>
               </div>
@@ -629,8 +629,8 @@ export default function Groups({ user }: GroupsProps) {
                 {/* Invite link panel (AC2) */}
                 <motion.div variants={itemVariants} className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm space-y-4">
                   <div>
-                    <h3 className="text-sm font-bold text-slate-800">Mời bạn cùng phòng tham gia</h3>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Liên kết mời tự động vô hiệu hóa sau 7 ngày hoặc có thể thu hồi bất cứ lúc nào.</p>
+                    <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">Mời bạn cùng phòng tham gia</h3>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Liên kết mời tự động vô hiệu hóa sau 7 ngày hoặc có thể thu hồi bất cứ lúc nào.</p>
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-2">
@@ -678,7 +678,7 @@ export default function Groups({ user }: GroupsProps) {
 
                 {/* AI Settlement board ("Ai nợ ai bao nhiêu" - AC4) */}
                 <motion.div variants={itemVariants} className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm space-y-4">
-                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                     <UserCheck className="h-4.5 w-4.5 text-emerald-500 animate-pulse" /> Bảng tính công nợ hiện tại
                   </h3>
 
@@ -705,9 +705,9 @@ export default function Groups({ user }: GroupsProps) {
                               }`}
                           >
                             <div className="text-xs leading-relaxed">
-                              <span className="font-bold text-slate-800">{debt.fromUserName}</span>
-                              <span className="text-slate-500"> cần trả cho </span>
-                              <span className="font-bold text-slate-800">{debt.toUserName}</span>
+                              <span className="font-bold text-slate-900 dark:text-slate-100">{debt.fromUserName}</span>
+                              <span className="text-slate-500 dark:text-slate-400"> cần trả cho </span>
+                              <span className="font-bold text-slate-900 dark:text-slate-100">{debt.toUserName}</span>
                               <div className="text-lg font-extrabold font-mono text-slate-900 mt-1">
                                 {new Intl.NumberFormat('vi-VN').format(debt.amount)}đ
                               </div>
@@ -738,7 +738,7 @@ export default function Groups({ user }: GroupsProps) {
 
                 {/* History transactions log */}
                 <motion.div variants={itemVariants} className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm space-y-4">
-                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">Lịch sử chi tiêu nhóm</h3>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Lịch sử chi tiêu nhóm</h3>
 
                   {activeGroupData.expenses.length === 0 ? (
                     <div className="py-12 text-center text-slate-400 text-xs">
@@ -763,7 +763,7 @@ export default function Groups({ user }: GroupsProps) {
                             const cat = DEFAULT_CATEGORIES.find(c => c.id === (exp as any).categoryId);
                             return (
                               <tr key={idx} className="hover:bg-slate-50/30 dark:hover:bg-slate-800/30 transition-colors">
-                                <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100">
+                                <td className="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100">
                                   {isSettleTrans ? (
                                     <span className="inline-flex items-center gap-1 rounded bg-teal-50 px-1.5 py-0.5 text-[9px] font-bold text-teal-700 border border-teal-150">
                                       🤝 Tất toán nợ
@@ -787,7 +787,7 @@ export default function Groups({ user }: GroupsProps) {
                                   )}
                                 </td>
                                 <td className="px-4 py-3 font-medium text-slate-600">{exp.paidByName}</td>
-                                <td className="px-4 py-3 text-right font-bold text-slate-900 font-mono">
+                                <td className="px-4 py-3 text-right font-bold text-slate-900 dark:text-slate-100 font-mono">
                                   {new Intl.NumberFormat('vi-VN').format(exp.amount)}đ
                                 </td>
                                 <td className="px-4 py-3 font-mono text-slate-400">{exp.date}</td>
@@ -813,7 +813,7 @@ export default function Groups({ user }: GroupsProps) {
                 {/* Members list (AC1 limit warning) */}
                 <motion.div variants={itemVariants} className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm space-y-4">
                   <div className="flex justify-between items-center pb-2 border-b border-slate-50 dark:border-slate-800">
-                    <h3 className="text-sm font-bold text-slate-800">Thành viên ({activeGroupData.members.length})</h3>
+                    <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">Thành viên ({activeGroupData.members.length})</h3>
                     {activeGroupData.members.length >= 20 && (
                       <span className="text-[10px] font-bold text-red-500 flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Đầy nhóm</span>
                     )}
@@ -826,8 +826,8 @@ export default function Groups({ user }: GroupsProps) {
                           {m.name.substring(0, 2)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <span className="block text-xs font-bold text-slate-800 truncate">{m.name} {m.userId === user.id ? '(Bạn)' : ''}</span>
-                          <span className="block text-[9px] text-slate-400 font-mono truncate">{m.email}</span>
+                          <span className="block text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{m.name} {m.userId === user.id ? '(Bạn)' : ''}</span>
+                          <span className="block text-[9px] text-slate-400 dark:text-slate-500 font-mono truncate">{m.email}</span>
                         </div>
                       </div>
                     ))}

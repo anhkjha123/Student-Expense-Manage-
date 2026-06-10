@@ -168,10 +168,10 @@ export default function Incomes({ user }: IncomesProps) {
     >
       <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4 bg-white dark:bg-slate-950 p-6 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <DollarSign className="h-6 w-6 text-emerald-500" /> Quản lý thu nhập
           </h2>
-          <p className="text-slate-500 text-sm mt-1">Theo dõi các nguồn tiền vào của bạn</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Theo dõi các nguồn tiền vào của bạn</p>
         </div>
         <div className="flex gap-2">
           <input 
@@ -191,24 +191,24 @@ export default function Incomes({ user }: IncomesProps) {
 
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-950 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 mb-8 max-w-3xl">
-          <h3 className="font-semibold text-slate-800 mb-4">Ghi nhận thu nhập mới</h3>
+          <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4">Ghi nhận thu nhập mới</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Số tiền (đ)</label>
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Số tiền (đ)</label>
               <input required value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} type="number" min="0" className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" placeholder="500000" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Nguồn</label>
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Nguồn</label>
               <select required value={formData.source} onChange={e => setFormData({...formData, source: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all">
                 {SOURCES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Ngày nhận</label>
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Ngày nhận</label>
               <input required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} type="date" className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Ghi chú (Tùy chọn)</label>
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Ghi chú (Tùy chọn)</label>
               <input value={formData.note} onChange={e => setFormData({...formData, note: e.target.value})} type="text" className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" placeholder="Tháng 6" />
             </div>
           </div>
@@ -242,8 +242,8 @@ export default function Incomes({ user }: IncomesProps) {
 
         <div className="lg:col-span-2 bg-white dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
           <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/70 flex justify-between items-center">
-            <h3 className="font-semibold text-slate-800">Danh sách khoản thu</h3>
-            <span className="text-xs font-medium text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">{incomes.length} giao dịch</span>
+            <h3 className="font-semibold text-slate-900 dark:text-slate-100">Danh sách khoản thu</h3>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">{incomes.length} giao dịch</span>
           </div>
           
           {isLoading ? (

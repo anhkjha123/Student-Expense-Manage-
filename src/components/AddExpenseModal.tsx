@@ -509,18 +509,18 @@ export default function AddExpenseModal({
         className="relative z-50 w-full max-w-lg overflow-hidden rounded-3xl bg-white dark:bg-slate-950 shadow-2xl max-h-[92vh] flex flex-col"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 bg-emerald-50/50 px-5 sm:px-6 py-3.5 sm:py-4.5 shrink-0 animate-fade-in">
+        <div className="flex items-center justify-between border-b border-slate-100 bg-emerald-50/50 dark:bg-emerald-900/20 px-5 sm:px-6 py-3.5 sm:py-4.5 shrink-0 animate-fade-in">
           <div>
-            <h3 className="font-display text-base sm:text-lg font-bold text-slate-900">
+            <h3 className="font-display text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
               {editingExpense ? 'Chỉnh sửa khoản chi tiêu' : 'Nhập chi tiêu mới'}
             </h3>
-            <p className="text-[11px] sm:text-xs text-slate-500">
+            <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
               {editingExpense ? 'Cập nhật lại thông tin dòng tiền chính xác hơn' : 'Nhập nhanh chi tiêu trong dưới 10 giây để kiểm soát dòng tiền'}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -537,7 +537,7 @@ export default function AddExpenseModal({
           {/* AI Helper Tabs (OCR vs Voice) */}
           {!editingExpense && (
             <div className="space-y-2.5">
-              <div className="flex rounded-2xl bg-slate-100 p-1 text-[11px] sm:text-xs font-bold border border-slate-200/40">
+              <div className="flex rounded-2xl bg-slate-100 dark:bg-slate-950 p-1 text-[11px] sm:text-xs font-bold border border-slate-200/40 dark:border-slate-700">
                 <button
                   type="button"
                   onClick={() => setHelperTab('ocr')}
@@ -589,10 +589,10 @@ export default function AddExpenseModal({
                       <span className="text-xs font-bold text-slate-500 animate-pulse font-mono">Đang quét và phân tích hóa đơn...</span>
                     </div>
                   ) : receiptImage ? (
-                    <div className="flex items-center gap-4 bg-white p-3 rounded-2xl border border-slate-100 animate-fade-in shadow-xs">
-                      <img src={receiptImage} alt="Receipt Preview" className="h-16 w-16 object-cover rounded-xl border border-slate-200 shadow-sm" />
+                    <div className="flex items-center gap-4 bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-slate-700 animate-fade-in shadow-xs">
+                      <img src={receiptImage} alt="Receipt Preview" className="h-16 w-16 object-cover rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm" />
                       <div className="flex-1 min-w-0">
-                        <span className="text-[11px] font-bold text-slate-700 block truncate">Ảnh hóa đơn đã tải lên</span>
+                        <span className="text-[11px] font-bold text-slate-700 dark:text-slate-100 block truncate">Ảnh hóa đơn đã tải lên</span>
                         <span className="text-[9px] text-emerald-600 font-mono block font-bold">✨ Nhận diện bằng AI</span>
                       </div>
                       <button
@@ -616,7 +616,7 @@ export default function AddExpenseModal({
                         onPaste={handlePaste}
                       >
                         <UploadCloud className="h-7 w-7 text-slate-400 group-hover:text-emerald-500 transition-colors" />
-                        <span className="text-sm font-semibold text-slate-700 mt-3">Chọn ảnh hóa đơn hoặc kéo thả / dán ảnh (Ctrl+V)</span>
+                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-100 mt-3">Chọn ảnh hóa đơn hoặc kéo thả / dán ảnh (Ctrl+V)</span>
                         <input type="file" accept="image/png, image/jpeg, image/heic" onChange={handleFileChange} className="hidden" />
                       </label>
                     </div>
@@ -673,7 +673,7 @@ export default function AddExpenseModal({
                         {voiceText ? (
                           <div className="px-6 text-center animate-fade-in max-w-xs">
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Đang nghe:</span>
-                            <p className="text-xs font-bold text-slate-700 bg-slate-100/80 px-3.5 py-2 rounded-2xl border border-slate-200/50 inline-block shadow-inner leading-relaxed">
+                            <p className="text-xs font-bold text-slate-700 dark:text-slate-100 bg-slate-100/80 dark:bg-slate-800/70 px-3.5 py-2 rounded-2xl border border-slate-200/50 dark:border-slate-700 inline-block shadow-inner leading-relaxed">
                               💬 "{voiceText}"
                             </p>
                           </div>
@@ -715,8 +715,8 @@ export default function AddExpenseModal({
 
                     {!isListening && !voiceText && (
                       <div className="text-center px-4">
-                        <span className="text-xs font-semibold text-slate-700 block">Nhấp nút Mic để bắt đầu nói</span>
-                        <span className="text-[10px] text-slate-400 block mt-1">Hỗ trợ tiếng Việt: Tự động điền số tiền, nội dung & phân loại danh mục bằng AI</span>
+                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-100 block">Nhấp nút Mic để bắt đầu nói</span>
+                        <span className="text-[10px] text-slate-400 dark:text-slate-400 block mt-1">Hỗ trợ tiếng Việt: Tự động điền số tiền, nội dung & phân loại danh mục bằng AI</span>
                       </div>
                     )}
 
@@ -737,7 +737,7 @@ export default function AddExpenseModal({
 
           {/* Amount Input */}
           <div className="space-y-1">
-            <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
+            <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Số tiền chi tiêu (VND) <span className="text-red-500">*</span>
             </label>
             <div className={`relative rounded-2xl border focus-within:border-emerald-400 shadow-sm transition-all focus-within:ring-2 focus-within:ring-emerald-500/15 overflow-hidden ${
@@ -747,7 +747,7 @@ export default function AddExpenseModal({
                 ? 'border-emerald-500 bg-emerald-50/10 ring-2 ring-emerald-500/10' 
                 : 'border-slate-200'
             }`}>
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400 font-mono">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400 dark:text-slate-500 font-mono">
                 đ
               </span>
               <input
@@ -755,7 +755,7 @@ export default function AddExpenseModal({
                 value={amount}
                 onChange={handleAmountChange}
                 placeholder="0"
-                className="w-full py-2.5 sm:py-3.5 pl-9 pr-4 text-base sm:text-xl font-bold font-mono text-slate-900 focus:outline-none bg-transparent"
+                className="w-full py-2.5 sm:py-3.5 pl-9 pr-4 text-base sm:text-xl font-bold font-mono text-slate-900 dark:text-slate-100 focus:outline-none bg-transparent"
                 id="expense-amount-input"
                 required
               />
@@ -774,7 +774,7 @@ export default function AddExpenseModal({
 
           {/* Title Text Input */}
           <div className="space-y-1">
-            <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
+            <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Nội dung chi tiêu <span className="text-red-500">*</span>
             </label>
             <div className={`relative rounded-2xl border focus-within:border-emerald-500 shadow-sm transition-all overflow-hidden ${
@@ -785,7 +785,7 @@ export default function AddExpenseModal({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ăn trưa cơm bụi, trà sữa, xăng xe..."
-                className="w-full py-2.5 sm:py-3 px-4 text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none bg-transparent"
+                className="w-full py-2.5 sm:py-3 px-4 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 focus:outline-none bg-transparent"
                 id="expense-title-input"
                 required
               />
@@ -806,7 +806,7 @@ export default function AddExpenseModal({
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full rounded-2xl border border-slate-200 px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700 bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 shadow-sm"
+                className="w-full rounded-2xl border border-slate-200 px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-100 bg-white dark:bg-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 shadow-sm"
                 id="expense-category-input"
                 required
               >
@@ -887,7 +887,7 @@ export default function AddExpenseModal({
               onChange={(e) => setNote(e.target.value)}
               placeholder="Ghi chú chi tiết thêm..."
               rows={2}
-              className="w-full rounded-2xl border border-slate-200 px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-slate-700 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 shadow-sm"
+              className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-100 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 shadow-sm"
               id="expense-note-input"
             />
           </div>
@@ -901,7 +901,7 @@ export default function AddExpenseModal({
               <select
                 value={recurringCycle}
                 onChange={(e) => setRecurringCycle(e.target.value as 'NONE' | 'WEEKLY' | 'MONTHLY')}
-                className="w-full rounded-2xl border border-slate-200 px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700 bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 shadow-sm bg-no-repeat bg-[right_16px_center]"
+                className="w-full rounded-2xl border border-slate-200 px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-100 bg-white dark:bg-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 shadow-sm bg-no-repeat bg-[right_16px_center]"
                 id="expense-recurring-input"
               >
                 <option value="NONE">Không lặp lại (Một lần)</option>

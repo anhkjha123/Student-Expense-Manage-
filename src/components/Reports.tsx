@@ -279,7 +279,7 @@ export default function Reports({
           <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">
             Tổng Thu Nhập Tháng
           </span>
-          <span className="text-xl font-extrabold font-mono text-slate-900 drop-shadow-sm">
+          <span className="text-xl font-extrabold font-mono text-slate-900 dark:text-slate-100 drop-shadow-sm">
             {new Intl.NumberFormat('vi-VN').format(totalIncome)}đ
           </span>
           <div className="flex items-center gap-1 text-[10px] text-emerald-500 font-bold mt-1.5">
@@ -291,7 +291,7 @@ export default function Reports({
           <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">
             Đã chi tiêu thực tế
           </span>
-          <span className="text-xl font-extrabold font-mono text-slate-900 drop-shadow-sm">
+          <span className="text-xl font-extrabold font-mono text-slate-900 dark:text-slate-100 drop-shadow-sm">
             {new Intl.NumberFormat('vi-VN').format(totalSpent)}đ
           </span>
           <div className="flex items-center gap-1 text-[10px] text-slate-500 font-semibold mt-1.5">
@@ -303,7 +303,7 @@ export default function Reports({
           <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">
             Mức dư tiết kiệm tích lũy
           </span>
-          <span className={`text-xl font-extrabold font-mono drop-shadow-sm ${savingPerformance < 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+          <span className={`text-xl font-extrabold font-mono drop-shadow-sm ${savingPerformance < 0 ? 'text-red-500 dark:text-red-300' : 'text-emerald-500 dark:text-emerald-300'}`}>
             {new Intl.NumberFormat('vi-VN').format(savingPerformance)}đ
           </span>
           <div className="flex items-center gap-1 text-[10px] mt-1.5">
@@ -323,10 +323,10 @@ export default function Reports({
           <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">
             Hố Đen Tiêu Tiền Lớn Nhất
           </span>
-          <span className="text-xl font-extrabold text-slate-900 drop-shadow-sm">
+          <span className="text-xl font-extrabold text-slate-900 dark:text-slate-100 drop-shadow-sm">
             {biggestExpenseCategory && biggestExpenseCategory.amount > 0 ? biggestExpenseCategory.name : 'Chưa có'}
           </span>
-          <p className="text-[10px] text-slate-400 mt-1.5">
+          <p className="text-[10px] text-slate-400 dark:text-slate-400 mt-1.5">
             {biggestExpenseCategory && biggestExpenseCategory.amount > 0 
               ? `Chi mất ${new Intl.NumberFormat('vi-VN').format(biggestExpenseCategory.amount)}đ (~${Math.round(biggestExpenseCategory.percent)}%)`
               : 'Năng nổ kiểm soát các mục chi của bạn'
@@ -355,7 +355,7 @@ export default function Reports({
                   id={`report-category-group-${cat.id}`} 
                   className="space-y-1.5"
                 >
-                  <div className="flex justify-between text-xs font-bold text-slate-700">
+                  <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
                     <span className="flex items-center gap-1.5 drop-shadow-sm">
                       <span>
                         {cat.id === 'rent' && '🏠'}
@@ -401,8 +401,8 @@ export default function Reports({
           </h3>
 
           <div className="space-y-4.5">
-            <p className="text-[11px] leading-relaxed text-slate-500">
-              Nguyên tắc tài chính tối ưu: Thắt chặt <strong className="text-emerald-600">Thiết yếu ≤ 50%</strong>, giới hạn <strong className="text-amber-600">Sở thích ≤ 30%</strong>, và tích lũy <strong className="text-blue-600">Tiết kiệm ≥ 20%</strong>.
+            <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+              Nguyên tắc tài chính tối ưu: Thắt chặt <strong className="text-emerald-600 dark:text-emerald-300">Thiết yếu ≤ 50%</strong>, giới hạn <strong className="text-amber-600 dark:text-amber-300">Sở thích ≤ 30%</strong>, và tích lũy <strong className="text-blue-600 dark:text-blue-300">Tiết kiệm ≥ 20%</strong>.
             </p>
 
             {/* Combined Segment Bar representation */}

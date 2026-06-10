@@ -105,9 +105,9 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
         <div className="p-8 text-center text-slate-500">Đang tải...</div>
       ) : recs.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-slate-950 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
-          <Repeat className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-slate-600 font-semibold">Chưa cấu hình chi tiêu định kỳ</h3>
-          <p className="text-slate-400 text-sm mt-1">Giúp bạn không quên các khoản như tiền trọ, điện nước, internet hàng tháng.</p>
+        <Repeat className="h-12 w-12 text-slate-400 dark:text-slate-500 mx-auto mb-3" />
+        <h3 className="text-slate-700 dark:text-slate-100 font-semibold">Chưa cấu hình chi tiêu định kỳ</h3>
+        <p className="text-slate-400 dark:text-slate-400 text-sm mt-1">Giúp bạn không quên các khoản như tiền trọ, điện nước, internet hàng tháng.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -127,10 +127,10 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
                     {new Intl.NumberFormat('vi-VN').format(item.amount)}đ
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-[10px] font-bold px-2 py-1 bg-slate-100 text-slate-600 rounded-md">
+                    <span className="text-[10px] font-bold px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 rounded-md">
                       {item.repeatOn || (item.cycle === 'MONTHLY' ? 'Mỗi tháng' : 'Mỗi tuần')}
                     </span>
-                    <span className="text-[10px] font-semibold px-2 py-1 bg-blue-50 text-blue-600 rounded-md flex items-center gap-1">
+                    <span className="text-[10px] font-semibold px-2 py-1 bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-300 rounded-md flex items-center gap-1">
                       <Calendar className="h-3 w-3" /> Từ {item.startDate.split('-').reverse().join('/')}
                     </span>
                   </div>
