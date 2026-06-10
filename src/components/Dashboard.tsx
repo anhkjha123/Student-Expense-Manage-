@@ -170,9 +170,9 @@ export default function Dashboard({
     });
   }, [user.monthlyIncome, variableIncomes, currentMonthExpenses, recurringExpenses, currentYear, currentMonth, currentMonthStr]);
 
-  const { minBal, maxBal, points, lineD, areaD, isNegative } = useMemo(() => {
+  const { minBal, maxBal, points, lineD, areaD, isNegative, yZeroPercent } = useMemo(() => {
     if (cashflow.length === 0) {
-      return { minBal: 0, maxBal: 0, points: [], lineD: '', areaD: '', isNegative: false };
+      return { minBal: 0, maxBal: 0, points: [], lineD: '', areaD: '', isNegative: false, yZeroPercent: 85 };
     }
     const balances = cashflow.map(d => d.balance);
     const minBal = Math.min(...balances, 0);
@@ -188,7 +188,12 @@ export default function Dashboard({
       ? `${lineD} L ${points[points.length - 1].x} 100 L ${points[0].x} 100 Z` 
       : '';
     const isNegative = cashflow[cashflow.length - 1]?.balance < 0;
-    return { minBal, maxBal, points, lineD, areaD, isNegative };
+
+    // Calculate vertical position of zero balance
+    const yZero = 85 - ((0 - minBal) / range) * 70;
+    const yZeroPercent = Math.min(100, Math.max(0, yZero));
+
+    return { minBal, maxBal, points, lineD, areaD, isNegative, yZeroPercent };
   }, [cashflow]);
 
   // Compute insights locally
@@ -735,9 +740,17 @@ export default function Dashboard({
                 {/* SVG Line & Area Chart */}
                 <svg viewBox="0 0 300 100" className="w-full h-full overflow-visible" preserveAspectRatio="none">
                   <defs>
-                    <linearGradient id="chart-area-grad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={isNegative ? '#f43f5e' : '#10b981'} stopOpacity="0.25" />
-                      <stop offset="100%" stopColor={isNegative ? '#f43f5e' : '#10b981'} stopOpacity="0.0" />
+                    <linearGradient id="chart-area-grad" x1="0" y1="0" x2="0" y2="100" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
+                      <stop offset={`${yZeroPercent}%`} stopColor="#10b981" stopOpacity="0.03" />
+                      <stop offset={`${yZeroPercent}%`} stopColor="#f43f5e" stopOpacity="0.03" />
+                      <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.25" />
+                    </linearGradient>
+                    <linearGradient id="chart-line-grad" x1="0" y1="0" x2="0" y2="100" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="#10b981" />
+                      <stop offset={`${yZeroPercent}%`} stopColor="#10b981" />
+                      <stop offset={`${yZeroPercent}%`} stopColor="#f43f5e" />
+                      <stop offset="100%" stopColor="#f43f5e" />
                     </linearGradient>
                   </defs>
                   
@@ -745,12 +758,16 @@ export default function Dashboard({
                   <line x1="0" y1="15" x2="300" y2="15" stroke="#f8fafc" strokeWidth="0.75" />
                   <line x1="0" y1="50" x2="300" y2="50" stroke="#f1f5f9" strokeWidth="0.5" strokeDasharray="2 2" />
                   <line x1="0" y1="85" x2="300" y2="85" stroke="#f8fafc" strokeWidth="0.75" />
+                  <line x1="0" y1={yZeroPercent} x2="300" y2={yZeroPercent} stroke="#cbd5e1" strokeWidth="0.75" strokeDasharray="3 2" opacity="0.8" /> {/* Zero Line */}
+                  {yZeroPercent > 15 && yZeroPercent < 85 && (
+                    <text x="5" y={yZeroPercent - 3} fill="#94a3b8" fontSize="5" fontWeight="bold">0đ</text>
+                  )}
 
                   {/* Area Under Line */}
                   <path d={areaD} fill="url(#chart-area-grad)" />
 
                   {/* Line */}
-                  <path d={lineD} fill="none" stroke={isNegative ? '#f43f5e' : '#10b981'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d={lineD} fill="none" stroke="url(#chart-line-grad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
 
                   {/* Hover Indicator Line */}
                   {hoveredPointIndex !== null && points[hoveredPointIndex] && (

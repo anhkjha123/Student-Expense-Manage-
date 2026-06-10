@@ -180,12 +180,14 @@ export default function AddExpenseModal({
       if (displayedText.trim()) {
         setVoiceText(displayedText);
         latestTranscriptRef.current = displayedText;
+
+        // Parse and apply in real-time as user speaks for maximum responsiveness!
+        const parsed = parseVietnameseVoiceCommand(displayedText);
+        applyParsedResults(parsed);
       }
 
       if (finalTranscript.trim()) {
         hasParsedRef.current = true;
-        const parsed = parseVietnameseVoiceCommand(finalTranscript);
-        applyParsedResults(parsed);
       }
     };
 
