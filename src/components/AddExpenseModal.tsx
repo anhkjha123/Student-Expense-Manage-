@@ -299,9 +299,14 @@ export default function AddExpenseModal({
               </label>
 
               {ocrError && (
-                <div className="mb-2 flex items-center gap-2 rounded-xl bg-red-50 p-2.5 text-[11px] font-semibold text-red-700">
-                  <AlertCircle className="h-4 w-4 shrink-0" />
-                  <span>{ocrError}</span>
+                <div className="mb-2 flex flex-col gap-1.5 rounded-xl bg-red-50 p-3 text-[11px] font-semibold text-red-700">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    <span>Lỗi quét hóa đơn:</span>
+                  </div>
+                  <pre className="mt-1 max-h-40 overflow-auto rounded-lg bg-red-100/50 p-2 text-[10px] font-mono whitespace-pre-wrap break-all select-text leading-relaxed">
+                    {ocrError}
+                  </pre>
                 </div>
               )}
 

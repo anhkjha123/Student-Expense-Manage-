@@ -493,14 +493,14 @@ export class ApiService {
         throw new Error(errObj.error || `Yêu cầu thất bại với mã lỗi ${response.status}`);
       } catch {
         // Returned HTML page or plain text instead of JSON error object
-        throw new Error(`Server gặp sự cố (Mã: ${response.status}). Chi tiết phản hồi:\n${responseText.substring(0, 200)}...`);
+        throw new Error(`Server gặp sự cố (Mã: ${response.status}). Chi tiết phản hồi:\n${responseText.substring(0, 3000)}...`);
       }
     }
 
     try {
       return JSON.parse(responseText);
     } catch {
-      throw new Error(`Dữ liệu server phản hồi không đúng định dạng JSON. Chi tiết:\n${responseText.substring(0, 200)}...`);
+      throw new Error(`Dữ liệu server phản hồi không đúng định dạng JSON. Chi tiết:\n${responseText.substring(0, 3000)}...`);
     }
   }
 

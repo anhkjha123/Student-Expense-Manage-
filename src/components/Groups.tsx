@@ -12,6 +12,7 @@ import {
   FileText,
   UserCheck,
   RefreshCw,
+  AlertCircle,
   AlertTriangle,
   Send,
   X,
@@ -324,12 +325,17 @@ export default function Groups({ user }: GroupsProps) {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="flex items-center justify-between rounded-2xl bg-red-50 border border-red-200 p-4 text-xs font-bold text-red-800 shadow-sm"
+            className="flex flex-col gap-1.5 rounded-2xl bg-red-50 border border-red-200 p-4 text-xs font-bold text-red-800 shadow-sm"
           >
-            <span>{groupError}</span>
-            <button onClick={() => setGroupError(null)} className="text-red-500 hover:text-red-800">
-              <X className="h-4 w-4" />
-            </button>
+            <div className="flex items-center justify-between">
+              <span>Gặp lỗi khi xử lý nhóm:</span>
+              <button onClick={() => setGroupError(null)} className="text-emerald-500 hover:text-emerald-800 font-bold">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <pre className="mt-1 max-h-40 overflow-auto rounded-lg bg-red-100/50 p-2 text-[10px] font-mono whitespace-pre-wrap break-all select-text leading-relaxed font-semibold">
+              {groupError}
+            </pre>
           </motion.div>
         )}
       </AnimatePresence>
@@ -733,9 +739,14 @@ export default function Groups({ user }: GroupsProps) {
 
             <form onSubmit={handleAddExpenseSubmit} className="space-y-4 pt-4 overflow-y-auto flex-1 pr-1">
               {expError && (
-                <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-xs font-semibold text-red-700">
-                  <AlertCircle className="h-4.5 w-4.5 shrink-0" />
-                  <span>{expError}</span>
+                <div className="flex flex-col gap-1.5 rounded-xl bg-red-50 p-3 text-xs font-semibold text-red-700">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-4.5 w-4.5 shrink-0" />
+                    <span>Lỗi hóa đơn nhóm:</span>
+                  </div>
+                  <pre className="mt-1 max-h-32 overflow-auto rounded-lg bg-red-100/50 p-2 text-[10px] font-mono whitespace-pre-wrap break-all select-text leading-relaxed">
+                    {expError}
+                  </pre>
                 </div>
               )}
 
