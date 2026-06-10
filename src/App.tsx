@@ -349,6 +349,38 @@ export default function App() {
     if (currentUser) loadRecurringExpenses(currentUser.id);
   }, [currentUser?.id]);
 
+  // --- DETECT INVITE QUERY PARAMETER (SH-01) ---
+  useEffect(() => {
+    if (!currentUser) return;
+    const params = new URLSearchParams(window.location.search);
+    const inviteCode = params.get('invite');
+    if (inviteCode) {
+      // Clean up the URL query parameter immediately
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Join the group
+      ApiService.joinGroup(inviteCode)
+        .then((res) => {
+          // Add notification
+          const joinNotif: Notification = {
+            id: `notif_join_${Date.now()}`,
+            userId: currentUser.id,
+            type: 'success',
+            title: 'Tham gia nhóm mới!',
+            message: `Bạn vừa tham gia nhóm "${res.group.name}" thành công qua liên kết mời.`,
+            date: new Date().toISOString().replace('T', ' ').substring(0, 19),
+            read: false
+          };
+          saveNotifications([joinNotif, ...notifications]);
+          setActiveTab('groups');
+          alert(`Đã tham gia nhóm "${res.group.name}" thành công!`);
+        })
+        .catch((err) => {
+          alert(err.message || 'Lỗi tham gia nhóm');
+        });
+    }
+  }, [currentUser]);
+
   // --- SAVE TO USER-SCOPED LOCALSTORAGE ON UPDATES ---
   const saveExpenses = (newExpenses: Expense[]) => {
     setExpenses(newExpenses);

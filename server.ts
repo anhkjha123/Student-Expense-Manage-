@@ -90,6 +90,9 @@ async function startServer() {
   app.post('/api/groups/:id/invite', authMiddleware as any, groupsController.generateInvite);
   app.post('/api/groups/:id/invite/revoke', authMiddleware as any, groupsController.revokeInvite);
   app.post('/api/groups/join/:code', authMiddleware as any, groupsController.joinGroup);
+  app.get('/api/groups/join/:code', (req: Request, res: Response) => {
+    res.redirect(`/?invite=${req.params.code}`);
+  });
   app.post('/api/groups/:id/expenses', authMiddleware as any, groupsController.addGroupExpense);
   app.post('/api/groups/:id/settle', authMiddleware as any, groupsController.settleDebt);
   app.get('/api/groups/:id/export', authMiddleware as any, groupsController.exportCSV);
