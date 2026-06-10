@@ -5,6 +5,13 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
 
 ---
 
+### [v5.4.0] - 2026-06-10
+#### 🌟 Hồ sơ Người dùng, Avatar Điều hướng & Tích hợp Cash Flow Định kỳ (User Profile, Navbar Avatar, Cash Flow Fix & Audio-Active Siri Wave)
+*   **Giao diện Hồ sơ cá nhân (User Profile):** Bổ sung trang hồ sơ cá nhân [UserProfile.tsx](file:///c:/Users/ADMIN/Desktop/New%20folder/Student-Expense-Manage-/src/components/UserProfile.tsx) cho phép cập nhật Tên, Tuổi, Số điện thoại và Trường học của sinh viên. Tích hợp bộ tải ảnh đại diện hỗ trợ tải ảnh và mã hóa Base64 lưu trữ đồng bộ.
+*   **Navbar tinh gọn hiển thị Avatar & Tooltip:** Thay thế cụm thông tin text Tên & Trường học cồng kềnh trên [Navbar.tsx](file:///c:/Users/ADMIN/Desktop/New%20folder/Student-Expense-Manage-/src/components/Navbar.tsx) bằng một nút Avatar tròn hiện đại (tự động tạo avatar chữ cái gradient nếu trống). Di chuột vào avatar hiển thị tên qua Tooltip, nhấp chuột để đi nhanh tới trang Hồ sơ.
+*   **Tính toán Dòng tiền số dư Ví lũy tiến chính xác:** Cập nhật hàm tính toán dòng tiền số dư ví lũy tiến trong [Dashboard.tsx](file:///c:/Users/ADMIN/Desktop/New%20folder/Student-Expense-Manage-/src/components/Dashboard.tsx) tự động cộng thu nhập cố định hàng tháng (`user.monthlyIncome`) vào Ngày 01 và tự động đối chiếu trừ các khoản chi tiêu định kỳ (`recurringExpenses`) phát sinh trong tháng theo lịch phân bổ thực tế.
+*   **Hoạt ảnh Siri chỉ hoạt động khi nhận diện âm thanh:** Bổ sung trạng thái `isSoundActive` liên kết với các sự kiện âm lượng của `SpeechRecognition` để tắt hoạt ảnh nhấp nhô của sóng âm Siri thành các chấm tròn ngang phẳng khi im lặng, chỉ kích hoạt chuyển động mượt mà khi bắt đầu nói hoặc nhận diện âm thanh.
+
 ### [v5.3.0] - 2026-06-10
 #### 🌟 Nhập giọng nói AI, Biểu đồ Số dư Ví & Tối ưu hóa Hiệu năng (AI Voice, Running Balance Line Chart & SWR Performance)
 *   **Biểu đồ Đường Số Dư Ví (Cash Flow Line Chart):** Chuyển đổi biểu đồ cột Thu/Chi cũ sang biểu diễn **Số dư Ví lũy tiến (Running Balance)** ngày qua ngày trong tháng bằng SVG Line/Area Chart mượt mà. Đồ họa 100% responsive hỗ trợ lưới tọa độ, dán nhãn trục X và đổi màu sắc động (đỏ hồng khi số dư âm, xanh lá khi số dư dương) kèm hover tooltip hiển thị chi tiết giao dịch phát sinh.

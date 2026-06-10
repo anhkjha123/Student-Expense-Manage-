@@ -6,6 +6,9 @@ export interface User {
   monthlyIncome: number; // Thu nhập hằng tháng (được chu cấp hoặc làm thêm)
   savingGoal: number;    // Mục tiêu tiết kiệm hằng tháng
   joinedDate: string;
+  age?: number;
+  avatar?: string;
+  phone?: string;
 }
 
 export interface Category {

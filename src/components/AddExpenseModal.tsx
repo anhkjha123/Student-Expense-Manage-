@@ -61,6 +61,7 @@ export default function AddExpenseModal({
   // Voice States (CH-01)
   const [helperTab, setHelperTab] = useState<'ocr' | 'voice'>('ocr');
   const [isListening, setIsListening] = useState<boolean>(false);
+  const [isSoundActive, setIsSoundActive] = useState<boolean>(false);
   const [voiceText, setVoiceText] = useState<string>('');
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
@@ -122,6 +123,7 @@ export default function AddExpenseModal({
       setVoiceText('');
       setVoiceError(null);
       setIsListening(false);
+      setIsSoundActive(false);
     }
   }, [editingExpense, isOpen, categories, startWithVoice]);
 
@@ -133,6 +135,7 @@ export default function AddExpenseModal({
     setVoiceError(null);
     setVoiceText('');
     setIsListening(true);
+    setIsSoundActive(false);
     setHighlightedFields({});
     hasParsedRef.current = false;
     latestTranscriptRef.current = '';
@@ -144,7 +147,24 @@ export default function AddExpenseModal({
     recognition.maxAlternatives = 1;
     recognition.continuous = false;
 
+    // Sound/Speech start and end events for active animation control
+    recognition.onsoundstart = () => {
+      setIsSoundActive(true);
+    };
+    recognition.onsoundend = () => {
+      setIsSoundActive(false);
+    };
+    recognition.onspeechstart = () => {
+      setIsSoundActive(true);
+    };
+    recognition.onspeechend = () => {
+      setIsSoundActive(false);
+    };
+
     recognition.onresult = (event: any) => {
+      // Keep sound active when result event triggers
+      setIsSoundActive(true);
+      
       let interimTranscript = '';
       let finalTranscript = '';
 
@@ -176,11 +196,13 @@ export default function AddExpenseModal({
         setVoiceError(`Lỗi nhận diện: ${event.error}`);
       }
       setIsListening(false);
+      setIsSoundActive(false);
       recognitionRef.current = null;
     };
 
     recognition.onend = () => {
       setIsListening(false);
+      setIsSoundActive(false);
       recognitionRef.current = null;
 
       // Fallback: If we haven't parsed a final result yet but have captured some voice text, parse it now
@@ -548,20 +570,20 @@ export default function AddExpenseModal({
                         <div className="relative w-72 h-24 flex items-center justify-center overflow-hidden rounded-3xl bg-slate-950 shadow-lg border border-slate-800">
                           {/* Siri glowing spheres background */}
                           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div className="absolute w-40 h-14 bg-rose-500/25 rounded-full filter blur-xl animate-siri-glow-1"></div>
-                            <div className="absolute w-36 h-12 bg-purple-600/30 rounded-full filter blur-xl animate-siri-glow-2"></div>
-                            <div className="absolute w-32 h-16 bg-cyan-500/20 rounded-full filter blur-xl animate-siri-glow-3"></div>
+                            <div className={`absolute w-40 h-14 bg-rose-500/25 rounded-full filter blur-xl ${isSoundActive ? 'animate-siri-glow-1' : ''}`}></div>
+                            <div className={`absolute w-36 h-12 bg-purple-600/30 rounded-full filter blur-xl ${isSoundActive ? 'animate-siri-glow-2' : ''}`}></div>
+                            <div className={`absolute w-32 h-16 bg-cyan-500/20 rounded-full filter blur-xl ${isSoundActive ? 'animate-siri-glow-3' : ''}`}></div>
                           </div>
                           
                           {/* Colorful pulsing bars */}
                           <div className="relative flex items-center justify-center gap-1.5 h-12 z-10">
-                            <div className="w-1.5 bg-gradient-to-t from-cyan-400 to-blue-500 rounded-full animate-siri-bar-1 shadow-[0_0_10px_rgba(34,211,238,0.5)]"></div>
-                            <div className="w-1.5 bg-gradient-to-t from-blue-500 to-purple-500 rounded-full animate-siri-bar-2 shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
-                            <div className="w-1.5 bg-gradient-to-t from-purple-500 to-pink-500 rounded-full animate-siri-bar-3 shadow-[0_0_10px_rgba(236,72,153,0.5)]"></div>
-                            <div className="w-1.5 bg-gradient-to-t from-pink-500 to-rose-400 rounded-full animate-siri-bar-4 shadow-[0_0_10px_rgba(244,63,94,0.5)]"></div>
-                            <div className="w-1.5 bg-gradient-to-t from-rose-400 to-orange-400 rounded-full animate-siri-bar-5 shadow-[0_0_10px_rgba(251,146,60,0.5)]"></div>
-                            <div className="w-1.5 bg-gradient-to-t from-orange-400 to-yellow-400 rounded-full animate-siri-bar-6 shadow-[0_0_10px_rgba(250,204,21,0.5)]"></div>
-                            <div className="w-1.5 bg-gradient-to-t from-yellow-400 to-cyan-400 rounded-full animate-siri-bar-7 shadow-[0_0_10px_rgba(34,211,238,0.5)]"></div>
+                            <div className={`w-1.5 bg-gradient-to-t from-cyan-400 to-blue-500 rounded-full shadow-[0_0_10px_rgba(34,211,238,0.5)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-1' : 'h-2'}`}></div>
+                            <div className={`w-1.5 bg-gradient-to-t from-blue-500 to-purple-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.5)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-2' : 'h-2'}`}></div>
+                            <div className={`w-1.5 bg-gradient-to-t from-purple-500 to-pink-500 rounded-full shadow-[0_0_10px_rgba(236,72,153,0.5)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-3' : 'h-2'}`}></div>
+                            <div className={`w-1.5 bg-gradient-to-t from-pink-500 to-rose-400 rounded-full shadow-[0_0_10px_rgba(244,63,94,0.5)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-4' : 'h-2'}`}></div>
+                            <div className={`w-1.5 bg-gradient-to-t from-rose-400 to-orange-400 rounded-full shadow-[0_0_10px_rgba(251,146,60,0.5)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-5' : 'h-2'}`}></div>
+                            <div className={`w-1.5 bg-gradient-to-t from-orange-400 to-yellow-400 rounded-full shadow-[0_0_10px_rgba(250,204,21,0.5)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-6' : 'h-2'}`}></div>
+                            <div className={`w-1.5 bg-gradient-to-t from-yellow-400 to-cyan-400 rounded-full shadow-[0_0_10px_rgba(34,211,238,0.5)] transition-all duration-300 ${isSoundActive ? 'animate-siri-bar-7' : 'h-2'}`}></div>
                           </div>
                         </div>
 

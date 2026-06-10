@@ -263,26 +263,31 @@ export default function Navbar({
             </AnimatePresence>
           </div>
 
-          {/* User Profile / Logout Desktop */}
-          <div className="hidden border-l border-slate-200 pl-4 sm:flex items-center gap-3">
-            <div className="text-right">
-              <span className="block text-xs font-bold text-slate-800">{user.name}</span>
-              <span className="block text-[10px] text-slate-400">{user.school}</span>
-            </div>
+          {/* User Profile & Logout */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 border-l border-slate-200 pl-2 sm:pl-4">
             <button
-              onClick={onLogout}
-              className="rounded-xl p-2.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer"
-              title="Đăng xuất"
+              onClick={() => setActiveTab('profile')}
+              className="relative group flex h-9 w-9 items-center justify-center rounded-full overflow-hidden border border-slate-200 shadow-sm cursor-pointer hover:border-emerald-500 hover:scale-105 active:scale-95 transition-all duration-200"
+              title={user.name}
+              id="navbar-profile-avatar-btn"
             >
-              <LogOut className="h-5 w-5" />
+              {user.avatar ? (
+                <img src={user.avatar} alt="User Avatar" className="h-full w-full object-cover" />
+              ) : (
+                <div className="h-full w-full bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center text-xs font-bold font-display">
+                  {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+              )}
+              
+              {/* Tooltip on hover */}
+              <div className="absolute right-0 top-11 hidden group-hover:block bg-slate-900 text-white text-[10px] font-semibold px-2 py-1 rounded shadow-lg whitespace-nowrap z-50 animate-fade-in pointer-events-none">
+                {user.name}
+              </div>
             </button>
-          </div>
 
-          {/* User Profile Mobile */}
-          <div className="flex sm:hidden items-center">
             <button
               onClick={onLogout}
-              className="rounded-xl p-2.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+              className="rounded-xl p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer"
               title="Đăng xuất"
             >
               <LogOut className="h-5 w-5" />

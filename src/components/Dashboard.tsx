@@ -110,12 +110,50 @@ export default function Dashboard({
       flowMap[dateStr] = { income: 0, expense: 0 };
     }
 
+    // Add fixed monthly income on Day 1
+    const firstDayStr = `${currentMonthStr}-01`;
+    if (flowMap[firstDayStr]) {
+      flowMap[firstDayStr].income += user.monthlyIncome;
+    }
+
+    // Add variable incomes on their respective dates
     variableIncomes.forEach(i => {
       if (flowMap[i.date]) flowMap[i.date].income += i.amount;
     });
 
+    // Add normal logged expenses on their respective dates
     currentMonthExpenses.forEach(e => {
       if (flowMap[e.date]) flowMap[e.date].expense += e.amount;
+    });
+
+    // Add recurring expenses on their firing dates
+    recurringExpenses.forEach(rec => {
+      const start = new Date(rec.startDate + 'T00:00:00');
+      if (rec.cycle === 'MONTHLY') {
+        const day = start.getDate();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        if (
+          (currentYear > start.getFullYear() || (currentYear === start.getFullYear() && currentMonth >= start.getMonth())) &&
+          day <= daysInMonth
+        ) {
+          const dateStr = `${currentMonthStr}-${day.toString().padStart(2, '0')}`;
+          if (flowMap[dateStr]) {
+            flowMap[dateStr].expense += rec.amount;
+          }
+        }
+      } else if (rec.cycle === 'WEEKLY') {
+        const startDow = start.getDay();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        for (let d = 1; d <= daysInMonth; d++) {
+          const candidate = new Date(currentYear, currentMonth, d);
+          if (candidate.getDay() === startDow && candidate >= start) {
+            const dateStr = `${currentMonthStr}-${d.toString().padStart(2, '0')}`;
+            if (flowMap[dateStr]) {
+              flowMap[dateStr].expense += rec.amount;
+            }
+          }
+        }
+      }
     });
 
     const dates = Object.keys(flowMap).sort();
@@ -130,7 +168,7 @@ export default function Dashboard({
         balance: runningBalance
       };
     });
-  }, [variableIncomes, currentMonthExpenses, currentYear, currentMonth, currentMonthStr]);
+  }, [user.monthlyIncome, variableIncomes, currentMonthExpenses, recurringExpenses, currentYear, currentMonth, currentMonthStr]);
 
   const { minBal, maxBal, points, lineD, areaD, isNegative } = useMemo(() => {
     if (cashflow.length === 0) {

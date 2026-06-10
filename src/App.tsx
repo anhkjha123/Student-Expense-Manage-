@@ -30,6 +30,7 @@ import Incomes from './components/Incomes';
 import CalendarView from './components/CalendarView';
 import RecurringExpenses from './components/RecurringExpenses';
 import Groups from './components/Groups';
+import UserProfile from './components/UserProfile';
 
 export default function App() {
   // --- CORE STATE ---
@@ -878,6 +879,17 @@ export default function App() {
 
           {activeTab === 'groups' && (
             <Groups user={currentUser} />
+          )}
+
+          {activeTab === 'profile' && (
+            <UserProfile 
+              user={currentUser}
+              onUpdateProfile={(updated) => {
+                setCurrentUser(updated);
+                localStorage.setItem('sem_user', JSON.stringify(updated));
+              }}
+              onBack={() => setActiveTab('dashboard')}
+            />
           )}
         </main>
 
