@@ -477,9 +477,36 @@ export class ApiService {
   public static async getTopSpending() {}
 
   // --- OCR SCANNING ---
+  private static async safeFetchJson(url: string, options: RequestInit): Promise<any> {
+    let response;
+    try {
+      response = await fetch(url, options);
+    } catch (networkErr: any) {
+      throw new Error(`Lỗi mạng: Không thể kết nối tới server tại ${url}. Trạng thái server có thể đang offline. Chi tiết: ${networkErr.message}`);
+    }
+
+    const responseText = await response.text();
+
+    if (!response.ok) {
+      try {
+        const errObj = JSON.parse(responseText);
+        throw new Error(errObj.error || `Yêu cầu thất bại với mã lỗi ${response.status}`);
+      } catch {
+        // Returned HTML page or plain text instead of JSON error object
+        throw new Error(`Server gặp sự cố (Mã: ${response.status}). Chi tiết phản hồi:\n${responseText.substring(0, 200)}...`);
+      }
+    }
+
+    try {
+      return JSON.parse(responseText);
+    } catch {
+      throw new Error(`Dữ liệu server phản hồi không đúng định dạng JSON. Chi tiết:\n${responseText.substring(0, 200)}...`);
+    }
+  }
+
   public static async scanReceipt(imageBase64: string, filename: string, mimeType: string): Promise<any> {
     const token = localStorage.getItem('sem_token');
-    const response = await fetch('/api/expenses/scan-receipt', {
+    return this.safeFetchJson('/api/expenses/scan-receipt', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -487,17 +514,12 @@ export class ApiService {
       },
       body: JSON.stringify({ image: imageBase64, name: filename, mimeType })
     });
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.error || 'Lỗi quét hóa đơn');
-    }
-    return response.json();
   }
 
   // --- GROUPS CLIENT APIS ---
   public static async createGroup(name: string): Promise<{ group: Group, members: GroupMember[] }> {
     const token = localStorage.getItem('sem_token');
-    const response = await fetch('/api/groups', {
+    return this.safeFetchJson('/api/groups', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -505,86 +527,59 @@ export class ApiService {
       },
       body: JSON.stringify({ name })
     });
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.error || 'Lỗi tạo nhóm');
-    }
-    return response.json();
   }
 
   public static async getGroups(): Promise<Group[]> {
     const token = localStorage.getItem('sem_token');
-    const response = await fetch('/api/groups', {
+    return this.safeFetchJson('/api/groups', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    if (!response.ok) {
-      throw new Error('Lỗi tải danh sách nhóm');
-    }
-    return response.json();
   }
 
   public static async getGroup(id: string): Promise<{ group: Group, members: GroupMember[], expenses: GroupExpense[], debts: GroupSettlement[] }> {
     const token = localStorage.getItem('sem_token');
-    const response = await fetch(`/api/groups/${id}`, {
+    return this.safeFetchJson(`/api/groups/${id}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.error || 'Lỗi tải chi tiết nhóm');
-    }
-    return response.json();
   }
 
   public static async generateInvite(id: string): Promise<Group> {
     const token = localStorage.getItem('sem_token');
-    const response = await fetch(`/api/groups/${id}/invite`, {
+    return this.safeFetchJson(`/api/groups/${id}/invite`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    if (!response.ok) {
-      throw new Error('Lỗi làm mới mã mời');
-    }
-    return response.json();
   }
 
   public static async revokeInvite(id: string): Promise<Group> {
     const token = localStorage.getItem('sem_token');
-    const response = await fetch(`/api/groups/${id}/invite/revoke`, {
+    return this.safeFetchJson(`/api/groups/${id}/invite/revoke`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    if (!response.ok) {
-      throw new Error('Lỗi thu hồi mã mời');
-    }
-    return response.json();
   }
 
   public static async joinGroup(code: string): Promise<{ message: string, group: Group }> {
     const token = localStorage.getItem('sem_token');
-    const response = await fetch(`/api/groups/join/${code}`, {
+    return this.safeFetchJson(`/api/groups/join/${code}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.error || 'Lỗi tham gia nhóm');
-    }
-    return response.json();
   }
 
   public static async addGroupExpense(id: string, payload: { description: string, amount: number, date: string, splitType: 'EQUAL' | 'CUSTOM', customSplits?: any[] }): Promise<GroupExpense> {
     const token = localStorage.getItem('sem_token');
-    const response = await fetch(`/api/groups/${id}/expenses`, {
+    return this.safeFetchJson(`/api/groups/${id}/expenses`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -592,16 +587,11 @@ export class ApiService {
       },
       body: JSON.stringify(payload)
     });
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.error || 'Lỗi thêm khoản chi nhóm');
-    }
-    return response.json();
   }
 
   public static async settleDebt(id: string, payload: { fromUserId: string, fromUserName: string, toUserId: string, toUserName: string, amount: number }): Promise<GroupExpense> {
     const token = localStorage.getItem('sem_token');
-    const response = await fetch(`/api/groups/${id}/settle`, {
+    return this.safeFetchJson(`/api/groups/${id}/settle`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -609,11 +599,6 @@ export class ApiService {
       },
       body: JSON.stringify(payload)
     });
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.error || 'Lỗi thanh toán nợ');
-    }
-    return response.json();
   }
 
   public static async exportGroupCSV(id: string): Promise<Blob> {
