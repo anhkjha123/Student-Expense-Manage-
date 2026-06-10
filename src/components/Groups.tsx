@@ -402,27 +402,6 @@ export default function Groups({ user }: GroupsProps) {
       {/* Main Groups View Selector */}
       {!activeGroupId ? (
         <div className="space-y-6">
-          {/* Header Banner */}
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-3xl p-6 text-white shadow-xl shadow-emerald-100">
-            <div className="space-y-1">
-              <span className="inline-block rounded-full bg-white/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider font-mono border border-white/30">
-                Tính năng Sprint 5
-              </span>
-              <h2 className="font-display text-2xl font-extrabold tracking-tight drop-shadow-md">
-                Quỹ Nhóm & Chia Tiền 💸
-              </h2>
-              <p className="text-xs text-emerald-50 max-w-prose leading-relaxed">
-                Tạo nhóm chi tiêu chung khi ở ghép hoặc đi du lịch. Hệ thống tự động tính nợ làm tròn đến 1000 VND và hỗ trợ tất toán nhanh.
-              </p>
-            </div>
-            <button
-              onClick={() => setIsCreating(true)}
-              className="rounded-2xl bg-white hover:bg-emerald-50 px-5 py-3 text-center text-sm font-bold text-emerald-600 transition-all shadow-md shrink-0 cursor-pointer"
-            >
-              + Tạo nhóm chi tiêu mới
-            </button>
-          </motion.div>
-
           <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-12 gap-6">
             
             {/* Groups List */}
@@ -470,9 +449,24 @@ export default function Groups({ user }: GroupsProps) {
               )}
             </div>
 
-            {/* Side tools (Join Group / Create modal input) */}
+            {/* Side tools (Create group / Join Group) */}
             <div className="md:col-span-4 space-y-6">
-              
+              <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800">Nhóm chi tiêu</h3>
+                    <p className="text-xs text-slate-500 mt-1">Tạo và quản lý nhóm chi tiêu chung.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsCreating(true)}
+                    className="rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 text-xs font-bold transition-colors"
+                  >
+                    Tạo nhóm mới
+                  </button>
+                </div>
+              </div>
+
               {/* Join group box */}
               <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm space-y-3">
                 <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">

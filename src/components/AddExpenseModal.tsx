@@ -355,15 +355,15 @@ export default function AddExpenseModal({
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-2">
-                          <label
-                    className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-emerald-400 bg-white rounded-xl py-5 px-3 transition-all cursor-pointer group text-center"
+                <div className="grid grid-cols-1 gap-2 place-items-center">
+                  <label
+                    className="group flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-emerald-400 bg-white rounded-3xl py-8 px-6 transition-all cursor-pointer text-center shadow-sm w-full max-w-md"
                     onDrop={handleDrop}
                     onDragOver={(e) => e.preventDefault()}
                     onPaste={handlePaste}
                   >
-                    <UploadCloud className="h-6 w-6 text-slate-400 group-hover:text-emerald-500 transition-colors" />
-                    <span className="text-[10px] font-bold text-slate-500 group-hover:text-slate-700 mt-1">Chọn ảnh hóa đơn hoặc kéo thả / dán ảnh (Ctrl+V)</span>
+                    <UploadCloud className="h-7 w-7 text-slate-400 group-hover:text-emerald-500 transition-colors" />
+                    <span className="text-sm font-semibold text-slate-700 mt-3">Chọn ảnh hóa đơn hoặc kéo thả / dán ảnh (Ctrl+V)</span>
                     <input type="file" accept="image/png, image/jpeg, image/heic" onChange={handleFileChange} className="hidden" />
                   </label>
                 </div>
