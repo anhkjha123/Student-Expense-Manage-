@@ -32,8 +32,8 @@ export function parseVietnameseVoiceCommand(text: string): ParsedVoiceCommand {
   const normalized = text.toLowerCase().trim();
   
   // 1. Regex to match number and unit: e.g. "35 nghìn", "35.000", "50k", "2 triệu", "120 ngàn"
-  // Match digits with optional dot/comma decimals followed by multiplier unit
-  const numberRegex = /(\d+(?:[\.,]\d+)?)\s*(k|nghìn|ngàn|tr|triệu|đồng|đ)?\b/gi;
+  // Match digits with dots/commas, optionally followed by multiplier unit
+  const numberRegex = /(\d+(?:[\.,\d]*\d)?)\s*(k|nghìn|ngàn|tr|triệu|đồng|đ)?\b/gi;
   
   let amount: number | undefined;
   let parsedText = normalized;
@@ -43,9 +43,17 @@ export function parseVietnameseVoiceCommand(text: string): ParsedVoiceCommand {
   if (matches.length > 0) {
     // We take the first match as primary amount
     const match = matches[0];
-    const rawNumStr = match[1].replace(/,/g, '');
-    let value = parseFloat(rawNumStr);
+    const rawNumStr = match[1];
     const unit = match[2] ? match[2].toLowerCase() : '';
+    
+    let value = 0;
+    if (unit === 'tr' || unit === 'triệu' || unit === 'tỷ') {
+      const normalizedNum = rawNumStr.replace(/,/g, '.');
+      value = parseFloat(normalizedNum);
+    } else {
+      const normalizedNum = rawNumStr.replace(/[\.,]/g, '');
+      value = parseFloat(normalizedNum);
+    }
     
     if (unit === 'k') {
       value *= 1000;
@@ -90,7 +98,7 @@ export function parseVietnameseVoiceCommand(text: string): ParsedVoiceCommand {
     categoryId = 'study';
   } else if (/\b(phim|xem phim|ve xem phim|choi|game|du lich|hat|karaoke|bong da|the thao|giai tri)\b/i.test(textToCheck)) {
     categoryId = 'entertainment';
-  } else if (/\b(ao|quan|giay|shopee|tiki|lazada|mua sam|my pham|sieu thi|quan ao)\b/i.test(textToCheck)) {
+  } else if (/\b(ao|quan|giay|shopee|tiki|lazada|mua sam|my pham|sieu thi|quan ao|laptop|may tinh|dien thoai|ipad|phone|thiet bi|computer)\b/i.test(textToCheck)) {
     categoryId = 'shopping';
   } else if (/\b(phong|tro|tien tro|dien|nuoc|wifi|mang|chung cu|nha o)\b/i.test(textToCheck)) {
     categoryId = 'rent';

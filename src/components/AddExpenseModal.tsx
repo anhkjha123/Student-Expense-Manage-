@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   X, 
   DollarSign, 
@@ -10,7 +10,8 @@ import {
   Loader2,
   Trash2,
   Mic,
-  Volume2
+  Volume2,
+  Square
 } from 'lucide-react';
 import { Category, Expense } from '../types';
 import { motion } from 'motion/react';
@@ -62,6 +63,7 @@ export default function AddExpenseModal({
   const [isListening, setIsListening] = useState<boolean>(false);
   const [voiceText, setVoiceText] = useState<string>('');
   const [voiceError, setVoiceError] = useState<string | null>(null);
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -113,6 +115,7 @@ export default function AddExpenseModal({
     setHighlightedFields({});
 
     const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
     recognition.lang = 'vi-VN';
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
@@ -148,10 +151,12 @@ export default function AddExpenseModal({
         setVoiceError(`Lỗi nhận diện: ${event.error}`);
       }
       setIsListening(false);
+      recognitionRef.current = null;
     };
 
     recognition.onend = () => {
       setIsListening(false);
+      recognitionRef.current = null;
     };
 
     recognition.start();
@@ -517,6 +522,18 @@ export default function AddExpenseModal({
                         </div>
                         <span className="text-xs font-bold text-slate-500 animate-pulse font-mono">Đang lắng nghe... Hãy nói ngay!</span>
                         <p className="text-[10px] text-slate-400 italic">Ví dụ: "Ăn trưa cơm bụi 35 nghìn"</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (recognitionRef.current) {
+                              recognitionRef.current.stop();
+                            }
+                          }}
+                          className="mt-3 rounded-2xl bg-rose-550 hover:bg-rose-600 px-5 py-2 text-xs font-bold text-white shadow-md shadow-rose-200 flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95 border border-rose-600/20"
+                        >
+                          <Square className="h-3 w-3 fill-white text-white" />
+                          Dừng ghi âm
+                        </button>
                       </div>
                     ) : (
                       <button

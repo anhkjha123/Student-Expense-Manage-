@@ -53,6 +53,7 @@ export default function Dashboard({
   
   const [variableIncomes, setVariableIncomes] = useState<Income[]>([]);
   const [tooltipVisible, setTooltipVisible] = useState<'income' | 'expense' | null>(null);
+  const [hoveredPointIndex, setHoveredPointIndex] = useState<number | null>(null);
 
   // Load variable incomes (non-fixed) for current month from localStorage / API
   useEffect(() => {
@@ -117,12 +118,40 @@ export default function Dashboard({
       if (flowMap[e.date]) flowMap[e.date].expense += e.amount;
     });
 
-    return Object.keys(flowMap).sort().map(date => ({
-      date,
-      income: flowMap[date].income,
-      expense: flowMap[date].expense
-    }));
+    const dates = Object.keys(flowMap).sort();
+    let runningBalance = 0;
+    
+    return dates.map(date => {
+      runningBalance += flowMap[date].income - flowMap[date].expense;
+      return {
+        date,
+        income: flowMap[date].income,
+        expense: flowMap[date].expense,
+        balance: runningBalance
+      };
+    });
   }, [variableIncomes, currentMonthExpenses, currentYear, currentMonth, currentMonthStr]);
+
+  const { minBal, maxBal, points, lineD, areaD, isNegative } = useMemo(() => {
+    if (cashflow.length === 0) {
+      return { minBal: 0, maxBal: 0, points: [], lineD: '', areaD: '', isNegative: false };
+    }
+    const balances = cashflow.map(d => d.balance);
+    const minBal = Math.min(...balances, 0);
+    const maxBal = Math.max(...balances, 100000);
+    const range = maxBal - minBal || 1;
+    const points = cashflow.map((day, i) => {
+      const x = (i / (cashflow.length - 1)) * 300;
+      const y = 85 - ((day.balance - minBal) / range) * 70; // Map y to [15, 85]
+      return { x, y, ...day };
+    });
+    const lineD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+    const areaD = points.length > 0 
+      ? `${lineD} L ${points[points.length - 1].x} 100 L ${points[0].x} 100 Z` 
+      : '';
+    const isNegative = cashflow[cashflow.length - 1]?.balance < 0;
+    return { minBal, maxBal, points, lineD, areaD, isNegative };
+  }, [cashflow]);
 
   // Compute insights locally
   const insights = useMemo(() => {
@@ -359,26 +388,14 @@ export default function Dashboard({
             Hôm nay là ngày {currentDay} của tháng. Hãy lưu ý chi tiêu trong khoảng cho phép và ghi chép đầy đủ nhé!
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3 shrink-0">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={onOpenAddExpense}
-            className="rounded-2xl bg-white hover:bg-emerald-50 px-6 py-3.5 text-center text-sm font-bold text-emerald-600 transition-all shadow-lg cursor-pointer border border-white/20"
-          >
-            ✍️ Thêm một khoản chi ngay
-          </motion.button>
-          {onOpenAddExpenseVoice && (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={onOpenAddExpenseVoice}
-              className="rounded-2xl bg-rose-550 hover:bg-rose-600 px-6 py-3.5 text-center text-sm font-bold text-white transition-all shadow-lg cursor-pointer border border-rose-600/20 flex items-center justify-center gap-2 shadow-rose-200"
-            >
-              🎙️ Ghi giọng nói nhanh
-            </motion.button>
-          )}
-        </div>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={onOpenAddExpense}
+          className="rounded-2xl bg-white hover:bg-emerald-50 px-6 py-3.5 text-center text-sm font-bold text-emerald-600 transition-all shadow-lg shrink-0 cursor-pointer border border-white/20"
+        >
+          ✍️ Thêm một khoản chi ngay
+        </motion.button>
       </motion.div>
 
       {/* CORE FINANCIAL OVERVIEW CARDS */}
@@ -665,52 +682,125 @@ export default function Dashboard({
       {/* CASH FLOW CHART & RECENT EXPENSES */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-12 gap-6">
         
-        {/* Cash Flow Area Chart (Mockup with CSS) */}
+        {/* Cash Flow Area Chart (SVG Line Chart showing Wallet Balance) */}
         <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md md:col-span-7 lg:col-span-7 space-y-4 hover:shadow-lg transition-shadow duration-300 flex flex-col justify-between">
           <div className="flex justify-between items-center pb-2 border-b border-slate-50">
             <h3 className="font-display text-base font-bold text-slate-800 drop-shadow-sm">
-              Dòng Tiền (Cash Flow)
+              Xu hướng Số Dư Ví (Cash Flow)
             </h3>
           </div>
-          <div className="h-48 w-full flex items-end gap-1 px-1 overflow-x-auto relative mt-4 border-b border-slate-100 pb-1">
+          <div className="h-48 w-full relative mt-4 border-b border-slate-100 pb-1">
             {cashflow.length === 0 ? (
-              <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Đang tải dữ liệu dòng tiền...</div>
+              <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Đang tải dữ liệu số dư...</div>
             ) : (
-              cashflow.map(day => {
-                const isDeficit = day.expense > day.income;
-                const total = Math.max(day.expense, day.income, 100000);
-                const expHeight = (day.expense / total) * 100;
-                const incHeight = (day.income / total) * 100;
-                return (
-                  <div key={day.date} className="h-full flex-1 flex flex-col justify-end items-center group relative min-w-[14px]">
-                    {/* Tooltip */}
-                    <div className="absolute bottom-full mb-2 bg-slate-900/90 text-white text-[10px] p-2 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 whitespace-nowrap pointer-events-none shadow-md border border-white/10 scale-95 group-hover:scale-100 transform origin-bottom">
-                      <div className="font-semibold text-slate-300 border-b border-slate-700/50 pb-1 mb-1">{day.date.split('-').reverse().join('/')}</div>
-                      <div className="text-emerald-400 font-bold">Thu: +{new Intl.NumberFormat('vi-VN').format(day.income)}đ</div>
-                      <div className="text-rose-400 font-bold">Chi: -{new Intl.NumberFormat('vi-VN').format(day.expense)}đ</div>
+              <div className="w-full h-full relative">
+                {/* SVG Line & Area Chart */}
+                <svg viewBox="0 0 300 100" className="w-full h-full overflow-visible" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="chart-area-grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={isNegative ? '#f43f5e' : '#10b981'} stopOpacity="0.25" />
+                      <stop offset="100%" stopColor={isNegative ? '#f43f5e' : '#10b981'} stopOpacity="0.0" />
+                    </linearGradient>
+                  </defs>
+                  
+                  {/* Grid Lines */}
+                  <line x1="0" y1="15" x2="300" y2="15" stroke="#f8fafc" strokeWidth="0.75" />
+                  <line x1="0" y1="50" x2="300" y2="50" stroke="#f1f5f9" strokeWidth="0.5" strokeDasharray="2 2" />
+                  <line x1="0" y1="85" x2="300" y2="85" stroke="#f8fafc" strokeWidth="0.75" />
+
+                  {/* Area Under Line */}
+                  <path d={areaD} fill="url(#chart-area-grad)" />
+
+                  {/* Line */}
+                  <path d={lineD} fill="none" stroke={isNegative ? '#f43f5e' : '#10b981'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+
+                  {/* Hover Indicator Line */}
+                  {hoveredPointIndex !== null && points[hoveredPointIndex] && (
+                    <>
+                      <line 
+                        x1={points[hoveredPointIndex].x} 
+                        y1="0" 
+                        x2={points[hoveredPointIndex].x} 
+                        y2="100" 
+                        stroke="#94a3b8" 
+                        strokeWidth="0.75" 
+                        strokeDasharray="3 3" 
+                      />
+                      <circle 
+                        cx={points[hoveredPointIndex].x} 
+                        cy={points[hoveredPointIndex].y} 
+                        r="4.5" 
+                        fill={points[hoveredPointIndex].balance < 0 ? '#f43f5e' : '#10b981'} 
+                        stroke="#ffffff" 
+                        strokeWidth="1.5" 
+                        className="shadow-sm"
+                      />
+                    </>
+                  )}
+
+                  {/* Invisible Hover Zones (one rect per point) */}
+                  {points.map((p, idx) => {
+                    const colWidth = 300 / (points.length - 1 || 1);
+                    const startX = p.x - colWidth / 2;
+                    return (
+                      <rect
+                        key={idx}
+                        x={startX}
+                        y="0"
+                        width={colWidth}
+                        height="100"
+                        fill="transparent"
+                        className="cursor-pointer"
+                        onMouseEnter={() => setHoveredPointIndex(idx)}
+                        onMouseLeave={() => setHoveredPointIndex(null)}
+                      />
+                    );
+                  })}
+                </svg>
+
+                {/* Floating Tooltip */}
+                {hoveredPointIndex !== null && points[hoveredPointIndex] && (
+                  <div 
+                    className="absolute bg-slate-900/95 text-white text-[10px] p-2.5 rounded-2xl shadow-xl border border-white/10 z-20 pointer-events-none whitespace-nowrap"
+                    style={{
+                      left: `${(hoveredPointIndex / (points.length - 1)) * 100}%`,
+                      bottom: '80%',
+                      transform: 'translateX(-50%)',
+                      transition: 'left 0.08s ease-out'
+                    }}
+                  >
+                    <div className="font-bold text-slate-300 border-b border-slate-700/50 pb-1 mb-1.5 flex justify-between gap-4">
+                      <span>{points[hoveredPointIndex].date.split('-').reverse().join('/')}</span>
+                      <span className="font-mono text-slate-400">Ngày {hoveredPointIndex + 1}</span>
                     </div>
-                    {/* Bars Side by Side */}
-                    <div className="w-full flex items-end justify-center gap-[1.5px] h-full pb-1">
-                      <div 
-                        className="w-[45%] bg-emerald-400 rounded-t-xs transition-all duration-300 hover:bg-emerald-500 shadow-xs" 
-                        style={{ height: `${incHeight}%` }}
-                      ></div>
-                      <div 
-                        className={`w-[45%] ${isDeficit ? 'bg-rose-500 hover:bg-rose-600' : 'bg-rose-300 hover:bg-rose-400'} rounded-t-xs transition-all duration-300 shadow-xs`} 
-                        style={{ height: `${expHeight}%` }}
-                      ></div>
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex justify-between gap-4">
+                        <span className="text-slate-400">Số dư ví:</span>
+                        <span className={`font-mono font-bold ${points[hoveredPointIndex].balance < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                          {new Intl.NumberFormat('vi-VN').format(points[hoveredPointIndex].balance)}đ
+                        </span>
+                      </div>
+                      <div className="flex justify-between gap-4 text-[9px] opacity-75 mt-0.5 pt-0.5 border-t border-slate-800">
+                        <span>Thu/Chi ngày:</span>
+                        <span className="font-mono text-slate-300">
+                          +{new Intl.NumberFormat('vi-VN').format(points[hoveredPointIndex].income)}đ / -{new Intl.NumberFormat('vi-VN').format(points[hoveredPointIndex].expense)}đ
+                        </span>
+                      </div>
                     </div>
-                    {/* Small marker on x-axis */}
-                    <div className="w-1.5 h-1.5 rounded-full bg-slate-100 border border-slate-300 group-hover:bg-slate-400 transition-colors mt-0.5 shrink-0"></div>
                   </div>
-                );
-              })
+                )}
+              </div>
             )}
           </div>
-          <div className="flex justify-center gap-4 text-[10px] text-slate-500 font-medium">
-            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-400"></div> Thu nhập</span>
-            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-rose-300"></div> Chi tiêu</span>
-            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-rose-500"></div> Chi &gt; Thu (Thâm hụt)</span>
+          {/* Axis Labels */}
+          <div className="flex justify-between text-[9px] text-slate-400 font-mono px-1">
+            <span>Ngày 01</span>
+            <span>Giữa tháng (Ngày 15)</span>
+            <span>Cuối tháng</span>
+          </div>
+          <div className="flex justify-center gap-5 text-[10px] text-slate-500 font-semibold pt-1 border-t border-slate-50">
+            <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-emerald-400"></div> Số dư dương (&gt;= 0đ)</span>
+            <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-rose-500"></div> Số dư âm (&lt; 0đ)</span>
           </div>
         </div>
         

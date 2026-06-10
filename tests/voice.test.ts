@@ -29,4 +29,32 @@ describe('Voice Command NLP Parser Unit Tests', () => {
     expect(res.title).toBe('Sách');
     expect(res.categoryId).toBe('study');
   });
+
+  it('phân tích chính xác cụm từ có dấu chấm hàng nghìn', () => {
+    const res = parseVietnameseVoiceCommand('ăn trưa 35.000');
+    expect(res.amount).toBe(35000);
+    expect(res.title).toBe('Ăn trưa');
+    expect(res.categoryId).toBe('food');
+  });
+
+  it('phân tích chính xác cụm từ tiền triệu có dấu phẩy thập phân', () => {
+    const res = parseVietnameseVoiceCommand('tiền trọ 2,5 triệu');
+    expect(res.amount).toBe(2500000);
+    expect(res.title).toBe('Trọ'); // 'tiền' is a prefix cleaned up
+    expect(res.categoryId).toBe('rent');
+  });
+
+  it('phân tích chính xác cụm từ tiền triệu có dấu chấm thập phân', () => {
+    const res = parseVietnameseVoiceCommand('đóng học phí 2.5 triệu');
+    expect(res.amount).toBe(2500000);
+    expect(res.title).toBe('Đóng học phí'); // 'đóng' is not a matched prefix so it remains
+    expect(res.categoryId).toBe('study');
+  });
+
+  it('phân tích chính xác cụm từ tiền triệu chẵn lớn có dấu chấm hàng nghìn', () => {
+    const res = parseVietnameseVoiceCommand('mua laptop 15.000.000');
+    expect(res.amount).toBe(15000000);
+    expect(res.title).toBe('Laptop');
+    expect(res.categoryId).toBe('shopping');
+  });
 });
