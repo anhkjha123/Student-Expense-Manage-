@@ -64,6 +64,27 @@ export default function AddExpenseModal({
   const [voiceText, setVoiceText] = useState<string>('');
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
+  const hasParsedRef = useRef<boolean>(false);
+  const latestTranscriptRef = useRef<string>('');
+
+  const applyParsedResults = (parsed: any) => {
+    if (parsed.amount) {
+      setAmount(new Intl.NumberFormat('en-US').format(parsed.amount));
+      setHighlightedFields(prev => ({ ...prev, amount: true }));
+    }
+    if (parsed.title) {
+      setTitle(parsed.title);
+      setHighlightedFields(prev => ({ ...prev, title: true }));
+    }
+    if (parsed.categoryId) {
+      setCategoryId(parsed.categoryId);
+      if (parsed.categoryId === 'entertainment' || parsed.categoryId === 'shopping') {
+        setIsNecessary(false);
+      } else {
+        setIsNecessary(true);
+      }
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -113,34 +134,38 @@ export default function AddExpenseModal({
     setVoiceText('');
     setIsListening(true);
     setHighlightedFields({});
+    hasParsedRef.current = false;
+    latestTranscriptRef.current = '';
 
     const recognition = new SpeechRecognition();
     recognitionRef.current = recognition;
     recognition.lang = 'vi-VN';
-    recognition.interimResults = false;
+    recognition.interimResults = true;
     recognition.maxAlternatives = 1;
+    recognition.continuous = false;
 
     recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setVoiceText(transcript);
+      let interimTranscript = '';
+      let finalTranscript = '';
 
-      const parsed = parseVietnameseVoiceCommand(transcript);
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
 
-      if (parsed.amount) {
-        setAmount(new Intl.NumberFormat('en-US').format(parsed.amount));
-        setHighlightedFields(prev => ({ ...prev, amount: true }));
+      const displayedText = finalTranscript || interimTranscript;
+      if (displayedText.trim()) {
+        setVoiceText(displayedText);
+        latestTranscriptRef.current = displayedText;
       }
-      if (parsed.title) {
-        setTitle(parsed.title);
-        setHighlightedFields(prev => ({ ...prev, title: true }));
-      }
-      if (parsed.categoryId) {
-        setCategoryId(parsed.categoryId);
-      }
-      if (parsed.categoryId === 'entertainment' || parsed.categoryId === 'shopping') {
-        setIsNecessary(false);
-      } else {
-        setIsNecessary(true);
+
+      if (finalTranscript.trim()) {
+        hasParsedRef.current = true;
+        const parsed = parseVietnameseVoiceCommand(finalTranscript);
+        applyParsedResults(parsed);
       }
     };
 
@@ -157,6 +182,13 @@ export default function AddExpenseModal({
     recognition.onend = () => {
       setIsListening(false);
       recognitionRef.current = null;
+
+      // Fallback: If we haven't parsed a final result yet but have captured some voice text, parse it now
+      if (!hasParsedRef.current && latestTranscriptRef.current.trim()) {
+        hasParsedRef.current = true;
+        const parsed = parseVietnameseVoiceCommand(latestTranscriptRef.current);
+        applyParsedResults(parsed);
+      }
     };
 
     recognition.start();
@@ -511,17 +543,42 @@ export default function AddExpenseModal({
 
                   <div className="flex flex-col items-center justify-center py-6 bg-white border border-slate-100 rounded-2xl space-y-4 shadow-xs relative overflow-hidden">
                     {isListening ? (
-                      <div className="flex flex-col items-center space-y-3">
-                        {/* Audio Waveform Animation */}
-                        <div className="flex items-center gap-1 h-8">
-                          <span className="w-1 bg-rose-500 rounded-full animate-pulse h-6"></span>
-                          <span className="w-1 bg-rose-400 rounded-full animate-pulse h-4" style={{ animationDelay: '0.15s' }}></span>
-                          <span className="w-1 bg-rose-500 rounded-full animate-pulse h-8" style={{ animationDelay: '0.3s' }}></span>
-                          <span className="w-1 bg-rose-400 rounded-full animate-pulse h-5" style={{ animationDelay: '0.45s' }}></span>
-                          <span className="w-1 bg-rose-500 rounded-full animate-pulse h-6" style={{ animationDelay: '0.6s' }}></span>
+                      <div className="flex flex-col items-center space-y-4 w-full">
+                        {/* Siri glowing wave container */}
+                        <div className="relative w-72 h-24 flex items-center justify-center overflow-hidden rounded-3xl bg-slate-950 shadow-lg border border-slate-800">
+                          {/* Siri glowing spheres background */}
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="absolute w-40 h-14 bg-rose-500/25 rounded-full filter blur-xl animate-siri-glow-1"></div>
+                            <div className="absolute w-36 h-12 bg-purple-600/30 rounded-full filter blur-xl animate-siri-glow-2"></div>
+                            <div className="absolute w-32 h-16 bg-cyan-500/20 rounded-full filter blur-xl animate-siri-glow-3"></div>
+                          </div>
+                          
+                          {/* Colorful pulsing bars */}
+                          <div className="relative flex items-center justify-center gap-1.5 h-12 z-10">
+                            <div className="w-1.5 bg-gradient-to-t from-cyan-400 to-blue-500 rounded-full animate-siri-bar-1 shadow-[0_0_10px_rgba(34,211,238,0.5)]"></div>
+                            <div className="w-1.5 bg-gradient-to-t from-blue-500 to-purple-500 rounded-full animate-siri-bar-2 shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
+                            <div className="w-1.5 bg-gradient-to-t from-purple-500 to-pink-500 rounded-full animate-siri-bar-3 shadow-[0_0_10px_rgba(236,72,153,0.5)]"></div>
+                            <div className="w-1.5 bg-gradient-to-t from-pink-500 to-rose-400 rounded-full animate-siri-bar-4 shadow-[0_0_10px_rgba(244,63,94,0.5)]"></div>
+                            <div className="w-1.5 bg-gradient-to-t from-rose-400 to-orange-400 rounded-full animate-siri-bar-5 shadow-[0_0_10px_rgba(251,146,60,0.5)]"></div>
+                            <div className="w-1.5 bg-gradient-to-t from-orange-400 to-yellow-400 rounded-full animate-siri-bar-6 shadow-[0_0_10px_rgba(250,204,21,0.5)]"></div>
+                            <div className="w-1.5 bg-gradient-to-t from-yellow-400 to-cyan-400 rounded-full animate-siri-bar-7 shadow-[0_0_10px_rgba(34,211,238,0.5)]"></div>
+                          </div>
                         </div>
-                        <span className="text-xs font-bold text-slate-500 animate-pulse font-mono">Đang lắng nghe... Hãy nói ngay!</span>
-                        <p className="text-[10px] text-slate-400 italic">Ví dụ: "Ăn trưa cơm bụi 35 nghìn"</p>
+
+                        {voiceText ? (
+                          <div className="px-6 text-center animate-fade-in max-w-xs">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Đang nghe:</span>
+                            <p className="text-xs font-bold text-slate-700 bg-slate-100/80 px-3.5 py-2 rounded-2xl border border-slate-200/50 inline-block shadow-inner leading-relaxed">
+                              💬 "{voiceText}"
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center">
+                            <span className="text-xs font-bold text-slate-500 animate-pulse font-mono">Đang lắng nghe... Hãy nói ngay!</span>
+                            <p className="text-[10px] text-slate-400 italic mt-0.5">Ví dụ: "Ăn trưa cơm bụi 35 nghìn"</p>
+                          </div>
+                        )}
+
                         <button
                           type="button"
                           onClick={() => {
@@ -529,7 +586,7 @@ export default function AddExpenseModal({
                               recognitionRef.current.stop();
                             }
                           }}
-                          className="mt-3 rounded-2xl bg-rose-550 hover:bg-rose-600 px-5 py-2 text-xs font-bold text-white shadow-md shadow-rose-200 flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95 border border-rose-600/20"
+                          className="mt-1 rounded-2xl bg-rose-500 hover:bg-rose-600 px-5 py-2 text-xs font-bold text-white shadow-md shadow-rose-200 flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95 border border-rose-600/20"
                         >
                           <Square className="h-3 w-3 fill-white text-white" />
                           Dừng ghi âm
@@ -553,7 +610,7 @@ export default function AddExpenseModal({
                       </div>
                     )}
 
-                    {voiceText && (
+                    {!isListening && voiceText && (
                       <div className="w-full px-5 text-center animate-fade-in">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Kết quả nhận diện:</span>
                         <div className="inline-block bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 leading-relaxed shadow-inner">

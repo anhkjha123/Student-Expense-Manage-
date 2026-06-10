@@ -5,6 +5,17 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
 
 ---
 
+### [v5.3.0] - 2026-06-10
+#### 🌟 Nhập giọng nói AI, Biểu đồ Số dư Ví & Tối ưu hóa Hiệu năng (AI Voice, Running Balance Line Chart & SWR Performance)
+*   **Biểu đồ Đường Số Dư Ví (Cash Flow Line Chart):** Chuyển đổi biểu đồ cột Thu/Chi cũ sang biểu diễn **Số dư Ví lũy tiến (Running Balance)** ngày qua ngày trong tháng bằng SVG Line/Area Chart mượt mà. Đồ họa 100% responsive hỗ trợ lưới tọa độ, dán nhãn trục X và đổi màu sắc động (đỏ hồng khi số dư âm, xanh lá khi số dư dương) kèm hover tooltip hiển thị chi tiết giao dịch phát sinh.
+*   **Tải trang nhanh tức thì (Cache-First / SWR Loading):** Triển khai chiến lược Stale-While-Revalidate (SWR) trong [App.tsx](file:///c:/Users/ADMIN/Desktop/New%20folder/Student-Expense-Manage-/src/App.tsx) để đọc dữ liệu từ cache LocalStorage và tắt màn hình chờ loading ngay lập tức (0ms), sau đó thực hiện đồng bộ và tải mới dữ liệu từ Firestore ngầm ở background.
+*   **Tính năng Nhập giọng nói AI (CH-01) & Nút Dừng ghi âm chủ động:** Tích hợp bộ nhận dạng giọng nói tiếng Việt trực tiếp trong [AddExpenseModal.tsx](file:///c:/Users/ADMIN/Desktop/New%20folder/Student-Expense-Manage-/src/components/AddExpenseModal.tsx) với tab chuyển đổi AI tiện lợi. Bổ sung nút **Dừng ghi âm** (Stop) giúp người dùng kết thúc nghe giọng nói chủ động thay vì chờ timeout của trình duyệt.
+*   **Khắc phục lỗi nhận diện NLP số tiền & từ khóa thiết bị:**
+    *   Sửa lỗi regex khiến các số tiền có dấu chấm phân tách hàng nghìn (ví dụ: `150.000`) bị nhận diện sai thành giá trị nhỏ (`150`).
+    *   Hỗ trợ trích xuất số thập phân đi kèm đơn vị lớn (ví dụ: `2,5 triệu` hay `2.5 triệu` -> `2500000`).
+    *   Bổ sung từ khóa thiết bị công nghệ (`laptop, điện thoại, máy tính, ipad, phone...`) tự động chuyển sang danh mục Mua sắm (Shopping).
+*   **Dọn dẹp Giao diện chính:** Gỡ bỏ các nút Micro và ghi nhanh ở Navbar và Dashboard nhằm giữ giao diện tối giản, tập trung trải nghiệm cho người dùng.
+
 ### [v5.2.0] - 2026-06-10
 #### 🌟 Cải tiến & Di chuyển Quỹ nhóm lên Firebase Firestore (Group Fund Refinements & Firestore Migration)
 *   **Di chuyển Quỹ nhóm và Thông báo lên Firebase Firestore:** Viết lại toàn bộ logic API của Quỹ nhóm và Thông báo sử dụng trực tiếp Firebase Firestore SDK phía Client. Gỡ bỏ hoàn toàn routes `/api/groups` và `/api/notifications` trên backend server Express, loại bỏ sự phụ thuộc vào tệp ghi tạm thời `/tmp/db.json` trên Vercel nhằm tránh tuyệt đối lỗi mất dữ liệu khi serverless function cold-start.
