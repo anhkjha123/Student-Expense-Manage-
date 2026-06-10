@@ -1,4 +1,4 @@
-import { User, Expense, Budget, Notification, Income, RecurringExpense, SavingGoal, Group, GroupMember, GroupExpense, GroupSettlement } from '../types';
+import { User, Expense, Budget, Notification, Income, RecurringExpense, Group, GroupMember, GroupExpense, GroupSettlement } from '../types';
 import { db, auth } from './firebase';
 import { 
   collection, 
@@ -403,72 +403,6 @@ export class ApiService {
     }
   }
 
-  // --- SAVING GOALS ---
-  public static async getSavingGoals(): Promise<SavingGoal[]> {
-    const userId = auth.currentUser?.uid;
-    if (!userId) return [];
-
-    try {
-      const q = query(collection(db, 'savingGoals'), where('userId', '==', userId));
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as SavingGoal));
-    } catch (err) {
-      handleFirestoreError(err, OperationType.LIST, 'savingGoals');
-      return [];
-    }
-  }
-
-  public static async createSavingGoal(goal: Omit<SavingGoal, 'id' | 'userId'>): Promise<SavingGoal> {
-    const userId = auth.currentUser?.uid;
-    if (!userId) throw new Error('Not authenticated');
-
-    const newId = `goal_${generateRandomId()}`;
-    const full: any = {
-      ...goal,
-      targetAmount: Number(goal.targetAmount),
-      currentAmount: Number(goal.currentAmount ?? 0),
-      userId
-    };
-    if (full.categoryId === undefined) delete full.categoryId;
-
-    try {
-      await setDoc(doc(db, 'savingGoals', newId), full);
-      return { id: newId, ...full } as SavingGoal;
-    } catch (err) {
-      handleFirestoreError(err, OperationType.CREATE, 'savingGoals');
-      throw err;
-    }
-  }
-
-  public static async updateSavingGoal(id: string, data: Partial<SavingGoal>): Promise<SavingGoal> {
-    const userId = auth.currentUser?.uid;
-    if (!userId) throw new Error('Not authenticated');
-
-    try {
-      const { id: _, userId: __, ...updateData } = data as any;
-      if ('targetAmount' in updateData) updateData.targetAmount = Number(updateData.targetAmount);
-      if ('currentAmount' in updateData) updateData.currentAmount = Number(updateData.currentAmount);
-
-      await updateDoc(doc(db, 'savingGoals', id), updateData);
-      return { id, ...updateData } as SavingGoal;
-    } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, 'savingGoals');
-      throw err;
-    }
-  }
-
-  public static async deleteSavingGoal(id: string): Promise<boolean> {
-    const userId = auth.currentUser?.uid;
-    if (!userId) return false;
-
-    try {
-      await deleteDoc(doc(db, 'savingGoals', id));
-      return true;
-    } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, 'savingGoals');
-      return false;
-    }
-  }
 
   // We will stub the reports since they are computed purely on the client side now
   public static async getMonthlyReport(month: string) {}

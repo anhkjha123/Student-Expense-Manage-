@@ -3,7 +3,6 @@ import { authController, authMiddleware } from './auth';
 import { expensesController } from './expenses';
 import { budgetsController } from './budgets';
 import { reportsController } from './reports';
-import { savingGoalsController } from './savingGoals';
 import { incomesController } from './incomes';
 import { walletController } from './wallet';
 import { insightsController } from './insights';
@@ -48,12 +47,6 @@ app.get('/api/health', (req: Request, res: Response) => {
 });
 
 // --- SPRINT 4 APIs ---
-// 6. Saving Goals
-app.get('/api/saving-goals', authMiddleware as any, savingGoalsController.getSavingGoals);
-app.post('/api/saving-goals', authMiddleware as any, savingGoalsController.createSavingGoal);
-app.put('/api/saving-goals/:id', authMiddleware as any, savingGoalsController.updateSavingGoal);
-app.delete('/api/saving-goals/:id', authMiddleware as any, savingGoalsController.deleteSavingGoal);
-app.get('/api/saving-goals/:id/progress', authMiddleware as any, savingGoalsController.getProgress);
 
 // 7. Incomes
 app.get('/api/incomes', authMiddleware as any, incomesController.getIncomes);

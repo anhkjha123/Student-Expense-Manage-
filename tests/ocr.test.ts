@@ -102,6 +102,37 @@ describe('OCR Receipt Parser - S5-08 Unit Tests (10+ Invoice Samples)', () => {
     expect(res.date).toBe('2026-06-10');
   });
 
+  // Sample 12: VINH NGUYEN RES (Thực tế)
+  it('phân tích chính xác mẫu hóa đơn VINH NGUYEN RES thực tế', () => {
+    const text = `VINH NGUYEN RES
+355 Sư Vạn Hạnh, P.12, Q.10
+ĐT: 090.126.9955 - 090.126.9933
+HÓA ĐƠN THANH TOÁN
+Số HĐ:  0002
+Ngày in:  29/03/2019 Giờ in:   23:59:00
+Bàn:                      Bàn 01
+Thu ngân:      ADMIN
+Khách hàng:
+TÊN HÀNG            SL   Đơn Giá    T.TIỀN
+1) Coca             2    25,000     50,000
+2) Sprite           2    25,000     50,000
+3) Coca             2    25,000     50,000
+4) Tonic            2    25,000     50,000
+5) Soda             1    25,000     25,000
+T.Cộng              9              225,000
+TIỀN MẶT                           225,000
+Hai trăm hai mươi lăm ngàn đồng./
+Cám Ơn Quý Khách - Hẹn Gặp Lại`;
+    const res = parseReceiptText(text);
+    expect(res.merchant).toBe('VINH NGUYEN RES');
+    expect(res.amount).toBe(225000);
+    expect(res.date).toBe('2019-03-29');
+    expect(res.note).toContain('Coca x2');
+    expect(res.note).toContain('Sprite x2');
+    expect(res.note).toContain('Tonic x2');
+    expect(res.note).toContain('Soda x1');
+  });
+
   // Test parseReceipt with Base64 encoding of text
   it('phân tích tệp text được mã hóa base64 thông qua hàm parseReceipt', async () => {
     const text = 'GS25 CONVENIENCE STORE\nNGAY: 2026-06-01\nTỔNG THANH TOÁN: 45,000 VND';

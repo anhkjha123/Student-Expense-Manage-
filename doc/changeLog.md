@@ -5,8 +5,47 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
 
 ---
 
+### [v5.1.0] - 2026-06-10
+#### 🌟 Nâng cấp AI OCR & Xóa bỏ tính năng Tiết kiệm (Saving Goals)
+*   **Nâng cấp AI OCR & Regex Fallback:**
+    *   Tối ưu hóa **System Instruction** của Gemini API giúp trích xuất chính xác tên cửa hàng (Merchant), tổng tiền thanh toán cuối cùng (Amount), ngày giao dịch (Date) định dạng chuẩn `YYYY-MM-DD`, và danh sách các mặt hàng chi tiết (Note/Items).
+    *   Cấu trúc lại **responseSchema** sử dụng kiểu dữ liệu chữ thường chuẩn tương thích tốt với SDK mới `@google/genai`.
+    *   Cải tiến logic trích xuất **Regex Fallback (Offline Path)** để lọc nhiễu địa chỉ, số điện thoại, trích xuất chính xác thông tin hóa đơn tiếng Việt thực tế. Bổ sung unit test thực tế cho hóa đơn `VINH NGUYEN RES` (225,000đ).
+*   **Loại bỏ tính năng Tiết kiệm (Saving Goals):**
+    *   Xóa bỏ hoàn toàn mã nguồn component giao diện `SavingGoals.tsx` và controller backend `savingGoals.ts`.
+    *   Cập nhật `App.tsx` và `Navbar.tsx` để gỡ bỏ tab "Tiết kiệm" và các icon biểu tượng khỏi menu.
+    *   Tái thiết kế trang `Dashboard.tsx`, xóa bỏ widget hiển thị tiến trình tiết kiệm tích lũy và chuyển đổi grid tổng quan tài chính sang 2 cột cho cân đối.
+    *   Dọn dẹp các API Client trong `api.ts` và Express routes trong `app.ts`.
+
+---
+
+### [v5.0.0] - 2026-06-10
+#### 🌟 Tính năng mới Sprint 5 (OCR Receipt Scanner & Expense Splitting)
+*   **MH-02: OCR Receipt Scanner (Quét hóa đơn bằng AI) [13 SP]:**
+    *   **UI Camera/Upload (S5-06):** Hỗ trợ chụp camera hoặc tải ảnh hóa đơn (hỗ trợ JPG, PNG, HEIC, tối đa 10MB) với giao diện preview trực quan trước khi xác nhận lưu (AC1).
+    *   **Ánh xạ & Tự động điền dữ liệu (S5-07):** AI tự động trích xuất và điền tự động số tiền, ngày giao dịch và tên cửa hàng (AC2). Cho phép người dùng chỉnh sửa thủ công toàn bộ các trường thông tin (AC3).
+    *   **Cảnh báo & Nhập thủ công (AC4):** Nếu không nhận dạng được số tiền, hệ thống sẽ tự động hiển thị cảnh báo đỏ và yêu cầu người dùng nhập thủ công.
+    *   **Tối ưu hóa thời gian quét (AC5):** Thời gian xử lý OCR được tối ưu hóa luôn đảm bảo dưới 8 giây cho ảnh dưới 5MB.
+    *   **Hiển thị Thumbnail (AC6):** Hỗ trợ đính kèm và hiển thị ảnh thumbnail của hóa đơn đi kèm với giao dịch đã lưu.
+    *   **Kiểm thử tự động (S5-08):** Thiết lập file kiểm thử `tests/ocr.test.ts` kiểm thử an toàn cho hơn 10+ định dạng hóa đơn khác nhau.
+*   **SH-01: Expense Splitting & Group Fund (Chia tiền nhóm & Quỹ chung) [13 SP]:**
+    *   **Thiết kế mô hình dữ liệu (S5-15):** Xây dựng các schema cho Group, GroupMember, GroupExpense, GroupSettlement. Hỗ trợ nhóm lên đến tối đa 20 thành viên với độ dài tên nhóm từ 3-50 ký tự (AC1).
+    *   **Tạo nhóm & Mời thành viên (S5-16):** Giao diện quản lý nhóm `Groups.tsx` hỗ trợ tạo nhóm cực nhanh dưới 3 bước. Tự động sinh link mời thành viên hiệu lực 7 ngày và hỗ trợ tính năng thu hồi link (AC2).
+    *   **Chia tiền & Thanh toán (S5-17):**
+        *   Tự động tính toán chia tiền đều, tự động làm tròn về 1000 VND và gán phần dư cho thành viên đầu tiên (AC3).
+        *   Hiển thị bảng công nợ chi tiết "Ai nợ ai bao nhiêu" kèm nút đánh dấu xác nhận đã thanh toán (AC4).
+        *   Tích hợp tính năng xuất lịch sử giao dịch nhóm sang file CSV phục vụ lưu trữ (AC5).
+
+---
+
 ### [v4.1.0] - 2026-06-09
-#### 🔧 Vercel Deployment & Wallet Balance Fixes
+#### 🔧 Vercel Deployment Serverless & Hiển thị Lỗi Chi Tiết để Debug
+*   **Cấu hình Serverless Backend cho Vercel:**
+    *   Tách Express app thành module riêng biệt trong `src/server/app.ts` mà không gọi trực tiếp `app.listen()`.
+    *   Tạo entry point serverless tại `api/index.ts` và cập nhật rewrite rules trong `vercel.json` để định tuyến toàn bộ request `/api/*` về Serverless Function, khắc phục hoàn toàn lỗi **404 Not Found** khi gọi API trên Vercel production.
+*   **Nâng cấp Hiển thị Lỗi (Hiển thị Full Bug để Debug):**
+    *   Cải tiến hàm `safeFetchJson` trong `src/lib/api.ts` để tăng giới hạn chuỗi lỗi thu thập từ response thô lên **3000 ký tự** (thay vì 200 ký tự).
+    *   Thiết kế lại khu vực hiển thị `ocrError` trong `AddExpenseModal.tsx` thành dạng khung code (`<pre>`) font monospace có thanh cuộn và hỗ trợ chọn văn bản (`select-text`) để người dùng dễ dàng theo dõi và copy thông tin lỗi đầy đủ phục vụ debug.
 *   **Vercel Deployment Fix (`vercel.json`):**
     *   Cấu hình explicit static build sử dụng `@vercel/static-build` và chuyển thư mục phân phối tĩnh `distDir` thành `"dist"`. Tránh việc Vercel phục vụ thư mục gốc chưa biên dịch làm sập ứng dụng (màn hình trắng do lỗi cú pháp TSX ở phía Client).
 *   **Fix lỗi sập màn hình sau Login (Dashboard crash fix):**

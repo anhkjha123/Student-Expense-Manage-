@@ -52,7 +52,6 @@ export default function Navbar({
     { id: 'budget', name: 'Ngân Sách' },
     { id: 'reports', name: 'Báo Cáo' },
     { id: 'incomes', name: 'Thu Nhập' },
-    { id: 'saving-goals', name: 'Tiết Kiệm' },
     { id: 'groups', name: 'Quỹ Nhóm' },
     { id: 'calendar', name: 'Lịch' }
   ];
@@ -157,7 +156,6 @@ export default function Navbar({
                 {tab.id === 'budget' && <Settings className="h-4 w-4" />}
                 {tab.id === 'reports' && <PieChart className="h-4 w-4" />}
                 {tab.id === 'incomes' && <DollarSign className="h-4 w-4" />}
-                {tab.id === 'saving-goals' && <Target className="h-4 w-4" />}
                 {tab.id === 'groups' && <Users className="h-4 w-4" />}
                 {tab.id === 'calendar' && <Calendar className="h-4 w-4" />}
                 {tab.name}
@@ -316,7 +314,6 @@ export default function Navbar({
               {tab.id === 'budget' && <Settings className="h-4.5 w-4.5" />}
               {tab.id === 'reports' && <PieChart className="h-4.5 w-4.5" />}
               {tab.id === 'incomes' && <DollarSign className="h-4.5 w-4.5" />}
-              {tab.id === 'saving-goals' && <Target className="h-4.5 w-4.5" />}
               {tab.id === 'groups' && <Users className="h-4.5 w-4.5" />}
               {tab.id === 'calendar' && <Calendar className="h-4.5 w-4.5" />}
               <span>{tab.name}</span>

@@ -368,7 +368,7 @@ export default function Dashboard({
       </motion.div>
 
       {/* CORE FINANCIAL OVERVIEW CARDS */}
-      <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Wallet Balance Box */}
         <motion.div 
           whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
@@ -478,32 +478,6 @@ export default function Dashboard({
           </div>
           <div className="text-[10px] text-slate-600 font-semibold mt-3 pt-3 border-t border-amber-100/50 relative z-10">
             Còn lại chi tiêu khả dụng: <strong className="text-amber-700 font-mono">{new Intl.NumberFormat('vi-VN').format(Math.max(0, remainingBudget))}đ</strong>
-          </div>
-        </motion.div>
-
-        {/* Projected Savings Box */}
-        <motion.div 
-          whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
-          className="rounded-3xl border border-blue-100 bg-gradient-to-br from-white to-blue-50/30 p-5 shadow-sm relative overflow-hidden transition-all duration-300"
-        >
-          <div className="flex justify-between items-start relative z-10">
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
-                Dự kiến tích lũy cuối tháng
-              </span>
-              <div className={`text-2xl font-black font-mono drop-shadow-sm ${remainingBudget + savingGoal < savingGoal ? 'text-amber-600' : 'text-blue-700'}`}>
-                {new Intl.NumberFormat('vi-VN').format(Math.max(0, remainingBudget + savingGoal))}đ
-              </div>
-            </div>
-            <span className="p-3 bg-blue-100 text-blue-600 rounded-2xl shadow-inner border border-blue-200">
-              <PiggyBank className="h-5 w-5" />
-            </span>
-          </div>
-          <div className="absolute -bottom-4 -right-4 text-blue-100/50 pointer-events-none transform -rotate-12">
-            <PiggyBank className="h-24 w-24" />
-          </div>
-          <div className="text-[10px] text-slate-600 font-semibold mt-3 pt-3 border-t border-blue-100/50 relative z-10">
-            Mục tiêu tích lũy ban đầu: <strong className="text-blue-700 font-mono">{new Intl.NumberFormat('vi-VN').format(savingGoal)}đ</strong>
           </div>
         </motion.div>
       </motion.div>

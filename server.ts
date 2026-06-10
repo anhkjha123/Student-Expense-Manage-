@@ -1,3 +1,4 @@
+import 'dotenv/config'; // Load .env file trước mọi thứ khác
 import app from './src/server/app';
 import express, { Request, Response } from 'express';
 import path from 'path';
