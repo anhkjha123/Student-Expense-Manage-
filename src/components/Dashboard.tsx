@@ -32,6 +32,7 @@ interface DashboardProps {
   budgets: Budget[];
   notifications: Notification[];
   onOpenAddExpense: () => void;
+  onOpenAddExpenseVoice?: () => void;
   setActiveTab: (tab: string) => void;
   onEditExpense?: (expense: Expense) => void;
   recurringExpenses?: RecurringExpense[];
@@ -44,6 +45,7 @@ export default function Dashboard({
   budgets,
   notifications,
   onOpenAddExpense,
+  onOpenAddExpenseVoice,
   setActiveTab,
   onEditExpense,
   recurringExpenses = []
@@ -357,14 +359,26 @@ export default function Dashboard({
             Hôm nay là ngày {currentDay} của tháng. Hãy lưu ý chi tiêu trong khoảng cho phép và ghi chép đầy đủ nhé!
           </p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={onOpenAddExpense}
-          className="rounded-2xl bg-white hover:bg-emerald-50 px-6 py-3.5 text-center text-sm font-bold text-emerald-600 transition-all shadow-lg shrink-0 cursor-pointer border border-white/20"
-        >
-          ✍️ Thêm một khoản chi ngay
-        </motion.button>
+        <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onOpenAddExpense}
+            className="rounded-2xl bg-white hover:bg-emerald-50 px-6 py-3.5 text-center text-sm font-bold text-emerald-600 transition-all shadow-lg cursor-pointer border border-white/20"
+          >
+            ✍️ Thêm một khoản chi ngay
+          </motion.button>
+          {onOpenAddExpenseVoice && (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onOpenAddExpenseVoice}
+              className="rounded-2xl bg-rose-550 hover:bg-rose-600 px-6 py-3.5 text-center text-sm font-bold text-white transition-all shadow-lg cursor-pointer border border-rose-600/20 flex items-center justify-center gap-2 shadow-rose-200"
+            >
+              🎙️ Ghi giọng nói nhanh
+            </motion.button>
+          )}
+        </div>
       </motion.div>
 
       {/* CORE FINANCIAL OVERVIEW CARDS */}
@@ -658,7 +672,7 @@ export default function Dashboard({
               Dòng Tiền (Cash Flow)
             </h3>
           </div>
-          <div className="h-48 w-full flex items-end gap-1 px-1 overflow-x-auto relative mt-4">
+          <div className="h-48 w-full flex items-end gap-1 px-1 overflow-x-auto relative mt-4 border-b border-slate-100 pb-1">
             {cashflow.length === 0 ? (
               <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Đang tải dữ liệu dòng tiền...</div>
             ) : (
@@ -668,27 +682,35 @@ export default function Dashboard({
                 const expHeight = (day.expense / total) * 100;
                 const incHeight = (day.income / total) * 100;
                 return (
-                  <div key={day.date} className="flex-1 flex flex-col justify-end items-center group relative min-w-[12px]">
+                  <div key={day.date} className="h-full flex-1 flex flex-col justify-end items-center group relative min-w-[14px]">
                     {/* Tooltip */}
-                    <div className="absolute -top-12 bg-slate-800 text-white text-[10px] p-2 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap pointer-events-none">
-                      <div>{day.date.split('-').reverse().join('/')}</div>
-                      <div className="text-emerald-400">Thu: +{new Intl.NumberFormat('vi-VN').format(day.income)}</div>
-                      <div className="text-red-400">Chi: -{new Intl.NumberFormat('vi-VN').format(day.expense)}</div>
+                    <div className="absolute bottom-full mb-2 bg-slate-900/90 text-white text-[10px] p-2 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 whitespace-nowrap pointer-events-none shadow-md border border-white/10 scale-95 group-hover:scale-100 transform origin-bottom">
+                      <div className="font-semibold text-slate-300 border-b border-slate-700/50 pb-1 mb-1">{day.date.split('-').reverse().join('/')}</div>
+                      <div className="text-emerald-400 font-bold">Thu: +{new Intl.NumberFormat('vi-VN').format(day.income)}đ</div>
+                      <div className="text-rose-400 font-bold">Chi: -{new Intl.NumberFormat('vi-VN').format(day.expense)}đ</div>
                     </div>
-                    {/* Bars */}
-                    <div className="w-full relative flex items-end h-full">
-                      <div className={`absolute bottom-0 w-full bg-emerald-400/50 rounded-t-sm`} style={{ height: `${incHeight}%` }}></div>
-                      <div className={`absolute bottom-0 w-full ${isDeficit ? 'bg-red-500' : 'bg-red-300/50'} rounded-t-sm`} style={{ height: `${expHeight}%` }}></div>
+                    {/* Bars Side by Side */}
+                    <div className="w-full flex items-end justify-center gap-[1.5px] h-full pb-1">
+                      <div 
+                        className="w-[45%] bg-emerald-400 rounded-t-xs transition-all duration-300 hover:bg-emerald-500 shadow-xs" 
+                        style={{ height: `${incHeight}%` }}
+                      ></div>
+                      <div 
+                        className={`w-[45%] ${isDeficit ? 'bg-rose-500 hover:bg-rose-600' : 'bg-rose-300 hover:bg-rose-400'} rounded-t-xs transition-all duration-300 shadow-xs`} 
+                        style={{ height: `${expHeight}%` }}
+                      ></div>
                     </div>
+                    {/* Small marker on x-axis */}
+                    <div className="w-1.5 h-1.5 rounded-full bg-slate-100 border border-slate-300 group-hover:bg-slate-400 transition-colors mt-0.5 shrink-0"></div>
                   </div>
                 );
               })
             )}
           </div>
           <div className="flex justify-center gap-4 text-[10px] text-slate-500 font-medium">
-            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-400/50"></div> Thu nhập</span>
-            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-300/50"></div> Chi tiêu</span>
-            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-500"></div> Chi &gt; Thu (Thâm hụt)</span>
+            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-400"></div> Thu nhập</span>
+            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-rose-300"></div> Chi tiêu</span>
+            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-rose-500"></div> Chi &gt; Thu (Thâm hụt)</span>
           </div>
         </div>
         

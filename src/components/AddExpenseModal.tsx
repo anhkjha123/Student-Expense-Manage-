@@ -8,11 +8,16 @@ import {
   AlertCircle,
   UploadCloud,
   Loader2,
-  Trash2
+  Trash2,
+  Mic,
+  Volume2
 } from 'lucide-react';
 import { Category, Expense } from '../types';
 import { motion } from 'motion/react';
 import { ApiService } from '../lib/api';
+import { parseVietnameseVoiceCommand } from '../lib/voiceParser';
+
+const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
 interface AddExpenseModalProps {
   isOpen: boolean;
@@ -21,6 +26,7 @@ interface AddExpenseModalProps {
   onAddExpense: (expense: Omit<Expense, 'id' | 'userId'> & { recurringCycle?: 'NONE' | 'WEEKLY' | 'MONTHLY' }) => void;
   editingExpense?: Expense | null;
   onEditExpense?: (id: string, expense: Omit<Expense, 'id' | 'userId'>) => void;
+  startWithVoice?: boolean;
 }
 
 export default function AddExpenseModal({
@@ -29,7 +35,8 @@ export default function AddExpenseModal({
   categories,
   onAddExpense,
   editingExpense,
-  onEditExpense
+  onEditExpense,
+  startWithVoice = false
 }: AddExpenseModalProps) {
   const [amount, setAmount] = useState<string>('');
   const [categoryId, setCategoryId] = useState<string>('');
@@ -50,6 +57,12 @@ export default function AddExpenseModal({
   const [isAmountMissing, setIsAmountMissing] = useState<boolean>(false);
   const [highlightedFields, setHighlightedFields] = useState<{ amount?: boolean; date?: boolean; title?: boolean }>({});
 
+  // Voice States (CH-01)
+  const [helperTab, setHelperTab] = useState<'ocr' | 'voice'>('ocr');
+  const [isListening, setIsListening] = useState<boolean>(false);
+  const [voiceText, setVoiceText] = useState<string>('');
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+
   useEffect(() => {
     if (isOpen) {
       if (editingExpense) {
@@ -63,6 +76,7 @@ export default function AddExpenseModal({
         setReceiptImage(editingExpense.receiptImage || null);
         setIsAmountMissing(false);
         setHighlightedFields({});
+        setHelperTab('ocr');
       } else {
         setAmount('');
         const selectableCategories = categories.filter(c => c.id !== 'group_fund');
@@ -78,11 +92,79 @@ export default function AddExpenseModal({
         setReceiptImage(null);
         setIsAmountMissing(false);
         setHighlightedFields({});
+        setHelperTab(startWithVoice ? 'voice' : 'ocr');
       }
       setError(null);
       setOcrError(null);
+      setVoiceText('');
+      setVoiceError(null);
+      setIsListening(false);
     }
-  }, [editingExpense, isOpen, categories]);
+  }, [editingExpense, isOpen, categories, startWithVoice]);
+
+  const startSpeechRecognition = () => {
+    if (!SpeechRecognition) {
+      setVoiceError('Trình duyệt của bạn không hỗ trợ Nhận diện giọng nói. Vui lòng dùng Google Chrome.');
+      return;
+    }
+    setVoiceError(null);
+    setVoiceText('');
+    setIsListening(true);
+    setHighlightedFields({});
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'vi-VN';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setVoiceText(transcript);
+
+      const parsed = parseVietnameseVoiceCommand(transcript);
+
+      if (parsed.amount) {
+        setAmount(new Intl.NumberFormat('en-US').format(parsed.amount));
+        setHighlightedFields(prev => ({ ...prev, amount: true }));
+      }
+      if (parsed.title) {
+        setTitle(parsed.title);
+        setHighlightedFields(prev => ({ ...prev, title: true }));
+      }
+      if (parsed.categoryId) {
+        setCategoryId(parsed.categoryId);
+      }
+      if (parsed.categoryId === 'entertainment' || parsed.categoryId === 'shopping') {
+        setIsNecessary(false);
+      } else {
+        setIsNecessary(true);
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      if (event.error === 'not-allowed') {
+        setVoiceError('Quyền truy cập Micro bị từ chối. Vui lòng bật Micro trong cài đặt trình duyệt.');
+      } else {
+        setVoiceError(`Lỗi nhận diện: ${event.error}`);
+      }
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.start();
+  };
+
+  useEffect(() => {
+    if (isOpen && helperTab === 'voice' && startWithVoice && !editingExpense) {
+      const timer = setTimeout(() => {
+        startSpeechRecognition();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, helperTab, startWithVoice]);
 
   if (!isOpen) return null;
 
@@ -310,62 +392,160 @@ export default function AddExpenseModal({
               <span>{error}</span>
             </div>
           )}
-
-          {/* Scanned Receipt Upload / Camera preview block (AC1, AC5, AC6) */}
+          {/* AI Helper Tabs (OCR vs Voice) */}
           {!editingExpense && (
-            <div className="space-y-1 bg-slate-50 p-4 rounded-2xl border border-slate-200/60 shadow-inner">
-              <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                Quét hóa đơn bằng AI
-              </label>
+            <div className="space-y-2.5">
+              <div className="flex rounded-2xl bg-slate-100 p-1 text-[11px] sm:text-xs font-bold border border-slate-200/40">
+                <button
+                  type="button"
+                  onClick={() => setHelperTab('ocr')}
+                  className={`flex-1 py-2 rounded-xl text-center transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
+                    helperTab === 'ocr' 
+                      ? 'bg-white text-slate-800 shadow-sm border border-slate-200/10' 
+                      : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  <FileText className="h-3.5 w-3.5 animate-pulse" />
+                  Quét Hóa Đơn AI
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHelperTab('voice')}
+                  className={`flex-1 py-2 rounded-xl text-center transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
+                    helperTab === 'voice' 
+                      ? 'bg-white text-slate-800 shadow-sm border border-slate-200/10' 
+                      : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  <Mic className="h-3.5 w-3.5 text-rose-500 animate-bounce" />
+                  Nhập Giọng Nói AI
+                </button>
+              </div>
 
-              {ocrError && (
-                <div className="mb-2 flex flex-col gap-1.5 rounded-xl bg-red-50 p-3 text-[11px] font-semibold text-red-700">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4 shrink-0" />
-                    <span>Lỗi quét hóa đơn:</span>
-                  </div>
-                  <pre className="mt-1 max-h-40 overflow-auto rounded-lg bg-red-100/50 p-2 text-[10px] font-mono whitespace-pre-wrap break-all select-text leading-relaxed">
-                    {ocrError}
-                  </pre>
+              {/* OCR Tab Content */}
+              {helperTab === 'ocr' && (
+                <div className="space-y-1 bg-slate-50 p-4 rounded-3xl border border-slate-200/60 shadow-xs transition-all animate-fade-in">
+                  <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                    Quét hóa đơn bằng AI
+                  </label>
+
+                  {ocrError && (
+                    <div className="mb-2 flex flex-col gap-1.5 rounded-xl bg-red-50 p-3 text-[11px] font-semibold text-red-700">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4 shrink-0" />
+                        <span>Lỗi quét hóa đơn:</span>
+                      </div>
+                      <pre className="mt-1 max-h-40 overflow-auto rounded-lg bg-red-100/50 p-2 text-[10px] font-mono whitespace-pre-wrap break-all select-text leading-relaxed">
+                        {ocrError}
+                      </pre>
+                    </div>
+                  )}
+
+                  {isScanning ? (
+                    <div className="flex flex-col items-center justify-center py-6 bg-white border border-slate-100 rounded-2xl space-y-2 shadow-xs">
+                      <Loader2 className="h-8 w-8 text-emerald-500 animate-spin" />
+                      <span className="text-xs font-bold text-slate-500 animate-pulse font-mono">Đang quét và phân tích hóa đơn...</span>
+                    </div>
+                  ) : receiptImage ? (
+                    <div className="flex items-center gap-4 bg-white p-3 rounded-2xl border border-slate-100 animate-fade-in shadow-xs">
+                      <img src={receiptImage} alt="Receipt Preview" className="h-16 w-16 object-cover rounded-xl border border-slate-200 shadow-sm" />
+                      <div className="flex-1 min-w-0">
+                        <span className="text-[11px] font-bold text-slate-700 block truncate">Ảnh hóa đơn đã tải lên</span>
+                        <span className="text-[9px] text-emerald-600 font-mono block font-bold">✨ Nhận diện bằng AI</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setReceiptImage(null);
+                          setIsAmountMissing(false);
+                          setHighlightedFields({});
+                        }}
+                        className="p-2 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-2 place-items-center">
+                      <label
+                        className="group flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-emerald-400 bg-white rounded-3xl py-8 px-6 transition-all cursor-pointer text-center shadow-xs w-full"
+                        onDrop={handleDrop}
+                        onDragOver={(e) => e.preventDefault()}
+                        onPaste={handlePaste}
+                      >
+                        <UploadCloud className="h-7 w-7 text-slate-400 group-hover:text-emerald-500 transition-colors" />
+                        <span className="text-sm font-semibold text-slate-700 mt-3">Chọn ảnh hóa đơn hoặc kéo thả / dán ảnh (Ctrl+V)</span>
+                        <input type="file" accept="image/png, image/jpeg, image/heic" onChange={handleFileChange} className="hidden" />
+                      </label>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {isScanning ? (
-                <div className="flex flex-col items-center justify-center py-6 bg-white border border-slate-100 rounded-xl space-y-2">
-                  <Loader2 className="h-8 w-8 text-emerald-500 animate-spin" />
-                  <span className="text-xs font-bold text-slate-500 animate-pulse font-mono">Đang quét và phân tích hóa đơn...</span>
-                </div>
-              ) : receiptImage ? (
-                <div className="flex items-center gap-4 bg-white p-3 rounded-xl border border-slate-100 animate-fade-in">
-                  <img src={receiptImage} alt="Receipt Preview" className="h-16 w-16 object-cover rounded-lg border border-slate-200 shadow-sm" />
-                  <div className="flex-1 min-w-0">
-                    <span className="text-[11px] font-bold text-slate-700 block truncate">Ảnh hóa đơn đã tải lên</span>
-                    <span className="text-[9px] text-emerald-600 font-mono block font-bold">✨ Nhận diện bằng AI</span>
+              {/* Voice Tab Content */}
+              {helperTab === 'voice' && (
+                <div className="space-y-3 bg-slate-50 p-5 rounded-3xl border border-slate-200/60 shadow-xs transition-all animate-fade-in">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Ghi nhận chi tiêu bằng Giọng Nói (NLP)
+                    </label>
+                    {isListening && (
+                      <span className="flex h-2 w-2 relative">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                      </span>
+                    )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setReceiptImage(null);
-                      setIsAmountMissing(false);
-                      setHighlightedFields({});
-                    }}
-                    className="p-2 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-2 place-items-center">
-                  <label
-                    className="group flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-emerald-400 bg-white rounded-3xl py-8 px-6 transition-all cursor-pointer text-center shadow-sm w-full max-w-md"
-                    onDrop={handleDrop}
-                    onDragOver={(e) => e.preventDefault()}
-                    onPaste={handlePaste}
-                  >
-                    <UploadCloud className="h-7 w-7 text-slate-400 group-hover:text-emerald-500 transition-colors" />
-                    <span className="text-sm font-semibold text-slate-700 mt-3">Chọn ảnh hóa đơn hoặc kéo thả / dán ảnh (Ctrl+V)</span>
-                    <input type="file" accept="image/png, image/jpeg, image/heic" onChange={handleFileChange} className="hidden" />
-                  </label>
+
+                  {voiceError && (
+                    <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-[11px] font-semibold text-red-700">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      <span>{voiceError}</span>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col items-center justify-center py-6 bg-white border border-slate-100 rounded-2xl space-y-4 shadow-xs relative overflow-hidden">
+                    {isListening ? (
+                      <div className="flex flex-col items-center space-y-3">
+                        {/* Audio Waveform Animation */}
+                        <div className="flex items-center gap-1 h-8">
+                          <span className="w-1 bg-rose-500 rounded-full animate-pulse h-6"></span>
+                          <span className="w-1 bg-rose-400 rounded-full animate-pulse h-4" style={{ animationDelay: '0.15s' }}></span>
+                          <span className="w-1 bg-rose-500 rounded-full animate-pulse h-8" style={{ animationDelay: '0.3s' }}></span>
+                          <span className="w-1 bg-rose-400 rounded-full animate-pulse h-5" style={{ animationDelay: '0.45s' }}></span>
+                          <span className="w-1 bg-rose-500 rounded-full animate-pulse h-6" style={{ animationDelay: '0.6s' }}></span>
+                        </div>
+                        <span className="text-xs font-bold text-slate-500 animate-pulse font-mono">Đang lắng nghe... Hãy nói ngay!</span>
+                        <p className="text-[10px] text-slate-400 italic">Ví dụ: "Ăn trưa cơm bụi 35 nghìn"</p>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={startSpeechRecognition}
+                        className="group flex h-16 w-16 items-center justify-center rounded-full bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-all duration-300 transform active:scale-95 shadow-md shadow-rose-100 cursor-pointer animate-pulse"
+                        title="Bắt đầu ghi giọng nói"
+                      >
+                        <Mic className="h-7 w-7 text-rose-500 group-hover:scale-110 transition-transform" />
+                      </button>
+                    )}
+
+                    {!isListening && !voiceText && (
+                      <div className="text-center px-4">
+                        <span className="text-xs font-semibold text-slate-700 block">Nhấp nút Mic để bắt đầu nói</span>
+                        <span className="text-[10px] text-slate-400 block mt-1">Hỗ trợ tiếng Việt: Tự động điền số tiền, nội dung & phân loại danh mục bằng AI</span>
+                      </div>
+                    )}
+
+                    {voiceText && (
+                      <div className="w-full px-5 text-center animate-fade-in">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Kết quả nhận diện:</span>
+                        <div className="inline-block bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 leading-relaxed shadow-inner">
+                          💬 "{voiceText}"
+                        </div>
+                        <span className="block text-[9px] text-emerald-600 font-bold mt-2">✨ Đã tự động phân tích và điền vào biểu mẫu bên dưới!</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

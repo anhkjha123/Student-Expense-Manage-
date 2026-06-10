@@ -15,7 +15,8 @@ import {
   Target,
   Calendar,
   Repeat,
-  Users
+  Users,
+  Mic
 } from 'lucide-react';
 import { User, Notification } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -29,6 +30,7 @@ interface NavbarProps {
   markNotificationAsRead: (id: string) => void;
   clearNotifications: () => void;
   onOpenAddExpense: () => void;
+  onOpenAddExpenseVoice: () => void;
   isFirebaseOffline?: boolean;
 }
 
@@ -41,6 +43,7 @@ export default function Navbar({
   markNotificationAsRead,
   clearNotifications,
   onOpenAddExpense,
+  onOpenAddExpenseVoice,
   isFirebaseOffline = false
 }: NavbarProps) {
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
@@ -167,7 +170,17 @@ export default function Navbar({
         </nav>
 
         {/* RIGHT ACTION BUTTONS */}
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Quick Voice Add Button */}
+          <button
+            id="quick-voice-expense-btn"
+            onClick={onOpenAddExpenseVoice}
+            className="flex items-center justify-center rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 p-2 sm:p-2.5 text-rose-600 transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
+            title="Nhập chi tiêu bằng giọng nói"
+          >
+            <Mic className="h-4.5 w-4.5 sm:h-5 sm:w-5 animate-pulse" />
+          </button>
+
           {/* Quick Add Button */}
           <button
             id="quick-add-expense-btn"

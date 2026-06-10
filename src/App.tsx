@@ -42,6 +42,7 @@ export default function App() {
   // App views & UI Controls
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState<boolean>(false);
+  const [addExpenseStartWithVoice, setAddExpenseStartWithVoice] = useState<boolean>(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isFirebaseSynced, setIsFirebaseSynced] = useState<boolean>(false);
@@ -878,6 +879,10 @@ export default function App() {
           markNotificationAsRead={markNotificationAsRead}
           clearNotifications={clearNotifications}
           onOpenAddExpense={() => setIsAddExpenseOpen(true)}
+          onOpenAddExpenseVoice={() => {
+            setAddExpenseStartWithVoice(true);
+            setIsAddExpenseOpen(true);
+          }}
           isFirebaseOffline={!isFirebaseSynced}
         />
 
@@ -891,6 +896,10 @@ export default function App() {
               budgets={budgets}
               notifications={notifications}
               onOpenAddExpense={() => setIsAddExpenseOpen(true)}
+              onOpenAddExpenseVoice={() => {
+                setAddExpenseStartWithVoice(true);
+                setIsAddExpenseOpen(true);
+              }}
               setActiveTab={setActiveTab}
               onEditExpense={(expense) => setEditingExpense(expense)}
               recurringExpenses={recurringExpenses}
@@ -953,11 +962,13 @@ export default function App() {
         onClose={() => {
           setIsAddExpenseOpen(false);
           setEditingExpense(null);
+          setAddExpenseStartWithVoice(false);
         }}
         categories={DEFAULT_CATEGORIES}
         onAddExpense={handleAddExpense}
         editingExpense={editingExpense}
         onEditExpense={handleUpdateExpense}
+        startWithVoice={addExpenseStartWithVoice}
       />
     </div>
   );
