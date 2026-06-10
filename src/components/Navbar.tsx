@@ -14,7 +14,9 @@ import {
   DollarSign,
   Target,
   Calendar,
-  Repeat
+  Repeat,
+  Users,
+  Mic
 } from 'lucide-react';
 import { User, Notification } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -28,6 +30,7 @@ interface NavbarProps {
   markNotificationAsRead: (id: string) => void;
   clearNotifications: () => void;
   onOpenAddExpense: () => void;
+  onOpenAddExpenseVoice: () => void;
   isFirebaseOffline?: boolean;
 }
 
@@ -40,6 +43,7 @@ export default function Navbar({
   markNotificationAsRead,
   clearNotifications,
   onOpenAddExpense,
+  onOpenAddExpenseVoice,
   isFirebaseOffline = false
 }: NavbarProps) {
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
@@ -51,7 +55,7 @@ export default function Navbar({
     { id: 'budget', name: 'Ngân Sách' },
     { id: 'reports', name: 'Báo Cáo' },
     { id: 'incomes', name: 'Thu Nhập' },
-    { id: 'saving-goals', name: 'Tiết Kiệm' },
+    { id: 'groups', name: 'Quỹ Nhóm' },
     { id: 'calendar', name: 'Lịch' }
   ];
 
@@ -94,7 +98,7 @@ export default function Navbar({
         </div>
 
         {/* NAVIGATION DESKTOP */}
-        <nav className="hidden md:flex items-center space-x-1">
+        <nav className="hidden md:flex items-center gap-1 lg:gap-1.5 xl:gap-2">
           {tabs.map((tab) => {
             const isActive = tab.id === 'history'
               ? (activeTab === 'history' || activeTab === 'recurring')
@@ -106,17 +110,18 @@ export default function Navbar({
                   <button
                     id={`nav-tab-${tab.id}`}
                     onClick={() => setActiveTab('history')}
-                    className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                    className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs xl:text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
                       isActive
                         ? 'bg-emerald-50 text-emerald-600'
                         : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }`}
+                    title={tab.name}
                   >
-                    <BookOpen className="h-4 w-4" />
-                    {tab.name}
+                    <BookOpen className="h-4 w-4 shrink-0" />
+                    <span className="hidden xl:inline">{tab.name}</span>
                   </button>
                   {/* Dropdown Menu on Hover */}
-                  <div className="absolute left-0 mt-1 hidden group-hover:block bg-white border border-slate-100 rounded-xl shadow-lg p-2 min-w-[150px] z-50">
+                  <div className="absolute left-0 mt-1 hidden group-hover:block bg-white border border-slate-100 rounded-xl shadow-lg p-2 min-w-[150px] z-50 animate-fade-in">
                     <button
                       onClick={() => setActiveTab('history')}
                       className={`w-full text-left px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
@@ -145,19 +150,20 @@ export default function Navbar({
                 key={tab.id}
                 id={`nav-tab-${tab.id}`}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs xl:text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
                   isActive
                     ? 'bg-emerald-50 text-emerald-600'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
+                title={tab.name}
               >
-                {tab.id === 'dashboard' && <Home className="h-4 w-4" />}
-                {tab.id === 'budget' && <Settings className="h-4 w-4" />}
-                {tab.id === 'reports' && <PieChart className="h-4 w-4" />}
-                {tab.id === 'incomes' && <DollarSign className="h-4 w-4" />}
-                {tab.id === 'saving-goals' && <Target className="h-4 w-4" />}
-                {tab.id === 'calendar' && <Calendar className="h-4 w-4" />}
-                {tab.name}
+                {tab.id === 'dashboard' && <Home className="h-4 w-4 shrink-0" />}
+                {tab.id === 'budget' && <Settings className="h-4 w-4 shrink-0" />}
+                {tab.id === 'reports' && <PieChart className="h-4 w-4 shrink-0" />}
+                {tab.id === 'incomes' && <DollarSign className="h-4 w-4 shrink-0" />}
+                {tab.id === 'groups' && <Users className="h-4 w-4 shrink-0" />}
+                {tab.id === 'calendar' && <Calendar className="h-4 w-4 shrink-0" />}
+                <span className="hidden xl:inline">{tab.name}</span>
               </button>
             );
           })}
@@ -165,6 +171,7 @@ export default function Navbar({
 
         {/* RIGHT ACTION BUTTONS */}
         <div className="flex items-center gap-2 sm:gap-4">
+
           {/* Quick Add Button */}
           <button
             id="quick-add-expense-btn"
@@ -256,26 +263,31 @@ export default function Navbar({
             </AnimatePresence>
           </div>
 
-          {/* User Profile / Logout Desktop */}
-          <div className="hidden border-l border-slate-200 pl-4 sm:flex items-center gap-3">
-            <div className="text-right">
-              <span className="block text-xs font-bold text-slate-800">{user.name}</span>
-              <span className="block text-[10px] text-slate-400">{user.school}</span>
-            </div>
+          {/* User Profile & Logout */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 border-l border-slate-200 pl-2 sm:pl-4">
             <button
-              onClick={onLogout}
-              className="rounded-xl p-2.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer"
-              title="Đăng xuất"
+              onClick={() => setActiveTab('profile')}
+              className="relative group flex h-9 w-9 items-center justify-center rounded-full overflow-hidden border border-slate-200 shadow-sm cursor-pointer hover:border-emerald-500 hover:scale-105 active:scale-95 transition-all duration-200"
+              title={user.name}
+              id="navbar-profile-avatar-btn"
             >
-              <LogOut className="h-5 w-5" />
+              {user.avatar ? (
+                <img src={user.avatar} alt="User Avatar" className="h-full w-full object-cover" />
+              ) : (
+                <div className="h-full w-full bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center text-xs font-bold font-display">
+                  {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+              )}
+              
+              {/* Tooltip on hover */}
+              <div className="absolute right-0 top-11 hidden group-hover:block bg-slate-900 text-white text-[10px] font-semibold px-2 py-1 rounded shadow-lg whitespace-nowrap z-50 animate-fade-in pointer-events-none">
+                {user.name}
+              </div>
             </button>
-          </div>
 
-          {/* User Profile Mobile */}
-          <div className="flex sm:hidden items-center">
             <button
               onClick={onLogout}
-              className="rounded-xl p-2.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+              className="rounded-xl p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer"
               title="Đăng xuất"
             >
               <LogOut className="h-5 w-5" />
@@ -313,7 +325,7 @@ export default function Navbar({
               {tab.id === 'budget' && <Settings className="h-4.5 w-4.5" />}
               {tab.id === 'reports' && <PieChart className="h-4.5 w-4.5" />}
               {tab.id === 'incomes' && <DollarSign className="h-4.5 w-4.5" />}
-              {tab.id === 'saving-goals' && <Target className="h-4.5 w-4.5" />}
+              {tab.id === 'groups' && <Users className="h-4.5 w-4.5" />}
               {tab.id === 'calendar' && <Calendar className="h-4.5 w-4.5" />}
               <span>{tab.name}</span>
             </button>

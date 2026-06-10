@@ -5,8 +5,88 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
 
 ---
 
+### [v5.4.0] - 2026-06-10
+#### 🌟 Hồ sơ Người dùng, Avatar Điều hướng & Tích hợp Cash Flow Định kỳ (User Profile, Navbar Avatar, Cash Flow Fix & Audio-Active Siri Wave)
+*   **Giao diện Hồ sơ cá nhân (User Profile):** Bổ sung trang hồ sơ cá nhân [UserProfile.tsx](file:///c:/Users/ADMIN/Desktop/New%20folder/Student-Expense-Manage-/src/components/UserProfile.tsx) cho phép cập nhật Tên, Tuổi, Số điện thoại và Trường học của sinh viên. Tích hợp bộ tải ảnh đại diện hỗ trợ tải ảnh và mã hóa Base64 lưu trữ đồng bộ.
+*   **Navbar tinh gọn hiển thị Avatar & Tooltip:** Thay thế cụm thông tin text Tên & Trường học cồng kềnh trên [Navbar.tsx](file:///c:/Users/ADMIN/Desktop/New%20folder/Student-Expense-Manage-/src/components/Navbar.tsx) bằng một nút Avatar tròn hiện đại (tự động tạo avatar chữ cái gradient nếu trống). Di chuột vào avatar hiển thị tên qua Tooltip, nhấp chuột để đi nhanh tới trang Hồ sơ.
+*   **Tính toán Dòng tiền số dư Ví lũy tiến chính xác & Chuyển màu Xanh/Đỏ động:** 
+    *   Cập nhật hàm tính toán dòng tiền số dư ví lũy tiến trong [Dashboard.tsx](file:///c:/Users/ADMIN/Desktop/New%20folder/Student-Expense-Manage-/src/components/Dashboard.tsx) tự động cộng thu nhập cố định hàng tháng (`user.monthlyIncome`) vào Ngày 01 và tự động đối chiếu trừ các khoản chi tiêu định kỳ (`recurringExpenses`) phát sinh trong tháng theo lịch phân bổ thực tế.
+    *   Cấu hình linearGradient của SVG theo trục dọc (Y-axis): Phần đồ thị nằm trên mức số dư 0đ hiển thị màu xanh lá cây (`#10b981`), phần đồ thị nằm dưới mức số dư 0đ hiển thị màu đỏ hồng (`#f43f5e`). Đồng thời vẽ thêm đường chỉ số dư nét đứt `0đ` trực quan.
+*   **Hoạt ảnh Siri tương tác âm thanh & Nhận dạng thời gian thực:**
+    *   Bổ sung trạng thái `isSoundActive` liên kết với các sự kiện âm lượng của `SpeechRecognition` để tắt hoạt ảnh nhấp nhô của sóng âm Siri thành các chấm tròn ngang phẳng khi im lặng, chỉ kích hoạt chuyển động mượt mà khi bắt đầu nói hoặc nhận diện âm thanh.
+    *   **Nhận diện Speech-to-Text thời gian thực:** Tinh chỉnh cơ chế xử lý sự kiện `onresult` để liên tục phân tích cú pháp NLP và điền biểu mẫu trực tiếp trên các kết quả trung gian (`interimResults`). Cho phép các trường nhập liệu tự động cập nhật số tiền, nội dung giao dịch và danh mục ngay khi người dùng đang nói.
+
+### [v5.3.0] - 2026-06-10
+#### 🌟 Nhập giọng nói AI, Biểu đồ Số dư Ví & Tối ưu hóa Hiệu năng (AI Voice, Running Balance Line Chart & SWR Performance)
+*   **Biểu đồ Đường Số Dư Ví (Cash Flow Line Chart):** Chuyển đổi biểu đồ cột Thu/Chi cũ sang biểu diễn **Số dư Ví lũy tiến (Running Balance)** ngày qua ngày trong tháng bằng SVG Line/Area Chart mượt mà. Đồ họa 100% responsive hỗ trợ lưới tọa độ, dán nhãn trục X và đổi màu sắc động (đỏ hồng khi số dư âm, xanh lá khi số dư dương) kèm hover tooltip hiển thị chi tiết giao dịch phát sinh.
+*   **Tải trang nhanh tức thì (Cache-First / SWR Loading):** Triển khai chiến lược Stale-While-Revalidate (SWR) trong [App.tsx](file:///c:/Users/ADMIN/Desktop/New%20folder/Student-Expense-Manage-/src/App.tsx) để đọc dữ liệu từ cache LocalStorage và tắt màn hình chờ loading ngay lập tức (0ms), sau đó thực hiện đồng bộ và tải mới dữ liệu từ Firestore ngầm ở background.
+*   **Tính năng Nhập giọng nói AI (CH-01) & Nút Dừng ghi âm chủ động:** Tích hợp bộ nhận dạng giọng nói tiếng Việt trực tiếp trong [AddExpenseModal.tsx](file:///c:/Users/ADMIN/Desktop/New%20folder/Student-Expense-Manage-/src/components/AddExpenseModal.tsx) với tab chuyển đổi AI tiện lợi. Bổ sung nút **Dừng ghi âm** (Stop) giúp người dùng kết thúc nghe giọng nói chủ động thay vì chờ timeout của trình duyệt.
+*   **Khắc phục lỗi nhận diện NLP số tiền & từ khóa thiết bị:**
+    *   Sửa lỗi regex khiến các số tiền có dấu chấm phân tách hàng nghìn (ví dụ: `150.000`) bị nhận diện sai thành giá trị nhỏ (`150`).
+    *   Hỗ trợ trích xuất số thập phân đi kèm đơn vị lớn (ví dụ: `2,5 triệu` hay `2.5 triệu` -> `2500000`).
+    *   Bổ sung từ khóa thiết bị công nghệ (`laptop, điện thoại, máy tính, ipad, phone...`) tự động chuyển sang danh mục Mua sắm (Shopping).
+*   **Dọn dẹp Giao diện chính:** Gỡ bỏ các nút Micro và ghi nhanh ở Navbar và Dashboard nhằm giữ giao diện tối giản, tập trung trải nghiệm cho người dùng.
+
+### [v5.2.0] - 2026-06-10
+#### 🌟 Cải tiến & Di chuyển Quỹ nhóm lên Firebase Firestore (Group Fund Refinements & Firestore Migration)
+*   **Di chuyển Quỹ nhóm và Thông báo lên Firebase Firestore:** Viết lại toàn bộ logic API của Quỹ nhóm và Thông báo sử dụng trực tiếp Firebase Firestore SDK phía Client. Gỡ bỏ hoàn toàn routes `/api/groups` và `/api/notifications` trên backend server Express, loại bỏ sự phụ thuộc vào tệp ghi tạm thời `/tmp/db.json` trên Vercel nhằm tránh tuyệt đối lỗi mất dữ liệu khi serverless function cold-start.
+*   **Định dạng Link mời tham gia trực tiếp:** Thay đổi URL mời thành dạng query parameter trực tiếp `/index.html?invite=CODE` hoặc `/?invite=CODE`, xử lý tham gia nhóm trực tiếp trên Firestore ở phía Client.
+*   **Đồng bộ Hiệu ứng tab Quỹ nhóm:** Thêm hiệu ứng Framer Motion `motion.div` cho trang Quỹ nhóm đồng bộ với Dashboard/Reports.
+*   **Sửa lỗi tự trừ tiền & lịch sử chi tiêu của người tạo khoản chi:** Sau khi tạo khoản chi nhóm thành công, hệ thống tự động ghi nhận phần tiền chia sẻ (split share) của người tạo vào lịch sử chi tiêu cá nhân để cập nhật số dư ví và hạn mức (hỗ trợ cả online Firestore và guest LocalStorage).
+*   **Hiển thị Icon cho Quỹ nhóm:** Thêm icon đại diện `👥` cho danh mục `group_fund` ở Budget Settings, Reports và Dashboard.
+*   **Đóng băng nút Tất toán đối với Chủ nợ:** Chủ nợ (người tạo công nợ) sẽ hiển thị trạng thái "đang trả" không tương tác được thay vì nút "Đánh dấu đã thanh toán".
+*   **Ẩn Quỹ nhóm trong dropdown chọn danh mục:** Loại bỏ "Quỹ nhóm" khỏi ô chọn danh mục thủ công (Add Personal Expense) và cố định danh mục của hóa đơn nhóm luôn là "Quỹ nhóm".
+
+
+### [v5.1.0] - 2026-06-10
+#### 🌟 Nâng cấp AI OCR, Xóa bỏ tính năng Tiết kiệm (Saving Goals) & Sửa lỗi Vercel 500
+*   **Khắc phục lỗi Vercel 500 (FUNCTION_INVOCATION_FAILED):**
+    *   Cập nhật [api/index.ts](file:///c:/Users/ADMIN/Desktop/New%20folder/Student-Expense-Manage-/api/index.ts) để export trực tiếp Express `app` làm default handler thay vì wrap trong hàm custom. Việc này giúp Vercel Serverless Node bridge tự động quản lý vòng đời request chính xác và không bị treo.
+    *   Thêm cấu hình `functions` và `includeFiles` trong [vercel.json](file:///c:/Users/ADMIN/Desktop/New%20folder/Student-Expense-Manage-/vercel.json) để bundle file dữ liệu mẫu `data/db.json` vào môi trường Serverless Function, tránh lỗi thiếu file database mẫu lúc runtime.
+    *   Thêm các global uncaught exception và unhandled rejection event listeners để bắt và ghi log tất cả lỗi runtime bất ngờ trên Vercel.
+*   **Nâng cấp AI OCR & Regex Fallback:**
+    *   Tối ưu hóa **System Instruction** của Gemini API giúp trích xuất chính xác tên cửa hàng (Merchant), tổng tiền thanh toán cuối cùng (Amount), ngày giao dịch (Date) định dạng chuẩn `YYYY-MM-DD`, và danh sách các mặt hàng chi tiết (Note/Items).
+    *   Cấu trúc lại **responseSchema** sử dụng kiểu dữ liệu chữ thường chuẩn tương thích tốt với SDK mới `@google/genai`.
+    *   Cải tiến logic trích xuất **Regex Fallback (Offline Path)** để lọc nhiễu địa chỉ, số điện thoại, trích xuất chính xác thông tin hóa đơn tiếng Việt thực tế. Bổ sung unit test thực tế cho hóa đơn `VINH NGUYEN RES` (225,000đ).
+*   **Loại bỏ tính năng Tiết kiệm (Saving Goals):**
+    *   Xóa bỏ hoàn toàn mã nguồn component giao diện `SavingGoals.tsx` và controller backend `savingGoals.ts`.
+    *   Cập nhật `App.tsx` và `Navbar.tsx` để gỡ bỏ tab "Tiết kiệm" và các icon biểu tượng khỏi menu.
+    *   Tái thiết kế trang `Dashboard.tsx`, xóa bỏ widget hiển thị tiến trình tiết kiệm tích lũy và chuyển đổi grid tổng quan tài chính sang 2 cột cho cân đối.
+    *   Dọn dẹp các API Client trong `api.ts` và Express routes trong `app.ts`.
+*   **Cập nhật UI trang Nhóm (Groups):**
+    *   Khôi phục lại banner đầu trang `Quỹ Nhóm & Chia Tiền` với tiêu đề và mô tả rõ ràng.
+    *   Xóa thẻ `Tính năng Sprint 5` trên banner để tránh gây nhiễu nội dung.
+    *   Gỡ bỏ một số nhãn và nút tạo nhóm thừa trên sidebar `Tham gia nhóm bằng mã mời`, giữ giao diện gọn và tập trung hơn.
+
+---
+
+### [v5.0.0] - 2026-06-10
+#### 🌟 Tính năng mới Sprint 5 (OCR Receipt Scanner & Expense Splitting)
+*   **MH-02: OCR Receipt Scanner (Quét hóa đơn bằng AI) [13 SP]:**
+    *   **UI Camera/Upload (S5-06):** Hỗ trợ chụp camera hoặc tải ảnh hóa đơn (hỗ trợ JPG, PNG, HEIC, tối đa 10MB) với giao diện preview trực quan trước khi xác nhận lưu (AC1).
+    *   **Ánh xạ & Tự động điền dữ liệu (S5-07):** AI tự động trích xuất và điền tự động số tiền, ngày giao dịch và tên cửa hàng (AC2). Cho phép người dùng chỉnh sửa thủ công toàn bộ các trường thông tin (AC3).
+    *   **Cảnh báo & Nhập thủ công (AC4):** Nếu không nhận dạng được số tiền, hệ thống sẽ tự động hiển thị cảnh báo đỏ và yêu cầu người dùng nhập thủ công.
+    *   **Tối ưu hóa thời gian quét (AC5):** Thời gian xử lý OCR được tối ưu hóa luôn đảm bảo dưới 8 giây cho ảnh dưới 5MB.
+    *   **Hiển thị Thumbnail (AC6):** Hỗ trợ đính kèm và hiển thị ảnh thumbnail của hóa đơn đi kèm với giao dịch đã lưu.
+    *   **Kiểm thử tự động (S5-08):** Thiết lập file kiểm thử `tests/ocr.test.ts` kiểm thử an toàn cho hơn 10+ định dạng hóa đơn khác nhau.
+*   **SH-01: Expense Splitting & Group Fund (Chia tiền nhóm & Quỹ chung) [13 SP]:**
+    *   **Thiết kế mô hình dữ liệu (S5-15):** Xây dựng các schema cho Group, GroupMember, GroupExpense, GroupSettlement. Hỗ trợ nhóm lên đến tối đa 20 thành viên với độ dài tên nhóm từ 3-50 ký tự (AC1).
+    *   **Tạo nhóm & Mời thành viên (S5-16):** Giao diện quản lý nhóm `Groups.tsx` hỗ trợ tạo nhóm cực nhanh dưới 3 bước. Tự động sinh link mời thành viên hiệu lực 7 ngày và hỗ trợ tính năng thu hồi link (AC2).
+    *   **Chia tiền & Thanh toán (S5-17):**
+        *   Tự động tính toán chia tiền đều, tự động làm tròn về 1000 VND và gán phần dư cho thành viên đầu tiên (AC3).
+        *   Hiển thị bảng công nợ chi tiết "Ai nợ ai bao nhiêu" kèm nút đánh dấu xác nhận đã thanh toán (AC4).
+        *   Tích hợp tính năng xuất lịch sử giao dịch nhóm sang file CSV phục vụ lưu trữ (AC5).
+
+---
+
 ### [v4.1.0] - 2026-06-09
-#### 🔧 Vercel Deployment & Wallet Balance Fixes
+#### 🔧 Vercel Deployment Serverless & Hiển thị Lỗi Chi Tiết để Debug
+*   **Cấu hình Serverless Backend cho Vercel:**
+    *   Tách Express app thành module riêng biệt trong `src/server/app.ts` mà không gọi trực tiếp `app.listen()`.
+    *   Tạo entry point serverless tại `api/index.ts` và cập nhật rewrite rules trong `vercel.json` để định tuyến toàn bộ request `/api/*` về Serverless Function, khắc phục hoàn toàn lỗi **404 Not Found** khi gọi API trên Vercel production.
+*   **Nâng cấp Hiển thị Lỗi (Hiển thị Full Bug để Debug):**
+    *   Cải tiến hàm `safeFetchJson` trong `src/lib/api.ts` để tăng giới hạn chuỗi lỗi thu thập từ response thô lên **3000 ký tự** (thay vì 200 ký tự).
+    *   Thiết kế lại khu vực hiển thị `ocrError` trong `AddExpenseModal.tsx` thành dạng khung code (`<pre>`) font monospace có thanh cuộn và hỗ trợ chọn văn bản (`select-text`) để người dùng dễ dàng theo dõi và copy thông tin lỗi đầy đủ phục vụ debug.
 *   **Vercel Deployment Fix (`vercel.json`):**
     *   Cấu hình explicit static build sử dụng `@vercel/static-build` và chuyển thư mục phân phối tĩnh `distDir` thành `"dist"`. Tránh việc Vercel phục vụ thư mục gốc chưa biên dịch làm sập ứng dụng (màn hình trắng do lỗi cú pháp TSX ở phía Client).
 *   **Fix lỗi sập màn hình sau Login (Dashboard crash fix):**

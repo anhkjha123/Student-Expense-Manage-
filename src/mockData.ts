@@ -56,6 +56,14 @@ export const DEFAULT_CATEGORIES: Category[] = [
     color: 'bg-slate-500/10 border-slate-500/30 text-slate-600',
     textColor: 'text-slate-600',
     description: 'Đau ốm, đám tiệc, các phát sinh đột xuất không nằm trong danh mục'
+  },
+  {
+    id: 'group_fund',
+    name: 'Quỹ nhóm',
+    icon: 'Users',
+    color: 'bg-teal-500/10 border-teal-500/30 text-teal-600',
+    textColor: 'text-teal-600',
+    description: 'Chi tiêu đóng quỹ nhóm, phân chia tiền phòng, tất toán công nợ nhóm'
   }
 ];
 

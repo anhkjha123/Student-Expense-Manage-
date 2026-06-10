@@ -32,6 +32,7 @@ interface DashboardProps {
   budgets: Budget[];
   notifications: Notification[];
   onOpenAddExpense: () => void;
+  onOpenAddExpenseVoice?: () => void;
   setActiveTab: (tab: string) => void;
   onEditExpense?: (expense: Expense) => void;
   recurringExpenses?: RecurringExpense[];
@@ -44,6 +45,7 @@ export default function Dashboard({
   budgets,
   notifications,
   onOpenAddExpense,
+  onOpenAddExpenseVoice,
   setActiveTab,
   onEditExpense,
   recurringExpenses = []
@@ -51,6 +53,7 @@ export default function Dashboard({
   
   const [variableIncomes, setVariableIncomes] = useState<Income[]>([]);
   const [tooltipVisible, setTooltipVisible] = useState<'income' | 'expense' | null>(null);
+  const [hoveredPointIndex, setHoveredPointIndex] = useState<number | null>(null);
 
   // Load variable incomes (non-fixed) for current month from localStorage / API
   useEffect(() => {
@@ -107,20 +110,91 @@ export default function Dashboard({
       flowMap[dateStr] = { income: 0, expense: 0 };
     }
 
+    // Add fixed monthly income on Day 1
+    const firstDayStr = `${currentMonthStr}-01`;
+    if (flowMap[firstDayStr]) {
+      flowMap[firstDayStr].income += user.monthlyIncome;
+    }
+
+    // Add variable incomes on their respective dates
     variableIncomes.forEach(i => {
       if (flowMap[i.date]) flowMap[i.date].income += i.amount;
     });
 
+    // Add normal logged expenses on their respective dates
     currentMonthExpenses.forEach(e => {
       if (flowMap[e.date]) flowMap[e.date].expense += e.amount;
     });
 
-    return Object.keys(flowMap).sort().map(date => ({
-      date,
-      income: flowMap[date].income,
-      expense: flowMap[date].expense
-    }));
-  }, [variableIncomes, currentMonthExpenses, currentYear, currentMonth, currentMonthStr]);
+    // Add recurring expenses on their firing dates
+    recurringExpenses.forEach(rec => {
+      const start = new Date(rec.startDate + 'T00:00:00');
+      if (rec.cycle === 'MONTHLY') {
+        const day = start.getDate();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        if (
+          (currentYear > start.getFullYear() || (currentYear === start.getFullYear() && currentMonth >= start.getMonth())) &&
+          day <= daysInMonth
+        ) {
+          const dateStr = `${currentMonthStr}-${day.toString().padStart(2, '0')}`;
+          if (flowMap[dateStr]) {
+            flowMap[dateStr].expense += rec.amount;
+          }
+        }
+      } else if (rec.cycle === 'WEEKLY') {
+        const startDow = start.getDay();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        for (let d = 1; d <= daysInMonth; d++) {
+          const candidate = new Date(currentYear, currentMonth, d);
+          if (candidate.getDay() === startDow && candidate >= start) {
+            const dateStr = `${currentMonthStr}-${d.toString().padStart(2, '0')}`;
+            if (flowMap[dateStr]) {
+              flowMap[dateStr].expense += rec.amount;
+            }
+          }
+        }
+      }
+    });
+
+    const dates = Object.keys(flowMap).sort();
+    let runningBalance = 0;
+    
+    return dates.map(date => {
+      runningBalance += flowMap[date].income - flowMap[date].expense;
+      return {
+        date,
+        income: flowMap[date].income,
+        expense: flowMap[date].expense,
+        balance: runningBalance
+      };
+    });
+  }, [user.monthlyIncome, variableIncomes, currentMonthExpenses, recurringExpenses, currentYear, currentMonth, currentMonthStr]);
+
+  const { minBal, maxBal, points, lineD, areaD, isNegative, yZeroPercent } = useMemo(() => {
+    if (cashflow.length === 0) {
+      return { minBal: 0, maxBal: 0, points: [], lineD: '', areaD: '', isNegative: false, yZeroPercent: 85 };
+    }
+    const balances = cashflow.map(d => d.balance);
+    const minBal = Math.min(...balances, 0);
+    const maxBal = Math.max(...balances, 100000);
+    const range = maxBal - minBal || 1;
+    const points = cashflow.map((day, i) => {
+      const x = (i / (cashflow.length - 1)) * 300;
+      const y = 85 - ((day.balance - minBal) / range) * 70; // Map y to [15, 85]
+      return { x, y, ...day };
+    });
+    const lineD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+    const areaD = points.length > 0 
+      ? `${lineD} L ${points[points.length - 1].x} 100 L ${points[0].x} 100 Z` 
+      : '';
+    const isNegative = cashflow[cashflow.length - 1]?.balance < 0;
+
+    // Calculate vertical position of zero balance
+    const yZero = 85 - ((0 - minBal) / range) * 70;
+    const yZeroPercent = Math.min(100, Math.max(0, yZero));
+
+    return { minBal, maxBal, points, lineD, areaD, isNegative, yZeroPercent };
+  }, [cashflow]);
 
   // Compute insights locally
   const insights = useMemo(() => {
@@ -368,18 +442,30 @@ export default function Dashboard({
       </motion.div>
 
       {/* CORE FINANCIAL OVERVIEW CARDS */}
-      <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Wallet Balance Box */}
         <motion.div 
           whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
-          className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-500 to-teal-600 p-5 shadow-sm relative transition-all duration-300 text-white"
+          className={`rounded-3xl border p-5 shadow-sm relative transition-all duration-300 text-white bg-gradient-to-br ${
+            walletBalance < 0 
+              ? 'from-rose-500 to-red-600 border-rose-200 shadow-rose-100' 
+              : walletBalance < savingGoal 
+                ? 'from-amber-500 to-orange-600 border-amber-200 shadow-amber-100' 
+                : 'from-emerald-500 to-teal-600 border-emerald-100 shadow-emerald-100'
+          }`}
         >
           <div className="flex justify-between items-start relative z-10">
             <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-100 font-mono">
+              <span className={`text-[10px] font-bold uppercase tracking-wider font-mono ${
+                walletBalance < 0 
+                  ? 'text-rose-100' 
+                  : walletBalance < savingGoal 
+                    ? 'text-amber-100' 
+                    : 'text-emerald-100'
+              }`}>
                 Số Dư Ví Tháng Này
               </span>
-              <div className={`text-3xl font-black font-mono drop-shadow-md ${walletBalance < 0 ? 'text-red-200' : ''}`}>
+              <div className="text-3xl font-black font-mono drop-shadow-md text-white">
                 {walletBalance < 0 ? '-' : ''}{new Intl.NumberFormat('vi-VN').format(Math.abs(walletBalance))}đ
               </div>
             </div>
@@ -392,7 +478,7 @@ export default function Dashboard({
           </div>
 
           {/* Thu / Chi row with hover tooltips */}
-          <div className="flex justify-between text-[10px] text-emerald-50 font-semibold mt-4 pt-3 border-t border-emerald-400/50 relative z-10 gap-2">
+          <div className="flex justify-between text-[10px] text-white/95 font-semibold mt-4 pt-3 border-t border-white/20 relative z-10 gap-2">
             {/* THU tooltip - simplified: 2 operands only */}
             <div
               className="relative cursor-help flex items-center gap-0.5"
@@ -478,32 +564,6 @@ export default function Dashboard({
           </div>
           <div className="text-[10px] text-slate-600 font-semibold mt-3 pt-3 border-t border-amber-100/50 relative z-10">
             Còn lại chi tiêu khả dụng: <strong className="text-amber-700 font-mono">{new Intl.NumberFormat('vi-VN').format(Math.max(0, remainingBudget))}đ</strong>
-          </div>
-        </motion.div>
-
-        {/* Projected Savings Box */}
-        <motion.div 
-          whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
-          className="rounded-3xl border border-blue-100 bg-gradient-to-br from-white to-blue-50/30 p-5 shadow-sm relative overflow-hidden transition-all duration-300"
-        >
-          <div className="flex justify-between items-start relative z-10">
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
-                Dự kiến tích lũy cuối tháng
-              </span>
-              <div className={`text-2xl font-black font-mono drop-shadow-sm ${remainingBudget + savingGoal < savingGoal ? 'text-amber-600' : 'text-blue-700'}`}>
-                {new Intl.NumberFormat('vi-VN').format(Math.max(0, remainingBudget + savingGoal))}đ
-              </div>
-            </div>
-            <span className="p-3 bg-blue-100 text-blue-600 rounded-2xl shadow-inner border border-blue-200">
-              <PiggyBank className="h-5 w-5" />
-            </span>
-          </div>
-          <div className="absolute -bottom-4 -right-4 text-blue-100/50 pointer-events-none transform -rotate-12">
-            <PiggyBank className="h-24 w-24" />
-          </div>
-          <div className="text-[10px] text-slate-600 font-semibold mt-3 pt-3 border-t border-blue-100/50 relative z-10">
-            Mục tiêu tích lũy ban đầu: <strong className="text-blue-700 font-mono">{new Intl.NumberFormat('vi-VN').format(savingGoal)}đ</strong>
           </div>
         </motion.div>
       </motion.div>
@@ -665,44 +725,137 @@ export default function Dashboard({
       {/* CASH FLOW CHART & RECENT EXPENSES */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-12 gap-6">
         
-        {/* Cash Flow Area Chart (Mockup with CSS) */}
+        {/* Cash Flow Area Chart (SVG Line Chart showing Wallet Balance) */}
         <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md md:col-span-7 lg:col-span-7 space-y-4 hover:shadow-lg transition-shadow duration-300 flex flex-col justify-between">
           <div className="flex justify-between items-center pb-2 border-b border-slate-50">
             <h3 className="font-display text-base font-bold text-slate-800 drop-shadow-sm">
-              Dòng Tiền (Cash Flow)
+              Xu hướng Số Dư Ví (Cash Flow)
             </h3>
           </div>
-          <div className="h-48 w-full flex items-end gap-1 px-1 overflow-x-auto relative mt-4">
+          <div className="h-48 w-full relative mt-4 border-b border-slate-100 pb-1">
             {cashflow.length === 0 ? (
-              <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Đang tải dữ liệu dòng tiền...</div>
+              <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Đang tải dữ liệu số dư...</div>
             ) : (
-              cashflow.map(day => {
-                const isDeficit = day.expense > day.income;
-                const total = Math.max(day.expense, day.income, 100000);
-                const expHeight = (day.expense / total) * 100;
-                const incHeight = (day.income / total) * 100;
-                return (
-                  <div key={day.date} className="flex-1 flex flex-col justify-end items-center group relative min-w-[12px]">
-                    {/* Tooltip */}
-                    <div className="absolute -top-12 bg-slate-800 text-white text-[10px] p-2 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap pointer-events-none">
-                      <div>{day.date.split('-').reverse().join('/')}</div>
-                      <div className="text-emerald-400">Thu: +{new Intl.NumberFormat('vi-VN').format(day.income)}</div>
-                      <div className="text-red-400">Chi: -{new Intl.NumberFormat('vi-VN').format(day.expense)}</div>
+              <div className="w-full h-full relative">
+                {/* SVG Line & Area Chart */}
+                <svg viewBox="0 0 300 100" className="w-full h-full overflow-visible" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="chart-area-grad" x1="0" y1="0" x2="0" y2="100" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
+                      <stop offset={`${yZeroPercent}%`} stopColor="#10b981" stopOpacity="0.03" />
+                      <stop offset={`${yZeroPercent}%`} stopColor="#f43f5e" stopOpacity="0.03" />
+                      <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.25" />
+                    </linearGradient>
+                    <linearGradient id="chart-line-grad" x1="0" y1="0" x2="0" y2="100" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="#10b981" />
+                      <stop offset={`${yZeroPercent}%`} stopColor="#10b981" />
+                      <stop offset={`${yZeroPercent}%`} stopColor="#f43f5e" />
+                      <stop offset="100%" stopColor="#f43f5e" />
+                    </linearGradient>
+                  </defs>
+                  
+                  {/* Grid Lines */}
+                  <line x1="0" y1="15" x2="300" y2="15" stroke="#f8fafc" strokeWidth="0.75" />
+                  <line x1="0" y1="50" x2="300" y2="50" stroke="#f1f5f9" strokeWidth="0.5" strokeDasharray="2 2" />
+                  <line x1="0" y1="85" x2="300" y2="85" stroke="#f8fafc" strokeWidth="0.75" />
+                  <line x1="0" y1={yZeroPercent} x2="300" y2={yZeroPercent} stroke="#cbd5e1" strokeWidth="0.75" strokeDasharray="3 2" opacity="0.8" /> {/* Zero Line */}
+                  {yZeroPercent > 15 && yZeroPercent < 85 && (
+                    <text x="5" y={yZeroPercent - 3} fill="#94a3b8" fontSize="5" fontWeight="bold">0đ</text>
+                  )}
+
+                  {/* Area Under Line */}
+                  <path d={areaD} fill="url(#chart-area-grad)" />
+
+                  {/* Line */}
+                  <path d={lineD} fill="none" stroke="url(#chart-line-grad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+
+                  {/* Hover Indicator Line */}
+                  {hoveredPointIndex !== null && points[hoveredPointIndex] && (
+                    <>
+                      <line 
+                        x1={points[hoveredPointIndex].x} 
+                        y1="0" 
+                        x2={points[hoveredPointIndex].x} 
+                        y2="100" 
+                        stroke="#94a3b8" 
+                        strokeWidth="0.75" 
+                        strokeDasharray="3 3" 
+                      />
+                      <circle 
+                        cx={points[hoveredPointIndex].x} 
+                        cy={points[hoveredPointIndex].y} 
+                        r="4.5" 
+                        fill={points[hoveredPointIndex].balance < 0 ? '#f43f5e' : '#10b981'} 
+                        stroke="#ffffff" 
+                        strokeWidth="1.5" 
+                        className="shadow-sm"
+                      />
+                    </>
+                  )}
+
+                  {/* Invisible Hover Zones (one rect per point) */}
+                  {points.map((p, idx) => {
+                    const colWidth = 300 / (points.length - 1 || 1);
+                    const startX = p.x - colWidth / 2;
+                    return (
+                      <rect
+                        key={idx}
+                        x={startX}
+                        y="0"
+                        width={colWidth}
+                        height="100"
+                        fill="transparent"
+                        className="cursor-pointer"
+                        onMouseEnter={() => setHoveredPointIndex(idx)}
+                        onMouseLeave={() => setHoveredPointIndex(null)}
+                      />
+                    );
+                  })}
+                </svg>
+
+                {/* Floating Tooltip */}
+                {hoveredPointIndex !== null && points[hoveredPointIndex] && (
+                  <div 
+                    className="absolute bg-slate-900/95 text-white text-[10px] p-2.5 rounded-2xl shadow-xl border border-white/10 z-20 pointer-events-none whitespace-nowrap"
+                    style={{
+                      left: `${(hoveredPointIndex / (points.length - 1)) * 100}%`,
+                      bottom: '80%',
+                      transform: 'translateX(-50%)',
+                      transition: 'left 0.08s ease-out'
+                    }}
+                  >
+                    <div className="font-bold text-slate-300 border-b border-slate-700/50 pb-1 mb-1.5 flex justify-between gap-4">
+                      <span>{points[hoveredPointIndex].date.split('-').reverse().join('/')}</span>
+                      <span className="font-mono text-slate-400">Ngày {hoveredPointIndex + 1}</span>
                     </div>
-                    {/* Bars */}
-                    <div className="w-full relative flex items-end h-full">
-                      <div className={`absolute bottom-0 w-full bg-emerald-400/50 rounded-t-sm`} style={{ height: `${incHeight}%` }}></div>
-                      <div className={`absolute bottom-0 w-full ${isDeficit ? 'bg-red-500' : 'bg-red-300/50'} rounded-t-sm`} style={{ height: `${expHeight}%` }}></div>
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex justify-between gap-4">
+                        <span className="text-slate-400">Số dư ví:</span>
+                        <span className={`font-mono font-bold ${points[hoveredPointIndex].balance < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                          {new Intl.NumberFormat('vi-VN').format(points[hoveredPointIndex].balance)}đ
+                        </span>
+                      </div>
+                      <div className="flex justify-between gap-4 text-[9px] opacity-75 mt-0.5 pt-0.5 border-t border-slate-800">
+                        <span>Thu/Chi ngày:</span>
+                        <span className="font-mono text-slate-300">
+                          +{new Intl.NumberFormat('vi-VN').format(points[hoveredPointIndex].income)}đ / -{new Intl.NumberFormat('vi-VN').format(points[hoveredPointIndex].expense)}đ
+                        </span>
+                      </div>
                     </div>
                   </div>
-                );
-              })
+                )}
+              </div>
             )}
           </div>
-          <div className="flex justify-center gap-4 text-[10px] text-slate-500 font-medium">
-            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-400/50"></div> Thu nhập</span>
-            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-300/50"></div> Chi tiêu</span>
-            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-500"></div> Chi &gt; Thu (Thâm hụt)</span>
+          {/* Axis Labels */}
+          <div className="flex justify-between text-[9px] text-slate-400 font-mono px-1">
+            <span>Ngày 01</span>
+            <span>Giữa tháng (Ngày 15)</span>
+            <span>Cuối tháng</span>
+          </div>
+          <div className="flex justify-center gap-5 text-[10px] text-slate-500 font-semibold pt-1 border-t border-slate-50">
+            <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-emerald-400"></div> Số dư dương (&gt;= 0đ)</span>
+            <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-rose-500"></div> Số dư âm (&lt; 0đ)</span>
           </div>
         </div>
         
@@ -736,6 +889,7 @@ export default function Dashboard({
                         {cat.id === 'transport' && '🏍️'}
                         {cat.id === 'entertainment' && '🥤'}
                         {cat.id === 'shopping' && '🛍️'}
+                        {cat.id === 'group_fund' && '👥'}
                         {cat.id === 'other' && '🔄'}
                       </span>
                       {cat.name}
@@ -809,6 +963,7 @@ export default function Dashboard({
                           {exp.categoryId === 'transport' && '🏍️'}
                           {exp.categoryId === 'entertainment' && '🥤'}
                           {exp.categoryId === 'shopping' && '🛍️'}
+                          {exp.categoryId === 'group_fund' && '👥'}
                           {exp.categoryId === 'other' && '🔄'}
                         </div>
                         <div>

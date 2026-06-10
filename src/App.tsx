@@ -26,10 +26,11 @@ import BudgetSettings from './components/BudgetSettings';
 import Reports from './components/Reports';
 import AddExpenseModal from './components/AddExpenseModal';
 import LoginRegister from './components/LoginRegister';
-import SavingGoals from './components/SavingGoals';
 import Incomes from './components/Incomes';
 import CalendarView from './components/CalendarView';
 import RecurringExpenses from './components/RecurringExpenses';
+import Groups from './components/Groups';
+import UserProfile from './components/UserProfile';
 
 export default function App() {
   // --- CORE STATE ---
@@ -42,6 +43,7 @@ export default function App() {
   // App views & UI Controls
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState<boolean>(false);
+  const [addExpenseStartWithVoice, setAddExpenseStartWithVoice] = useState<boolean>(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isFirebaseSynced, setIsFirebaseSynced] = useState<boolean>(false);
@@ -151,202 +153,182 @@ export default function App() {
     }
 
     const loadData = async () => {
-      setIsLoading(true);
       const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
       const userExpensesKey = `sem_${currentUser.id}_expenses`;
       const userBudgetsKey = `sem_${currentUser.id}_budgets`;
+      const userNotifsKey = `sem_${currentUser.id}_notifs`;
       const userProfileSyncedKey = `sem_${currentUser.id}_profile_synced`;
       const userBudgetsSyncedKey = `sem_${currentUser.id}_budgets_synced`;
 
-      if (isGuest) {
-        // Tải hoàn toàn offline từ LocalStorage trong chế độ Khách Trải Nghiệm
-        const storedExpenses = localStorage.getItem(userExpensesKey);
-        const storedBudgets = localStorage.getItem(userBudgetsKey);
-        const userNotifsKey = `sem_${currentUser.id}_notifs`;
-        const storedNotifs = localStorage.getItem(userNotifsKey);
+      // 1. Immediate Cache-First Load from LocalStorage
+      const storedExpenses = localStorage.getItem(userExpensesKey);
+      const storedBudgets = localStorage.getItem(userBudgetsKey);
+      const storedNotifs = localStorage.getItem(userNotifsKey);
 
-        let finalExpenses: Expense[] = [];
-        let finalBudgets: Budget[] = [];
-        let finalNotifs: Notification[] = [];
+      let cachedExpenses: Expense[] = [];
+      let cachedBudgets: Budget[] = [];
+      let cachedNotifs: Notification[] = [];
 
-        if (storedExpenses) {
-          finalExpenses = JSON.parse(storedExpenses);
-        } else {
-          finalExpenses = INITIAL_EXPENSES.map(e => ({ ...e, id: `exp_init_${Math.random().toString(36).substr(2)}`, userId: currentUser.id }));
-          localStorage.setItem(userExpensesKey, JSON.stringify(finalExpenses));
-        }
-
-        if (storedBudgets) {
-          finalBudgets = JSON.parse(storedBudgets);
-        } else {
-          finalBudgets = INITIAL_BUDGETS.map(b => ({ ...b, userId: currentUser.id }));
-          localStorage.setItem(userBudgetsKey, JSON.stringify(finalBudgets));
-        }
-
-        if (storedNotifs) {
-          finalNotifs = JSON.parse(storedNotifs);
-        } else {
-          finalNotifs = INITIAL_NOTIFICATIONS.filter(n => n.userId === 'user_01').map(n => ({ 
-            ...n, 
-            id: `notif_init_${Math.random().toString(36).substr(2)}`, 
-            userId: currentUser.id 
-          }));
-          localStorage.setItem(userNotifsKey, JSON.stringify(finalNotifs));
-        }
-
-        setExpenses(finalExpenses);
-        setBudgets(finalBudgets);
-        setNotifications(finalNotifs);
-        setIsLoading(false);
-        return;
+      if (storedExpenses) {
+        try { cachedExpenses = JSON.parse(storedExpenses); } catch (_) {}
+      } else if (isGuest) {
+        cachedExpenses = INITIAL_EXPENSES.map(e => ({ ...e, id: `exp_init_${Math.random().toString(36).substr(2)}`, userId: currentUser.id }));
+        localStorage.setItem(userExpensesKey, JSON.stringify(cachedExpenses));
       }
 
+      if (storedBudgets) {
+        try { cachedBudgets = JSON.parse(storedBudgets); } catch (_) {}
+      } else if (isGuest) {
+        cachedBudgets = INITIAL_BUDGETS.map(b => ({ ...b, userId: currentUser.id }));
+        localStorage.setItem(userBudgetsKey, JSON.stringify(cachedBudgets));
+      }
+
+      if (storedNotifs) {
+        try { cachedNotifs = JSON.parse(storedNotifs); } catch (_) {}
+      } else {
+        cachedNotifs = INITIAL_NOTIFICATIONS.filter(n => n.userId === currentUser.id);
+        localStorage.setItem(userNotifsKey, JSON.stringify(cachedNotifs));
+      }
+
+      // End loading state immediately using cached resources
+      setExpenses(cachedExpenses);
+      setBudgets(cachedBudgets);
+      setNotifications(cachedNotifs);
+      setIsLoading(false);
+
+      if (isGuest) {
+        return; // No Firestore synchronizations required in guest mode
+      }
+
+      // 2. Background Revalidation (Fetch fresh data from Firestore silently)
       try {
-        if (!navigator.onLine) {
-          throw new Error('Network offline');
-        }
+        if (!navigator.onLine) return;
 
-        const timeoutPromise = new Promise<never>((_, reject) => 
-          setTimeout(() => reject(new Error('Fetch timeout')), 2500)
-        );
-
-        // 1. Đồng bộ ngầm thông tin cá nhân lên Firestore nếu chưa đồng bộ thành công trước đó
+        // Perform silent profile sync
         const profileSynced = localStorage.getItem(userProfileSyncedKey);
         if (profileSynced === 'false') {
           try {
             const storedUser = localStorage.getItem('sem_user');
             if (storedUser) {
-              const parsedUser = JSON.parse(storedUser);
-              await ApiService.updateUserProfile(currentUser.id, parsedUser);
+              await ApiService.updateUserProfile(currentUser.id, JSON.parse(storedUser));
               localStorage.setItem(userProfileSyncedKey, 'true');
-              console.log("[Ok] Silent sync successful for user profile");
             }
-          } catch (profileSyncErr) {
-            console.warn("Silent sync failed for user profile:", profileSyncErr);
+          } catch (e) {
+            console.warn("Background user sync failed:", e);
           }
         }
 
-        // Tải dữ liệu từ Firestore qua ApiService (bọc trong timeout)
-        const [apiExpenses, apiBudgets] = await Promise.race([
-          Promise.all([ApiService.getExpenses(), ApiService.getBudgets()]),
-          timeoutPromise
+        // Fetch fresh budgets and expenses
+        const [apiExpenses, apiBudgets] = await Promise.all([
+          ApiService.getExpenses(),
+          ApiService.getBudgets()
         ]);
-        
+
         let finalExpenses = [...apiExpenses];
         
-        // Tránh ghi đè mất mát các bản ghi offline chưa kịp đồng bộ (có ID bắt đầu bằng exp_added_)
-        const storedExpenses = localStorage.getItem(userExpensesKey);
+        // Merge offline expenses (marked with exp_added_)
         if (storedExpenses) {
           try {
             const localEst = JSON.parse(storedExpenses) as Expense[];
-            const unsavedLocal = localEst.filter(le => {
-              if (!le || !le.id || typeof le.id !== 'string' || !le.id.startsWith('exp_added_')) {
-                return false;
-              }
-              // Kiểm tra trùng lặp thông tin trên server để tránh upload trùng
-              const alreadyExistsOnServer = apiExpenses.some(ae => 
+            const unsavedLocal = localEst.filter(le => le && le.id && typeof le.id === 'string' && le.id.startsWith('exp_added_'));
+            
+            const cleanUnsaved = unsavedLocal.filter(le => 
+              !apiExpenses.some(ae => 
                 Number(ae.amount) === Number(le.amount) &&
                 ae.categoryId === le.categoryId &&
                 ae.title?.trim() === le.title?.trim() &&
-                ae.date === le.date &&
-                ae.isNecessary === le.isNecessary
-              );
-              return !alreadyExistsOnServer;
-            });
-            if (unsavedLocal.length > 0) {
-              finalExpenses = [...unsavedLocal, ...finalExpenses];
-              // Đẩy đồng bộ ngầm các khoản chi chưa đồng bộ lên Firestore
-              for (const unsaved of unsavedLocal) {
+                ae.date === le.date
+              )
+            );
+            if (cleanUnsaved.length > 0) {
+              finalExpenses = [...cleanUnsaved, ...finalExpenses];
+              for (const unsaved of cleanUnsaved) {
                 const { id, userId, ...cleanData } = unsaved as any;
-                ApiService.createExpense(cleanData)
-                  .then(synced => {
-                    console.log("[Ok] Silent sync successful for local expense:", synced);
-                  })
-                  .catch(err => {
-                    console.warn("Silent sync failed for expense:", err);
-                  });
+                ApiService.createExpense(cleanData).catch(err => console.warn(err));
               }
             }
-          } catch (jsonErr) {
-            console.error("Error parsing local expenses:", jsonErr);
-          }
+          } catch (_) {}
         }
 
-        // Tối ưu hóa nạp hạn mức (nhập chỉ tiêu)
         let finalBudgets = [...apiBudgets];
-        const storedBudgets = localStorage.getItem(userBudgetsKey);
-        const budgetsSynced = localStorage.getItem(userBudgetsSyncedKey);
-
-        if (budgetsSynced === 'false' && storedBudgets) {
+        if (storedBudgets) {
           try {
             const localB = JSON.parse(storedBudgets);
-            if (localB && localB.length > 0) {
+            const budgetsSynced = localStorage.getItem(userBudgetsSyncedKey);
+            if (budgetsSynced === 'false' && localB && localB.length > 0) {
               finalBudgets = localB;
-              // Đồng bộ ngầm toàn bộ hạn mức lên Firestore
               await ApiService.saveBudgets(localB);
               localStorage.setItem(userBudgetsSyncedKey, 'true');
-              console.log("[Ok] Silent sync successful for budget settings");
-            }
-          } catch (budgetSyncErr) {
-            console.warn("Silent sync failed for budget settings:", budgetSyncErr);
-          }
-        } else if (apiBudgets.length === 0 && storedBudgets) {
-          try {
-            const localB = JSON.parse(storedBudgets);
-            if (localB && localB.length > 0) {
+            } else if (apiBudgets.length === 0 && localB && localB.length > 0) {
               finalBudgets = localB;
-              // Đồng bộ ngầm toàn bộ hạn mức lên Firestore nếu Firestore trống nhưng client có lưu
-              ApiService.saveBudgets(localB).then(() => {
-                localStorage.setItem(userBudgetsSyncedKey, 'true');
-              }).catch(err => {
-                console.warn("Silent sync failed for empty budgets case:", err);
-              });
+              ApiService.saveBudgets(localB).then(() => localStorage.setItem(userBudgetsSyncedKey, 'true')).catch(err => console.warn(err));
             }
-          } catch (jsonErr) {
-            console.error("Error parsing local budgets:", jsonErr);
-          }
+          } catch (_) {}
         }
-        
+
         setExpenses(finalExpenses);
         setBudgets(finalBudgets);
-        
-        // Lưu lại dữ liệu hợp nhất vào LocalStorage
         localStorage.setItem(userExpensesKey, JSON.stringify(finalExpenses));
         localStorage.setItem(userBudgetsKey, JSON.stringify(finalBudgets));
 
-      } catch (e) {
-        console.warn('API load failed, loading from LocalStorage instead:', e);
-        const storedExpenses = localStorage.getItem(userExpensesKey);
-        const storedBudgets = localStorage.getItem(userBudgetsKey);
-
-        let finalExpenses: Expense[] = [];
-        let finalBudgets: Budget[] = [];
-
-        if (storedExpenses) finalExpenses = JSON.parse(storedExpenses);
-        if (storedBudgets) finalBudgets = JSON.parse(storedBudgets);
-
-        setExpenses(finalExpenses);
-        setBudgets(finalBudgets);
-      } finally {
-        // Tải thông báo từ local storage
-        const userNotifsKey = `sem_${currentUser.id}_notifs`;
-        const storedNotifs = localStorage.getItem(userNotifsKey);
-        let finalNotifs: Notification[] = [];
-
-        if (storedNotifs) {
-          finalNotifs = JSON.parse(storedNotifs);
-        } else {
-          finalNotifs = INITIAL_NOTIFICATIONS.filter(n => n.userId === currentUser.id);
-          localStorage.setItem(userNotifsKey, JSON.stringify(finalNotifs));
+        // Background Notifications Sync
+        try {
+          const backendNotifs = await ApiService.getBackendNotifications();
+          const mergedNotifs = [...cachedNotifs];
+          backendNotifs.forEach((bn: Notification) => {
+            const exists = mergedNotifs.some(ln => ln.id === bn.id);
+            if (!exists) {
+              mergedNotifs.unshift(bn);
+            }
+          });
+          mergedNotifs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          
+          setNotifications(mergedNotifs);
+          localStorage.setItem(userNotifsKey, JSON.stringify(mergedNotifs));
+        } catch (err) {
+          console.warn('Background notification sync failed:', err);
         }
-        setNotifications(finalNotifs);
-        setIsLoading(false);
+
+      } catch (err) {
+        console.warn('Background sync failed:', err);
       }
     };
 
     loadData();
     if (currentUser) loadRecurringExpenses(currentUser.id);
   }, [currentUser?.id]);
+
+  // --- DETECT INVITE QUERY PARAMETER (SH-01) ---
+  useEffect(() => {
+    if (!currentUser) return;
+    const params = new URLSearchParams(window.location.search);
+    const inviteCode = params.get('invite');
+    if (inviteCode) {
+      // Clean up the URL query parameter immediately
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Join the group
+      ApiService.joinGroup(inviteCode)
+        .then((res) => {
+          // Add notification
+          const joinNotif: Notification = {
+            id: `notif_join_${Date.now()}`,
+            userId: currentUser.id,
+            type: 'success',
+            title: 'Tham gia nhóm mới!',
+            message: `Bạn vừa tham gia nhóm "${res.group.name}" thành công qua liên kết mời.`,
+            date: new Date().toISOString().replace('T', ' ').substring(0, 19),
+            read: false
+          };
+          saveNotifications([joinNotif, ...notifications]);
+          setActiveTab('groups');
+          alert(`Đã tham gia nhóm "${res.group.name}" thành công!`);
+        })
+        .catch((err) => {
+          alert(err.message || 'Lỗi tham gia nhóm');
+        });
+    }
+  }, [currentUser]);
 
   // --- SAVE TO USER-SCOPED LOCALSTORAGE ON UPDATES ---
   const saveExpenses = (newExpenses: Expense[]) => {
@@ -782,10 +764,12 @@ export default function App() {
       return n;
     });
     saveNotifications(updated);
+    ApiService.markBackendNotificationsRead();
   };
 
   const clearNotifications = () => {
     saveNotifications([]);
+    ApiService.markBackendNotificationsRead();
   };
 
   if (isLoading) {
@@ -827,6 +811,10 @@ export default function App() {
           markNotificationAsRead={markNotificationAsRead}
           clearNotifications={clearNotifications}
           onOpenAddExpense={() => setIsAddExpenseOpen(true)}
+          onOpenAddExpenseVoice={() => {
+            setAddExpenseStartWithVoice(true);
+            setIsAddExpenseOpen(true);
+          }}
           isFirebaseOffline={!isFirebaseSynced}
         />
 
@@ -840,6 +828,10 @@ export default function App() {
               budgets={budgets}
               notifications={notifications}
               onOpenAddExpense={() => setIsAddExpenseOpen(true)}
+              onOpenAddExpenseVoice={() => {
+                setAddExpenseStartWithVoice(true);
+                setIsAddExpenseOpen(true);
+              }}
               setActiveTab={setActiveTab}
               onEditExpense={(expense) => setEditingExpense(expense)}
               recurringExpenses={recurringExpenses}
@@ -872,9 +864,6 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'saving-goals' && (
-            <SavingGoals user={currentUser} />
-          )}
 
           {activeTab === 'incomes' && (
             <Incomes user={currentUser} />
@@ -886,6 +875,21 @@ export default function App() {
 
           {activeTab === 'recurring' && (
             <RecurringExpenses user={currentUser} categories={DEFAULT_CATEGORIES} />
+          )}
+
+          {activeTab === 'groups' && (
+            <Groups user={currentUser} />
+          )}
+
+          {activeTab === 'profile' && (
+            <UserProfile 
+              user={currentUser}
+              onUpdateProfile={(updated) => {
+                setCurrentUser(updated);
+                localStorage.setItem('sem_user', JSON.stringify(updated));
+              }}
+              onBack={() => setActiveTab('dashboard')}
+            />
           )}
         </main>
 
@@ -901,11 +905,13 @@ export default function App() {
         onClose={() => {
           setIsAddExpenseOpen(false);
           setEditingExpense(null);
+          setAddExpenseStartWithVoice(false);
         }}
         categories={DEFAULT_CATEGORIES}
         onAddExpense={handleAddExpense}
         editingExpense={editingExpense}
         onEditExpense={handleUpdateExpense}
+        startWithVoice={addExpenseStartWithVoice}
       />
     </div>
   );

@@ -364,6 +364,7 @@ export default function Reports({
                         {cat.id === 'transport' && '🏍️'}
                         {cat.id === 'entertainment' && '🥤'}
                         {cat.id === 'shopping' && '🛍️'}
+                        {cat.id === 'group_fund' && '👥'}
                         {cat.id === 'other' && '🔄'}
                       </span>
                       {cat.name}
