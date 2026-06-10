@@ -143,13 +143,13 @@ export default function LoginRegister({
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 sm:px-6 py-10 relative overflow-hidden font-sans">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 sm:px-6 py-10 relative overflow-hidden font-sans text-slate-900 dark:text-slate-100">
       
       {/* Decorative Blur Blobs */}
       <div className="absolute top-[-10%] left-[-20%] w-[70vw] h-[60vh] rounded-full bg-emerald-200/30 blur-[120px] pointer-events-none z-0 object-cover" />
       <div className="absolute bottom-[-10%] right-[-20%] w-[60vw] h-[60vh] rounded-full bg-blue-200/30 blur-[130px] pointer-events-none z-0 object-cover" />
 
-      <div className="w-full max-w-md space-y-6 bg-white/85 backdrop-blur-xl p-8 rounded-[2rem] border border-white/60 shadow-2xl relative z-10 transition-all duration-300">
+      <div className="w-full max-w-md space-y-6 bg-white/85 dark:bg-slate-900/90 backdrop-blur-xl p-8 rounded-[2rem] border border-white/60 dark:border-slate-800 shadow-2xl relative z-10 transition-all duration-300">
         
         {/* Logo and Slogan */}
         <div className="text-center space-y-2">
@@ -167,7 +167,7 @@ export default function LoginRegister({
         </div>
 
         {/* Tab Selection */}
-        <div className="grid grid-cols-2 p-1.5 bg-slate-100 rounded-2xl border border-slate-200/50">
+        <div className="grid grid-cols-2 p-1.5 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200/50 dark:border-slate-700">
           <button
             type="button"
             onClick={() => { setAuthMode('login'); setErrorMsg(null); }}
@@ -213,7 +213,7 @@ export default function LoginRegister({
                     <li className="pt-1.5">
                       <strong>Cách 2 (Sửa Firebase):</strong> Vào <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="text-emerald-600 font-bold hover:underline">Firebase Console</a>, vào Authentication &rarr; Settings &rarr; Authorized Domains và nhập miền này vào:
                       <div className="mt-1">
-                        <code className="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded font-mono text-emerald-600 font-bold break-all select-all text-[11.5px]">
+                        <code className="bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded font-mono text-emerald-600 font-bold break-all select-all text-[11.5px]">
                           {window.location.hostname}
                         </code>
                       </div>

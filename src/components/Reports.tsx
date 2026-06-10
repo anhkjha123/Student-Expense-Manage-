@@ -217,13 +217,13 @@ export default function Reports({
 
   return (
     <motion.div 
-      className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6"
+      className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6 text-slate-900 dark:text-slate-100"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
       {/* Header Month Selected */}
-      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-3xl border border-slate-100 shadow-sm drop-shadow-sm">
+      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm drop-shadow-sm">
         <div>
           <h2 className="font-display text-2xl font-bold text-slate-900 flex items-center gap-2 drop-shadow-sm">
             <ChartIcon className="h-6 w-6 text-emerald-400 drop-shadow-sm" /> Báo cáo & Phân tích Tài chính
@@ -235,7 +235,7 @@ export default function Reports({
 
         {/* Month Picker dropdown and Export buttons */}
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="relative border border-slate-200 focus-within:border-emerald-500 rounded-2xl bg-slate-50 min-w-[200px] shadow-inner transition-colors">
+          <div className="relative border border-slate-200 dark:border-slate-800 focus-within:border-emerald-500 rounded-2xl bg-slate-50 dark:bg-slate-950 min-w-[200px] shadow-inner transition-colors">
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
@@ -275,8 +275,8 @@ export default function Reports({
 
       {/* QUICK HIGHLIGHT CARDS */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <motion.div whileHover={{ y: -5 }} className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-lg transition-all duration-300">
-          <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <motion.div whileHover={{ y: -5 }} className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-slate-100 p-5 shadow-sm hover:shadow-lg transition-all duration-300">
+          <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">
             Tổng Thu Nhập Tháng
           </span>
           <span className="text-xl font-extrabold font-mono text-slate-900 drop-shadow-sm">
@@ -287,8 +287,8 @@ export default function Reports({
           </div>
         </motion.div>
 
-        <motion.div whileHover={{ y: -5 }} className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-lg transition-all duration-300">
-          <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <motion.div whileHover={{ y: -5 }} className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-slate-100 p-5 shadow-sm hover:shadow-lg transition-all duration-300">
+          <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">
             Đã chi tiêu thực tế
           </span>
           <span className="text-xl font-extrabold font-mono text-slate-900 drop-shadow-sm">
@@ -299,8 +299,8 @@ export default function Reports({
           </div>
         </motion.div>
 
-        <motion.div whileHover={{ y: -5 }} className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-lg transition-all duration-300">
-          <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <motion.div whileHover={{ y: -5 }} className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-slate-100 p-5 shadow-sm hover:shadow-lg transition-all duration-300">
+          <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">
             Mức dư tiết kiệm tích lũy
           </span>
           <span className={`text-xl font-extrabold font-mono drop-shadow-sm ${savingPerformance < 0 ? 'text-red-500' : 'text-emerald-500'}`}>
@@ -319,8 +319,8 @@ export default function Reports({
           </div>
         </motion.div>
 
-        <motion.div whileHover={{ y: -5 }} className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-lg transition-all duration-300">
-          <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <motion.div whileHover={{ y: -5 }} className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-slate-100 p-5 shadow-sm hover:shadow-lg transition-all duration-300">
+          <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">
             Hố Đen Tiêu Tiền Lớn Nhất
           </span>
           <span className="text-xl font-extrabold text-slate-900 drop-shadow-sm">
@@ -338,8 +338,8 @@ export default function Reports({
       <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* CATEGORY BAR BREAKDOWN LIST (Visualizing biggest spendings) */}
-        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md space-y-4 lg:col-span-2 hover:shadow-lg transition-shadow duration-300">
-          <h3 className="font-display text-base font-bold text-slate-800 flex items-center gap-2 drop-shadow-sm">
+        <div className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-slate-100 p-6 shadow-md space-y-4 lg:col-span-2 hover:shadow-lg transition-shadow duration-300">
+          <h3 className="font-display text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 drop-shadow-sm">
             <Layers className="h-5 w-5 text-emerald-500" /> Phân chia chi tiêu theo từng hạng mục
           </h3>
 
@@ -369,7 +369,7 @@ export default function Reports({
                       </span>
                       {cat.name}
                     </span>
-                    <span className="font-mono text-slate-900 drop-shadow-sm">
+                    <span className="font-mono text-slate-900 dark:text-slate-100 drop-shadow-sm">
                       {new Intl.NumberFormat('vi-VN').format(cat.amount)}đ ({Math.round(cat.percent)}%)
                     </span>
                   </div>
@@ -387,7 +387,7 @@ export default function Reports({
             })}
 
             {monthlyExpenses.length === 0 && (
-              <div className="py-12 text-center text-slate-400 text-xs bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
+              <div className="py-12 text-center text-slate-400 dark:text-slate-400 text-xs bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-inner">
                 Chưa có dữ liệu chi tiêu nào của tháng {selectedMonth} được ghi nhận để phân tách cơ cấu.
               </div>
             )}
@@ -395,8 +395,8 @@ export default function Reports({
         </div>
 
         {/* 50/30/20 RETRO-BUDGET EXPERT (Needs, Wants, Savings Rules) */}
-        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md space-y-4 hover:shadow-lg transition-shadow duration-300">
-          <h3 className="font-display text-base font-bold text-slate-800 flex items-center gap-2 drop-shadow-sm">
+        <div className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-slate-100 p-6 shadow-md space-y-4 hover:shadow-lg transition-shadow duration-300">
+          <h3 className="font-display text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 drop-shadow-sm">
             <Award className="h-5 w-5 text-emerald-500" /> Tỷ lệ phân phối 50/30/20
           </h3>
 
@@ -449,7 +449,7 @@ export default function Reports({
                   <span className="h-3 w-3 rounded-full bg-emerald-500 shadow-sm shrink-0" />
                   <span>Khoản bắt buộc (Cần thiết)</span>
                 </span>
-                <span className="font-mono text-slate-900 text-right drop-shadow-sm">{new Intl.NumberFormat('vi-VN').format(spentNeeds)}đ</span>
+                <span className="font-mono text-slate-900 dark:text-slate-100 text-right drop-shadow-sm">{new Intl.NumberFormat('vi-VN').format(spentNeeds)}đ</span>
               </div>
 
               <div className="flex items-center justify-between">
@@ -457,7 +457,7 @@ export default function Reports({
                   <span className="h-3 w-3 rounded-full bg-amber-500 shadow-sm shrink-0" />
                   <span>Khoản sở thích (Không bắt buộc)</span>
                 </span>
-                <span className="font-mono text-slate-900 text-right drop-shadow-sm">{new Intl.NumberFormat('vi-VN').format(spentWants)}đ</span>
+                <span className="font-mono text-slate-900 dark:text-slate-100 text-right drop-shadow-sm">{new Intl.NumberFormat('vi-VN').format(spentWants)}đ</span>
               </div>
 
               <div className="flex items-center justify-between">
@@ -465,7 +465,7 @@ export default function Reports({
                   <span className="h-3 w-3 rounded-full bg-blue-500 shadow-sm shrink-0" />
                   <span>Dư quỹ tiết kiệm thực tế</span>
                 </span>
-                <span className="font-mono text-slate-900 text-right drop-shadow-sm">{new Intl.NumberFormat('vi-VN').format(currentSavings)}đ</span>
+                <span className="font-mono text-slate-900 dark:text-slate-100 text-right drop-shadow-sm">{new Intl.NumberFormat('vi-VN').format(currentSavings)}đ</span>
               </div>
             </div>
 

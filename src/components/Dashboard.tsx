@@ -409,7 +409,7 @@ export default function Dashboard({
 
   return (
     <motion.div 
-      className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6"
+      className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6 text-slate-900 dark:text-slate-100"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -590,7 +590,7 @@ export default function Dashboard({
       <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-12 gap-6">
         
         {/* Wallet Speed Safety Gauge */}
-        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md md:col-span-7 lg:col-span-8 flex flex-col justify-between space-y-4 hover:shadow-lg transition-shadow duration-300">
+        <div className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-md md:col-span-7 lg:col-span-8 flex flex-col justify-between space-y-4 hover:shadow-lg transition-shadow duration-300">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-base font-bold text-slate-800 flex items-center gap-2">
               <Activity className="h-5 w-5 text-emerald-600 animate-pulse-subtle" /> Chỉ số an toàn cháy ví sinh viên
@@ -646,7 +646,7 @@ export default function Dashboard({
         </div>
 
         {/* Needs vs Wants 50/30/20 Mini Circle */}
-        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md md:col-span-5 lg:col-span-4 space-y-4 hover:shadow-lg transition-shadow duration-300">
+        <div className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-md md:col-span-5 lg:col-span-4 space-y-4 hover:shadow-lg transition-shadow duration-300">
           <h3 className="font-display text-sm font-bold text-slate-800 drop-shadow-sm">
             Phân loại chi tiêu tháng này
           </h3>
@@ -726,7 +726,7 @@ export default function Dashboard({
       <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-12 gap-6">
         
         {/* Cash Flow Area Chart (SVG Line Chart showing Wallet Balance) */}
-        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md md:col-span-7 lg:col-span-7 space-y-4 hover:shadow-lg transition-shadow duration-300 flex flex-col justify-between">
+        <div className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-md md:col-span-7 lg:col-span-7 space-y-4 hover:shadow-lg transition-shadow duration-300 flex flex-col justify-between">
           <div className="flex justify-between items-center pb-2 border-b border-slate-50">
             <h3 className="font-display text-base font-bold text-slate-800 drop-shadow-sm">
               Xu hướng Số Dư Ví (Cash Flow)

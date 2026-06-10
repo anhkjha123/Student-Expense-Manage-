@@ -5,6 +5,13 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
 
 ---
 
+### [v5.4.2] - 2026-06-10
+#### 🌙 Hỗ trợ Dark Mode toàn bộ UI và tối ưu màu nền
+*   **Mở rộng hỗ trợ Dark Mode cho giao diện chính:** Cập nhật nhiều component UI quan trọng gồm `Reports.tsx`, `CalendarView.tsx`, `ExpenseHistory.tsx`, `Navbar.tsx`, `LoginRegister.tsx`, `Incomes.tsx`, và `RecurringExpenses.tsx`.
+*   **Thêm biến thể Tailwind `dark:` cho màu nền, border và hover:** Bổ sung các lớp `dark:bg-*`, `dark:border-*`, `dark:text-*`, `dark:hover:*` để đảm bảo các thẻ, bảng, form, button và tooltip hiển thị rõ ở chế độ tối.
+*   **Cải thiện độ tương phản dữ liệu lịch và bảng:** Tối ưu lại màu ô lịch, hộp chi tiết ngày trong Calendar, bảng chi tiêu và các nhãn trạng thái để đọc tốt trong cả Light/ Dark theme.
+*   **Đã kiểm tra đầy đủ:** Chạy `npm run lint` và `npm run test`, tất cả test pass thành công (28 tests).
+
 ### [v5.4.1] - 2026-06-10
 #### 🔧 Khắc phục triệt để lỗi kết nối Network Speech & Cải tiến hoạt ảnh Siri Light-mode
 *   **Khắc phục hoàn toàn lỗi mất kết nối giọng nói (`network` và `no-speech` errors):**

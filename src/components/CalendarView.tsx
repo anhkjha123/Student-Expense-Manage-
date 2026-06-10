@@ -85,11 +85,11 @@ export default function CalendarView({ expenses, categories, recurringExpenses =
   };
 
   const getDayColor = (totalAmount: number, hasRecurring: boolean) => {
-    if (hasRecurring && totalAmount === 0) return 'bg-blue-50 border-blue-200 hover:bg-blue-100';
-    if (totalAmount === 0) return 'bg-white border-slate-100 hover:border-slate-300';
-    if (totalAmount < 100000) return 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100';
-    if (totalAmount <= 500000) return 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100';
-    return 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100';
+    if (hasRecurring && totalAmount === 0) return 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900 text-blue-700 dark:text-blue-200';
+    if (totalAmount === 0) return 'bg-slate-50 dark:bg-slate-950 border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-900 dark:text-slate-200';
+    if (totalAmount < 100000) return 'bg-emerald-50 dark:bg-emerald-950 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900';
+    if (totalAmount <= 500000) return 'bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900';
+    return 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900';
   };
 
   const handleDayClick = (day: number) => {
@@ -106,22 +106,22 @@ export default function CalendarView({ expenses, categories, recurringExpenses =
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in slide-in-from-bottom-4 duration-500 text-slate-900 dark:text-slate-100">
       <div className="flex flex-col md:flex-row gap-8">
 
         {/* Calendar Section */}
-        <div className="flex-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div className="flex-1 bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
               <CalendarIcon className="h-5 w-5 text-emerald-500" />
               {currentDate.toLocaleString('vi-VN', { month: 'long', year: 'numeric' })}
             </h2>
             <div className="flex gap-2">
-              <button onClick={prevMonth} className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors">
-                <ChevronLeft className="h-4 w-4 text-slate-600" />
+              <button onClick={prevMonth} className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                <ChevronLeft className="h-4 w-4 text-slate-600 dark:text-slate-200" />
               </button>
-              <button onClick={nextMonth} className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors">
-                <ChevronRight className="h-4 w-4 text-slate-600" />
+              <button onClick={nextMonth} className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                <ChevronRight className="h-4 w-4 text-slate-600 dark:text-slate-200" />
               </button>
             </div>
           </div>
@@ -182,8 +182,8 @@ export default function CalendarView({ expenses, categories, recurringExpenses =
 
         {/* Details Section */}
         <div className="w-full md:w-80 flex flex-col gap-4">
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex-1">
-            <h3 className="font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100">
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex-1">
+            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
               {selectedDateStr
                 ? `Chi tiết ngày ${selectedDateStr.split('-').reverse().join('/')}`
                 : 'Chọn một ngày để xem'}

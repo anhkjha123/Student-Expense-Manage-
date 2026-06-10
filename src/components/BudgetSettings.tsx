@@ -113,10 +113,10 @@ export default function BudgetSettings({
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8"
+      className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 text-slate-900 dark:text-slate-100"
     >
       {/* Title */}
-      <div className="mb-6 bg-white/60 backdrop-blur-md p-5 rounded-3xl border border-slate-200/50 shadow-sm">
+      <div className="mb-6 bg-white/60 dark:bg-slate-950/80 backdrop-blur-md p-5 rounded-3xl border border-slate-200/50 dark:border-slate-800 shadow-sm">
         <h2 className="font-display text-2xl font-bold text-slate-900 drop-shadow-sm flex items-center gap-2">
           <Settings className="h-6 w-6 text-emerald-400" /> Thiết lập ngân sách tháng
         </h2>
@@ -142,7 +142,7 @@ export default function BudgetSettings({
         </AnimatePresence>
 
         {/* 1. Tổng mức Tài chính tháng (Thu nhập & Mục tiêu tiết kiệm) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
           <div className="space-y-4">
             <h3 className="font-display text-base font-bold text-slate-800 flex items-center gap-2">
               <Coins className="h-5 w-5 text-emerald-500" /> 1. Tổng thu nhập hằng tháng
@@ -199,7 +199,7 @@ export default function BudgetSettings({
         </div>
 
         {/* Live Budget Allocation Health widget */}
-        <div className="rounded-3xl border border-slate-100 bg-slate-50 p-6 shadow-xs space-y-4.5">
+        <div className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-6 shadow-xs space-y-4.5">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <span className="block text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">

@@ -72,7 +72,7 @@ export default function Navbar({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-white/40 bg-white/60 backdrop-blur-xl shadow-xs transition-colors">
+    <header className="sticky top-0 z-40 w-full border-b border-white/40 dark:border-slate-800 bg-white/60 dark:bg-slate-950/90 backdrop-blur-xl shadow-xs transition-colors">
       {isFirebaseOffline && (
         <div id="firebase-offline-alert-strip" className="bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[11px] sm:text-xs font-semibold py-2 px-4 flex items-center justify-center gap-2 text-center shadow-inner relative z-50">
           <AlertTriangle className="h-3.5 w-3.5 shrink-0 animate-pulse" />
@@ -125,7 +125,7 @@ export default function Navbar({
                     <button
                       onClick={() => setActiveTab('history')}
                       className={`w-full text-left px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
-                        activeTab === 'history' ? 'bg-emerald-50 text-emerald-600' : 'text-slate-600 hover:bg-slate-50'
+                        activeTab === 'history' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-300' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                       }`}
                     >
                       <BookOpen className="h-3.5 w-3.5" />
@@ -152,8 +152,8 @@ export default function Navbar({
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs xl:text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
                   isActive
-                    ? 'bg-emerald-50 text-emerald-600'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-300'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
                 }`}
                 title={tab.name}
               >
@@ -186,7 +186,7 @@ export default function Navbar({
             <button
               id="notification-bell-btn"
               onClick={() => setShowNotifDropdown(!showNotifDropdown)}
-              className="relative rounded-xl p-2.5 text-slate-500 hover:bg-slate-100 transition-colors focus:outline-none"
+              className="relative rounded-xl p-2.5 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none"
             >
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
@@ -208,7 +208,7 @@ export default function Navbar({
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute right-0 mt-2 z-50 w-80 sm:w-96 rounded-2xl border border-slate-100 bg-white p-4 shadow-xl ring-1 ring-black/5"
+                    className="absolute right-0 mt-2 z-50 w-80 sm:w-96 rounded-2xl border border-slate-100 bg-white dark:bg-slate-900 dark:border-slate-800 p-4 shadow-xl ring-1 ring-black/5"
                   >
                     <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
                       <span className="font-display font-semibold text-slate-800 text-sm flex items-center gap-1.5">
@@ -237,8 +237,8 @@ export default function Navbar({
                             onClick={() => markNotificationAsRead(notif.id)}
                             className={`flex gap-3 rounded-xl p-2.5 cursor-pointer text-left transition-colors border ${
                               notif.read
-                                ? 'bg-white border-transparent hover:bg-slate-50'
-                                : 'bg-emerald-50/40 border-emerald-100 hover:bg-emerald-50/60'
+                                ? 'bg-white dark:bg-slate-950 border-transparent hover:bg-slate-50 dark:hover:bg-slate-800'
+                                : 'bg-emerald-50/40 dark:bg-emerald-900/40 border-emerald-100 dark:border-emerald-700 hover:bg-emerald-50/60 dark:hover:bg-emerald-900/60'
                             }`}
                           >
                             <div className="mt-0.5 shrink-0">{getNotifIcon(notif.type)}</div>
@@ -287,7 +287,7 @@ export default function Navbar({
 
             <button
               onClick={onLogout}
-              className="rounded-xl p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer"
+              className="rounded-xl p-2 text-slate-400 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-900/40 hover:text-rose-600 transition-all cursor-pointer"
               title="Đăng xuất"
             >
               <LogOut className="h-5 w-5" />
@@ -297,7 +297,7 @@ export default function Navbar({
       </div>
 
       {/* NAVIGATION MOBILE ROW */}
-      <div className="flex md:hidden border-t border-slate-100 bg-slate-50/50 justify-around py-1">
+      <div className="flex md:hidden border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/80 justify-around py-1">
         {tabs.map((tab) => {
           const isActive = tab.id === 'history'
             ? (activeTab === 'history' || activeTab === 'recurring')

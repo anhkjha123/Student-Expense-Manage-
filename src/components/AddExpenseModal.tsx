@@ -474,7 +474,7 @@ export default function AddExpenseModal({
   const handlePaste = async (e: React.ClipboardEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    const items = Array.from(e.clipboardData.items || []);
+    const items = Array.from(e.clipboardData.items || []) as DataTransferItem[];
     const imageItem = items.find(item => item.kind === 'file' && item.type.startsWith('image/'));
     if (imageItem) {
       const file = imageItem.getAsFile();
@@ -506,7 +506,7 @@ export default function AddExpenseModal({
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="relative z-50 w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl max-h-[92vh] flex flex-col"
+        className="relative z-50 w-full max-w-lg overflow-hidden rounded-3xl bg-white dark:bg-slate-950 shadow-2xl max-h-[92vh] flex flex-col"
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 bg-emerald-50/50 px-5 sm:px-6 py-3.5 sm:py-4.5 shrink-0 animate-fade-in">
@@ -543,8 +543,8 @@ export default function AddExpenseModal({
                   onClick={() => setHelperTab('ocr')}
                   className={`flex-1 py-2 rounded-xl text-center transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
                     helperTab === 'ocr' 
-                      ? 'bg-white text-slate-800 shadow-sm border border-slate-200/10' 
-                      : 'text-slate-500 hover:text-slate-700'
+                      ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-sm border border-slate-200/10 dark:border-slate-700' 
+                      : 'text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100'
                   }`}
                 >
                   <FileText className="h-3.5 w-3.5 animate-pulse" />
@@ -555,8 +555,8 @@ export default function AddExpenseModal({
                   onClick={() => setHelperTab('voice')}
                   className={`flex-1 py-2 rounded-xl text-center transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
                     helperTab === 'voice' 
-                      ? 'bg-white text-slate-800 shadow-sm border border-slate-200/10' 
-                      : 'text-slate-500 hover:text-slate-700'
+                      ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-sm border border-slate-200/10 dark:border-slate-700' 
+                      : 'text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100'
                   }`}
                 >
                   <Mic className="h-3.5 w-3.5 text-rose-500 animate-bounce" />
@@ -566,7 +566,7 @@ export default function AddExpenseModal({
 
               {/* OCR Tab Content */}
               {helperTab === 'ocr' && (
-                <div className="space-y-1 bg-slate-50 p-4 rounded-3xl border border-slate-200/60 shadow-xs transition-all animate-fade-in">
+                <div className="space-y-1 bg-slate-50 dark:bg-slate-950 p-4 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-xs transition-all animate-fade-in">
                   <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
                     Quét hóa đơn bằng AI
                   </label>
@@ -584,7 +584,7 @@ export default function AddExpenseModal({
                   )}
 
                   {isScanning ? (
-                    <div className="flex flex-col items-center justify-center py-6 bg-white border border-slate-100 rounded-2xl space-y-2 shadow-xs">
+                    <div className="flex flex-col items-center justify-center py-6 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl space-y-2 shadow-xs">
                       <Loader2 className="h-8 w-8 text-emerald-500 animate-spin" />
                       <span className="text-xs font-bold text-slate-500 animate-pulse font-mono">Đang quét và phân tích hóa đơn...</span>
                     </div>
@@ -610,7 +610,7 @@ export default function AddExpenseModal({
                   ) : (
                     <div className="grid grid-cols-1 gap-2 place-items-center">
                       <label
-                        className="group flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-emerald-400 bg-white rounded-3xl py-8 px-6 transition-all cursor-pointer text-center shadow-xs w-full"
+                        className="group flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-emerald-400 bg-white dark:bg-slate-950 rounded-3xl py-8 px-6 transition-all cursor-pointer text-center shadow-xs w-full"
                         onDrop={handleDrop}
                         onDragOver={(e) => e.preventDefault()}
                         onPaste={handlePaste}
@@ -626,7 +626,7 @@ export default function AddExpenseModal({
 
               {/* Voice Tab Content */}
               {helperTab === 'voice' && (
-                <div className="space-y-3 bg-slate-50 p-5 rounded-3xl border border-slate-200/60 shadow-xs transition-all animate-fade-in">
+                <div className="space-y-3 bg-slate-50 dark:bg-slate-950 p-5 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-xs transition-all animate-fade-in">
                   <div className="flex items-center justify-between">
                     <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
                       Ghi nhận chi tiêu bằng Giọng Nói (NLP)
@@ -646,7 +646,7 @@ export default function AddExpenseModal({
                     </div>
                   )}
 
-                  <div className="flex flex-col items-center justify-center py-6 bg-white border border-slate-100 rounded-2xl space-y-4 shadow-xs relative overflow-hidden">
+                  <div className="flex flex-col items-center justify-center py-6 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl space-y-4 shadow-xs relative overflow-hidden">
                     {isListening ? (
                       <div className="flex flex-col items-center space-y-4 w-full">
                         {/* Siri glowing wave container - Theme matching the white background */}
@@ -723,7 +723,7 @@ export default function AddExpenseModal({
                     {!isListening && voiceText && (
                       <div className="w-full px-5 text-center animate-fade-in">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Kết quả nhận diện:</span>
-                        <div className="inline-block bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 leading-relaxed shadow-inner">
+                        <div className="inline-block bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-100 leading-relaxed shadow-inner">
                           💬 "{voiceText}"
                         </div>
                         <span className="block text-[9px] text-emerald-600 font-bold mt-2">✨ Đã tự động phân tích và điền vào biểu mẫu bên dưới!</span>
@@ -916,7 +916,7 @@ export default function AddExpenseModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl px-5 py-2.5 text-xs sm:text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-colors border border-slate-200 cursor-pointer"
+              className="rounded-xl px-5 py-2.5 text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
             >
               Hủy bỏ
             </button>

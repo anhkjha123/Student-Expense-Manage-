@@ -90,10 +90,10 @@ export default function ExpenseHistory({
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6"
+      className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6 text-slate-900 dark:text-slate-100"
     >
       {/* Title Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white/60 backdrop-blur-md p-5 rounded-3xl border border-slate-200/50 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white/60 dark:bg-slate-950/80 backdrop-blur-md p-5 rounded-3xl border border-slate-200/50 dark:border-slate-800 shadow-sm">
         <div>
           <h2 className="font-display text-2xl font-bold text-slate-900 flex items-center gap-2 drop-shadow-sm">
             <BookOpen className="h-6 w-6 text-emerald-400 drop-shadow-sm" /> Sổ chép chi tiêu sinh viên
@@ -106,7 +106,7 @@ export default function ExpenseHistory({
 
       {/* Stats Summary Panel */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <motion.div whileHover={{ y: -5 }} className="rounded-3xl bg-white p-5 border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+        <motion.div whileHover={{ y: -5 }} className="rounded-3xl bg-white dark:bg-slate-900 p-5 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
           <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
             Tổng chi tiêu lọc ra
           </span>
@@ -142,10 +142,10 @@ export default function ExpenseHistory({
       </div>
 
       {/* FILTER CONTROLS */}
-      <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
+      <div className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 dark:text-slate-100 p-5 shadow-sm space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
           {/* Search text input */}
-          <div className="relative rounded-2xl border border-slate-200 focus-within:border-emerald-500 overflow-hidden sm:col-span-5">
+          <div className="relative rounded-2xl border border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 overflow-hidden sm:col-span-5 bg-white dark:bg-slate-950">
             <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
               <Search className="h-4.5 w-4.5" />
             </span>
@@ -154,13 +154,13 @@ export default function ExpenseHistory({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Tìm kiếm theo khoản chi hoặc ghi chú..."
-              className="w-full py-2.5 pl-10 pr-4 text-sm font-semibold text-slate-700 placeholder-slate-400 focus:outline-none"
+              className="w-full py-2.5 pl-10 pr-4 text-sm font-semibold text-slate-700 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 bg-transparent focus:outline-none"
               id="expense-search-input"
             />
           </div>
 
           {/* Category drop selection */}
-          <div className="relative border border-slate-200 focus-within:border-emerald-500 rounded-2xl bg-white sm:col-span-3">
+          <div className="relative border border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 rounded-2xl bg-white dark:bg-slate-950 sm:col-span-3">
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
@@ -180,7 +180,7 @@ export default function ExpenseHistory({
           </div>
 
           {/* Necessity Filter dropdown */}
-          <div className="relative border border-slate-200 focus-within:border-emerald-500 rounded-2xl bg-white sm:col-span-4">
+          <div className="relative border border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 rounded-2xl bg-white dark:bg-slate-950 sm:col-span-4">
             <select
               value={necessityFilter}
               onChange={(e) => setNecessityFilter(e.target.value as any)}
@@ -207,8 +207,8 @@ export default function ExpenseHistory({
             onClick={() => toggleSort('date')}
             className={`rounded-xl px-3 py-1.5 transition-colors cursor-pointer border flex items-center gap-1 ${
               sortField === 'date'
-                ? 'bg-emerald-50 border-emerald-100 text-emerald-600 font-bold'
-                : 'bg-white border-slate-200 hover:bg-slate-50'
+                ? 'bg-emerald-50 border-emerald-100 text-emerald-600 font-bold dark:bg-emerald-500/10 dark:border-emerald-500/20'
+                : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900'
             }`}
           >
             Thời gian {sortField === 'date' && (sortOrder === 'desc' ? '⬇️' : '⬆️')}
@@ -217,8 +217,8 @@ export default function ExpenseHistory({
             onClick={() => toggleSort('amount')}
             className={`rounded-xl px-3 py-1.5 transition-colors cursor-pointer border flex items-center gap-1 ${
               sortField === 'amount'
-                ? 'bg-emerald-50 border-emerald-100 text-emerald-600 font-bold'
-                : 'bg-white border-slate-200 hover:bg-slate-50'
+                ? 'bg-emerald-50 border-emerald-100 text-emerald-600 font-bold dark:bg-emerald-500/10 dark:border-emerald-500/20'
+                : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900'
             }`}
           >
             Số tiền {sortField === 'amount' && (sortOrder === 'desc' ? '⬇️' : '⬆️')}
@@ -230,7 +230,7 @@ export default function ExpenseHistory({
       </div>
 
       {/* TABLE/LIST COMPONENT */}
-      <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-sm">
         {sortedExpenses.length === 0 ? (
           <div className="py-20 text-center">
             <span className="block text-4xl mb-2">🔍</span>
@@ -243,7 +243,7 @@ export default function ExpenseHistory({
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/50 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/70 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">
                   <th className="px-6 py-4">Khoản chi tiêu</th>
                   <th className="px-6 py-4">Danh mục</th>
                   <th className="px-6 py-4">Thời gian</th>
@@ -257,7 +257,7 @@ export default function ExpenseHistory({
                   <tr 
                     key={exp.id} 
                     id={`expense-row-${exp.id}`}
-                    className="hover:bg-slate-50/50 transition-colors"
+                    className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -269,7 +269,7 @@ export default function ExpenseHistory({
                               className="h-9 w-9 object-cover rounded-lg border border-slate-200 cursor-zoom-in shadow-xs transition-transform hover:scale-105"
                             />
                             {/* Hover zoom preview */}
-                            <div className="absolute left-11 top-0 hidden group-hover:block z-50 bg-white p-1.5 rounded-xl border border-slate-200 shadow-2xl min-w-[200px]">
+                            <div className="absolute left-11 top-0 hidden group-hover:block z-50 bg-white dark:bg-slate-900 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xl min-w-[200px]">
                               <img src={exp.receiptImage} alt="Receipt zoom" className="max-h-64 max-w-[240px] object-contain rounded-lg" />
                               <div className="text-[9px] font-bold text-center text-slate-400 mt-1 font-mono">Ảnh hóa đơn đính kèm</div>
                             </div>
@@ -300,25 +300,25 @@ export default function ExpenseHistory({
                             🟢 Bắt buộc
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 rounded-xl bg-amber-50 border border-amber-150 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                          <span className="inline-flex items-center gap-1 rounded-xl bg-amber-50 dark:bg-amber-950 border border-amber-150 dark:border-amber-700 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-300">
                             🟡 Sở thích
                           </span>
                         )}
                         {exp.isRecurring && (
-                          <span className="inline-flex items-center gap-1 rounded-xl bg-blue-50 border border-blue-150 px-2 py-0.5 text-[10px] font-bold text-blue-600">
+                          <span className="inline-flex items-center gap-1 rounded-xl bg-blue-50 dark:bg-blue-950 border border-blue-150 dark:border-blue-700 px-2 py-0.5 text-[10px] font-bold text-blue-600 dark:text-blue-300">
                             🔵 Định kỳ
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-right font-bold text-slate-900 font-mono">
+                    <td className="px-6 py-4 text-right font-bold text-slate-900 dark:text-slate-100 font-mono">
                       {new Intl.NumberFormat('vi-VN').format(exp.amount)}đ
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-1.5">
                         <button
                           onClick={() => onEditExpense(exp)}
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600 transition-colors cursor-pointer inline-flex"
+                          className="rounded-lg p-1.5 text-slate-400 dark:text-slate-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-600 transition-colors cursor-pointer inline-flex"
                           title="Sửa giao dịch"
                           id={`edit-btn-${exp.id}`}
                         >

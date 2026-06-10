@@ -91,10 +91,10 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in slide-in-from-bottom-4 duration-500 text-slate-900 dark:text-slate-100">
       <div className="flex justify-between items-end mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <Repeat className="h-6 w-6 text-emerald-500" /> Chi tiêu định kỳ
           </h2>
           <p className="text-slate-500 text-sm mt-1">Tự động hóa việc ghi nhận các khoản chi cố định hàng tháng/tuần</p>
@@ -104,7 +104,7 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
       {isLoading ? (
         <div className="p-8 text-center text-slate-500">Đang tải...</div>
       ) : recs.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-200">
+        <div className="text-center py-12 bg-white dark:bg-slate-950 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
           <Repeat className="h-12 w-12 text-slate-300 mx-auto mb-3" />
           <h3 className="text-slate-600 font-semibold">Chưa cấu hình chi tiêu định kỳ</h3>
           <p className="text-slate-400 text-sm mt-1">Giúp bạn không quên các khoản như tiền trọ, điện nước, internet hàng tháng.</p>
@@ -114,13 +114,13 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
           {recs.map(item => {
             const cat = categories.find(c => c.id === item.categoryId);
             return (
-              <div key={item.id} className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-start gap-4 hover:shadow-md transition-all group">
+              <div key={item.id} className="bg-white dark:bg-slate-950 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-800 flex items-start gap-4 hover:shadow-md transition-all group">
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${cat ? cat.color : 'bg-slate-500'}`}>
                   <Repeat className={`h-6 w-6 text-white`} />
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between items-start mb-1">
-                    <h3 className="font-bold text-slate-800">{item.title}</h3>
+                    <h3 className="font-bold text-slate-800 dark:text-slate-100">{item.title}</h3>
                     <button onClick={() => setDeleteTarget(item)} className="text-xs font-medium text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">Hủy</button>
                   </div>
                   <div className="text-emerald-600 font-extrabold text-lg mb-2">
@@ -144,22 +144,22 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
       {/* Custom Alert Modal for Delete Confirmation */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-slate-100 transform scale-100 transition-all duration-300 animate-in zoom-in-95 duration-200">
+          <div className="bg-white dark:bg-slate-950 rounded-2xl p-6 max-w-md w-full shadow-2xl border border-slate-100 dark:border-slate-800 transform scale-100 transition-all duration-300 animate-in zoom-in-95 duration-200">
             <div className="flex items-center gap-3 text-amber-500 mb-4">
               <div className="p-3 bg-amber-50 rounded-xl">
                 <AlertTriangle className="h-6 w-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-800">Xác nhận xóa chi tiêu định kỳ</h3>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Xác nhận xóa chi tiêu định kỳ</h3>
             </div>
-            <p className="text-slate-600 text-sm mb-6 leading-relaxed">
-              Bạn có chắc chắn muốn xóa chi tiêu định kỳ <strong className="text-slate-800">"{deleteTarget.title}"</strong>? 
+            <p className="text-slate-600 dark:text-slate-300 text-sm mb-6 leading-relaxed">
+              Bạn có chắc chắn muốn xóa chi tiêu định kỳ <strong className="text-slate-800 dark:text-slate-100">"{deleteTarget.title}"</strong>? 
               Hành động này không thể hoàn tác và hệ thống sẽ dừng tự động ghi nhận các khoản chi này trong tương lai.
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 type="button"
                 onClick={() => setDeleteTarget(null)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-sm transition-all"
+                className="px-4 py-2 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-100 font-semibold rounded-xl text-sm transition-all"
               >
                 Hủy bỏ
               </button>
