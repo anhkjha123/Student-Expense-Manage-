@@ -241,12 +241,15 @@ export default function AddExpenseModal({
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    e.stopPropagation();
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
     await processReceiptFile(file);
   };
 
   const handlePaste = async (e: React.ClipboardEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
     const items = Array.from(e.clipboardData.items || []);
     const imageItem = items.find(item => item.kind === 'file' && item.type.startsWith('image/'));
     if (imageItem) {

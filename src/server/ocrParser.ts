@@ -75,21 +75,43 @@ export function parseReceiptText(text: string): { amount: number | null, date: s
   });
   const cleanedText = cleanedLines.join('\n');
 
+  const normalizeNumber = (value: string) => {
+    const numeric = value.replace(/[^\d]/g, '');
+    return numeric ? parseInt(numeric, 10) : NaN;
+  };
+
+  const parseCandidateAmounts = (text: string) => {
+    const candidates: number[] = [];
+    const regex = /([\d,.]{3,})/g;
+    let match;
+    while ((match = regex.exec(text))) {
+      const parsed = normalizeNumber(match[1]);
+      if (!isNaN(parsed) && parsed > 1000 && parsed < 100000000) {
+        candidates.push(parsed);
+      }
+    }
+    return candidates;
+  };
+
+  const bestCandidate = (candidates: number[]) => {
+    if (!candidates.length) return null;
+    return candidates.sort((a, b) => b - a)[0];
+  };
+
   const priorityAmountRegexes = [
     /(?:tiền\s+mặt|tien\s+mat|cash)\s*[:=]?\s*([\d,.]+)/i,
-    /(?:tổng\s+cộng|tong\s+cong|t\.?\s*cộng)\s*\d*\s*[:=]?\s*([\d,.]+)/i,
-    /(?:grand\s+total|total\s+due|total\s+amount|amount\s+paid)\s*[:=]?\s*([\d,.]+)/i,
-    /(?:thành\s+tiền|thanh\s+tien)\s*[:=]?\s*([\d,.]+)/i,
+    /(?:tổng\s+cộng|tong\s+cong|t\.\s*cộng|t\s*cong)\s*(?:[:=]?\s*)?([\d,.]+)/i,
+    /(?:grand\s+total|total\s+due|total\s+amount|amount\s+paid|amount)\s*[:=]?\s*([\d,.]+)/i,
+    /(?:thành\s+tiền|thanh\s+tien|thanh\s+tiền)\s*[:=]?\s*([\d,.]+)/i,
     /(?:khách\s+(?:phải\s+)?trả|khach\s+tra)\s*[:=]?\s*([\d,.]+)/i,
     /(?:tổng\s+thanh\s+toán|tong\s+thanh\s+toan|thanh\s+toán|thanh\s+toan)\s*[:=]?\s*([\d,.]+)/i,
-    /\bamount\b\s*[:=]?\s*([\d,.]+)/i,
+    /\btotal\b\s*[:=]?\s*([\d,.]+)/i,
   ];
 
   for (const regex of priorityAmountRegexes) {
     const match = cleanedText.match(regex);
     if (match) {
-      const numStr = match[1].replace(/[,.]/g, '');
-      const parsed = parseInt(numStr, 10);
+      const parsed = normalizeNumber(match[1]);
       if (!isNaN(parsed) && parsed > 1000 && parsed < 100000000) {
         amount = parsed;
         break;
@@ -98,21 +120,20 @@ export function parseReceiptText(text: string): { amount: number | null, date: s
   }
 
   if (!amount) {
-    const fallbackRegexes = [
-      /([\d,.]+)\s*(?:vnd|đ)\b/i,
-      /total\s*[:=]?\s*([\d,.]+)/i,
-    ];
-    for (const regex of fallbackRegexes) {
-      const match = cleanedText.match(regex);
-      if (match) {
-        const numStr = match[1].replace(/[,.]/g, '');
-        const parsed = parseInt(numStr, 10);
-        if (!isNaN(parsed) && parsed > 1000 && parsed < 100000000) {
-          amount = parsed;
-          break;
-        }
+    const lineCandidates: number[] = [];
+
+    for (const line of cleanedLines) {
+      const lowerLine = line.toLowerCase();
+      if (/(?:tổng|thành tiền|total|amount|vnđ|vnd|đ)\b/.test(lowerLine)) {
+        lineCandidates.push(...parseCandidateAmounts(line));
       }
     }
+
+    if (!lineCandidates.length) {
+      lineCandidates.push(...parseCandidateAmounts(cleanedText));
+    }
+
+    amount = bestCandidate(lineCandidates);
   }
 
   // 4. Extract item lines for note
