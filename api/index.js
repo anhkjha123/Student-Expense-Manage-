@@ -1883,7 +1883,7 @@ var groupsController = {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ error: "Ngo\u1EA1i l\u1EC7 phi\xEAn \u0111\u0103ng nh\u1EADp" });
       const { id } = req.params;
-      const { description, amount, date, splitType, customSplits } = req.body;
+      const { description, amount, date, splitType, customSplits, categoryId } = req.body;
       if (!description || !amount || amount <= 0 || !date || !splitType) {
         return res.status(400).json({ error: "Vui l\xF2ng cung c\u1EA5p \u0111\u1EA7y \u0111\u1EE7 th\xF4ng tin kho\u1EA3n chi nh\xF3m" });
       }
@@ -1928,7 +1928,8 @@ var groupsController = {
         description: description.trim(),
         date,
         splitType,
-        splits
+        splits,
+        categoryId: categoryId || "other"
       };
       dbInstance.saveGroupExpense(newExpense);
       res.status(201).json(newExpense);
@@ -1963,6 +1964,17 @@ var groupsController = {
         ]
       };
       dbInstance.saveGroupExpense(settlementExpense);
+      const personalExpense = {
+        id: `exp_settle_${Date.now()}`,
+        userId: fromUserId,
+        amount: Number(amount),
+        categoryId: "group_fund",
+        title: `T\u1EA5t to\xE1n n\u1EE3 nh\xF3m: Tr\u1EA3 cho ${toUserName}`,
+        date: (/* @__PURE__ */ new Date()).toISOString().substring(0, 10),
+        isNecessary: true,
+        note: `T\u1EA5t to\xE1n n\u1EE3 trong nh\xF3m`
+      };
+      dbInstance.saveExpense(personalExpense);
       res.json(settlementExpense);
     } catch (e) {
       res.status(500).json({ error: e.message });

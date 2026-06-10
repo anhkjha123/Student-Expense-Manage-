@@ -329,7 +329,7 @@ export const groupsController = {
       if (!userId) return res.status(401).json({ error: 'Ngoại lệ phiên đăng nhập' });
 
       const { id } = req.params;
-      const { description, amount, date, splitType, customSplits } = req.body;
+      const { description, amount, date, splitType, customSplits, categoryId } = req.body;
 
       if (!description || !amount || amount <= 0 || !date || !splitType) {
         return res.status(400).json({ error: 'Vui lòng cung cấp đầy đủ thông tin khoản chi nhóm' });
@@ -374,7 +374,7 @@ export const groupsController = {
         }));
       }
 
-      const newExpense: GroupExpense = {
+      const newExpense: GroupExpense & { categoryId?: string } = {
         id: `gexp_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
         groupId: id,
         paidBy: userId,
@@ -383,7 +383,8 @@ export const groupsController = {
         description: description.trim(),
         date,
         splitType,
-        splits
+        splits,
+        categoryId: categoryId || 'other'
       };
 
       dbInstance.saveGroupExpense(newExpense);
@@ -426,6 +427,20 @@ export const groupsController = {
       };
 
       dbInstance.saveGroupExpense(settlementExpense);
+
+      // Save an individual personal expense for the debtor in local JSON DB
+      const personalExpense = {
+        id: `exp_settle_${Date.now()}`,
+        userId: fromUserId,
+        amount: Number(amount),
+        categoryId: 'group_fund',
+        title: `Tất toán nợ nhóm: Trả cho ${toUserName}`,
+        date: new Date().toISOString().substring(0, 10),
+        isNecessary: true,
+        note: `Tất toán nợ trong nhóm`
+      };
+      dbInstance.saveExpense(personalExpense);
+
       res.json(settlementExpense);
     } catch (e: any) {
       res.status(500).json({ error: e.message });

@@ -22,6 +22,7 @@ import {
 import { Group, GroupMember, GroupExpense, GroupSettlement, User } from '../types';
 import { ApiService } from '../lib/api';
 import { motion, AnimatePresence } from 'motion/react';
+import { DEFAULT_CATEGORIES } from '../mockData';
 
 interface GroupsProps {
   user: User;
@@ -54,6 +55,7 @@ export default function Groups({ user }: GroupsProps) {
   const [expDate, setExpDate] = useState(new Date().toISOString().substring(0, 10));
   const [expSplitType, setExpSplitType] = useState<'EQUAL' | 'CUSTOM'>('EQUAL');
   const [customShares, setCustomShares] = useState<Record<string, string>>({}); // userId -> amount string
+  const [expCategory, setExpCategory] = useState('other');
   const [expError, setExpError] = useState<string | null>(null);
 
   // Load user groups
@@ -201,7 +203,8 @@ export default function Groups({ user }: GroupsProps) {
       description: expDescription.trim(),
       amount: amountNum,
       date: expDate,
-      splitType: expSplitType
+      splitType: expSplitType,
+      categoryId: expCategory
     };
 
     if (expSplitType === 'CUSTOM') {
@@ -236,6 +239,7 @@ export default function Groups({ user }: GroupsProps) {
       setIsAddExpenseOpen(false);
       setExpDescription('');
       setExpAmount('');
+      setExpCategory('other');
       loadActiveGroup(activeGroupId!);
     } catch (err: any) {
       setExpError(err.message || 'Lỗi thêm khoản chi tiêu nhóm');
@@ -255,8 +259,41 @@ export default function Groups({ user }: GroupsProps) {
         toUserName: debt.toUserName,
         amount: debt.amount
       });
+      
+      // Save an individual personal expense for the debtor in client DB (Firestore or localStorage)
+      if (debt.fromUserId === user.id) {
+        try {
+          const isGuest = localStorage.getItem('sem_guest_mode') === 'true';
+          const newExpenseData = {
+            amount: debt.amount,
+            categoryId: 'group_fund',
+            title: `Tất toán nợ nhóm: Trả cho ${debt.toUserName}`,
+            date: new Date().toISOString().substring(0, 10),
+            note: `Tất toán nợ trong nhóm ${activeGroupData?.group.name || ''}`,
+            isNecessary: true
+          };
+          if (isGuest) {
+            const localExpensesKey = `sem_${user.id}_expenses`;
+            const stored = localStorage.getItem(localExpensesKey);
+            const list = stored ? JSON.parse(stored) : [];
+            const newExp = { ...newExpenseData, id: `exp_added_${Date.now()}`, userId: user.id };
+            localStorage.setItem(localExpensesKey, JSON.stringify([newExp, ...list]));
+          } else {
+            await ApiService.createExpense(newExpenseData);
+          }
+        } catch (e) {
+          console.error("Failed to save personal settlement expense on client:", e);
+        }
+      }
+
       setSuccessMessage(`Đã đánh dấu đã thanh toán thành công giữa ${debt.fromUserName} và ${debt.toUserName} (AC4)`);
       loadActiveGroup(activeGroupId!);
+      
+      if (debt.fromUserId === user.id) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      }
     } catch (err: any) {
       setGroupError('Lỗi cập nhật tất toán nợ.');
     }
@@ -643,6 +680,7 @@ export default function Groups({ user }: GroupsProps) {
                         <thead>
                           <tr className="border-b border-slate-100 bg-slate-50/50 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                             <th className="px-4 py-3">Nội dung</th>
+                            <th className="px-4 py-3">Danh mục</th>
                             <th className="px-4 py-3">Người trả</th>
                             <th className="px-4 py-3 text-right">Số tiền</th>
                             <th className="px-4 py-3">Ngày chi</th>
@@ -652,6 +690,7 @@ export default function Groups({ user }: GroupsProps) {
                         <tbody className="divide-y divide-slate-100 text-xs">
                           {activeGroupData.expenses.map((exp, idx) => {
                             const isSettleTrans = exp.description.startsWith('Tất toán nợ:');
+                            const cat = DEFAULT_CATEGORIES.find(c => c.id === (exp as any).categoryId);
                             return (
                               <tr key={idx} className="hover:bg-slate-50/30 transition-colors">
                                 <td className="px-4 py-3 font-semibold text-slate-800">
@@ -661,6 +700,21 @@ export default function Groups({ user }: GroupsProps) {
                                     </span>
                                   ) : null}
                                   <div className="mt-0.5">{exp.description}</div>
+                                </td>
+                                <td className="px-4 py-3">
+                                  {isSettleTrans ? (
+                                    <span className="inline-flex items-center gap-1 rounded bg-teal-50 px-1.5 py-0.5 text-[9px] font-bold text-teal-700 border border-teal-150">
+                                      Quỹ nhóm
+                                    </span>
+                                  ) : cat ? (
+                                    <span className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[9px] font-bold border ${cat.color}`}>
+                                      {cat.name}
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1 rounded bg-slate-50 px-1.5 py-0.5 text-[9px] font-bold text-slate-700 border border-slate-150">
+                                      Khác
+                                    </span>
+                                  )}
                                 </td>
                                 <td className="px-4 py-3 font-medium text-slate-600">{exp.paidByName}</td>
                                 <td className="px-4 py-3 text-right font-bold text-slate-900 font-mono">
@@ -777,6 +831,23 @@ export default function Groups({ user }: GroupsProps) {
                   className="w-full rounded-2xl border border-slate-200 px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:border-emerald-500"
                   required
                 />
+              </div>
+
+              {/* Category */}
+              <div className="space-y-1">
+                <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">Danh mục khoản chi <span className="text-red-500">*</span></label>
+                <select
+                  value={expCategory}
+                  onChange={(e) => setExpCategory(e.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 bg-white focus:outline-none focus:border-emerald-500"
+                  required
+                >
+                  {DEFAULT_CATEGORIES.map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Date */}
