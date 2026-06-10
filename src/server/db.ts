@@ -24,16 +24,33 @@ export interface Schema {
   groupSettlements?: GroupSettlement[];
 }
 
-const DB_DIR = path.join(process.cwd(), 'data');
+const isVercel = !!process.env.VERCEL;
+const DB_DIR = isVercel ? '/tmp' : path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DB_DIR, 'db.json');
 
 // Khởi chạy thư mục và cơ sở dữ liệu mẫu nếu chưa tồn tại
 function initDB() {
   if (!fs.existsSync(DB_DIR)) {
-    fs.mkdirSync(DB_DIR, { recursive: true });
+    try {
+      fs.mkdirSync(DB_DIR, { recursive: true });
+    } catch (e) {
+      console.warn('Cannot create DB_DIR, might be read-only:', e);
+    }
   }
   if (!fs.existsSync(DB_FILE)) {
-    const initialSchema: Schema = {
+    let initialSchema: Schema | null = null;
+    if (isVercel) {
+      const bundledPath = path.join(process.cwd(), 'data', 'db.json');
+      if (fs.existsSync(bundledPath)) {
+        try {
+          initialSchema = JSON.parse(fs.readFileSync(bundledPath, 'utf-8'));
+        } catch (e) {
+          console.warn('Failed to read bundled db.json:', e);
+        }
+      }
+    }
+    if (!initialSchema) {
+      initialSchema = {
       users: [
         {
           id: 'user_01',
@@ -317,7 +334,8 @@ function initDB() {
       groupExpenses: [],
       groupSettlements: []
     };
-    fs.writeFileSync(DB_FILE, JSON.stringify(initialSchema, null, 2), 'utf-8');
+  }
+  fs.writeFileSync(DB_FILE, JSON.stringify(initialSchema, null, 2), 'utf-8');
   }
 }
 
