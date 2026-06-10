@@ -15,6 +15,8 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
 *   **Hoạt ảnh Siri tương tác âm thanh & Nhận dạng thời gian thực:**
     *   Bổ sung trạng thái `isSoundActive` liên kết với các sự kiện âm lượng của `SpeechRecognition` để tắt hoạt ảnh nhấp nhô của sóng âm Siri thành các chấm tròn ngang phẳng khi im lặng, chỉ kích hoạt chuyển động mượt mà khi bắt đầu nói hoặc nhận diện âm thanh.
     *   **Nhận diện Speech-to-Text thời gian thực:** Tinh chỉnh cơ chế xử lý sự kiện `onresult` để liên tục phân tích cú pháp NLP và điền biểu mẫu trực tiếp trên các kết quả trung gian (`interimResults`). Cho phép các trường nhập liệu tự động cập nhật số tiền, nội dung giao dịch và danh mục ngay khi người dùng đang nói.
+    *   **Cơ chế tự động khôi phục lỗi kết nối micro (Speech Retry Guard):** Tự động bắt lỗi `network` (rớt mạng máy chủ Google Speech) để thực hiện kết nối lại thầm lặng tối đa 3 lần mà không ngắt phiên lắng nghe (`isListening`) hoặc làm mất phần văn bản ghi nhận dở dang của người dùng. Tự động xử lý lỗi im lặng `no-speech` để khởi động lại máy thu một cách êm ái.
+
 
 ### [v5.3.0] - 2026-06-10
 #### 🌟 Nhập giọng nói AI, Biểu đồ Số dư Ví & Tối ưu hóa Hiệu năng (AI Voice, Running Balance Line Chart & SWR Performance)

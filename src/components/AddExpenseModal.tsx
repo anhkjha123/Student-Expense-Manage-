@@ -67,6 +67,7 @@ export default function AddExpenseModal({
   const recognitionRef = useRef<any>(null);
   const hasParsedRef = useRef<boolean>(false);
   const latestTranscriptRef = useRef<string>('');
+  const voiceRetryCountRef = useRef<number>(0);
 
   const applyParsedResults = (parsed: any) => {
     if (parsed.amount) {
@@ -127,18 +128,24 @@ export default function AddExpenseModal({
     }
   }, [editingExpense, isOpen, categories, startWithVoice]);
 
-  const startSpeechRecognition = () => {
+  const startSpeechRecognition = (isRetry = false) => {
     if (!SpeechRecognition) {
       setVoiceError('Trình duyệt của bạn không hỗ trợ Nhận diện giọng nói. Vui lòng dùng Google Chrome.');
       return;
     }
-    setVoiceError(null);
-    setVoiceText('');
-    setIsListening(true);
-    setIsSoundActive(false);
-    setHighlightedFields({});
-    hasParsedRef.current = false;
-    latestTranscriptRef.current = '';
+
+    if (!isRetry) {
+      setVoiceError(null);
+      setVoiceText('');
+      setIsListening(true);
+      setIsSoundActive(false);
+      setHighlightedFields({});
+      hasParsedRef.current = false;
+      latestTranscriptRef.current = '';
+      voiceRetryCountRef.current = 0;
+    } else {
+      console.log(`Đang kết nối lại micro (lần thử ${voiceRetryCountRef.current}/3)...`);
+    }
 
     const recognition = new SpeechRecognition();
     recognitionRef.current = recognition;
@@ -192,26 +199,61 @@ export default function AddExpenseModal({
     };
 
     recognition.onerror = (event: any) => {
-      if (event.error === 'not-allowed') {
-        setVoiceError('Quyền truy cập Micro bị từ chối. Vui lòng bật Micro trong cài đặt trình duyệt.');
-      } else {
-        setVoiceError(`Lỗi nhận diện: ${event.error}`);
+      console.warn('Speech recognition error:', event.error);
+      
+      // Auto-retry silently for network errors (transient connection drops)
+      if (event.error === 'network') {
+        if (voiceRetryCountRef.current < 3) {
+          voiceRetryCountRef.current += 1;
+          setTimeout(() => {
+            if (recognitionRef.current === recognition) {
+              startSpeechRecognition(true);
+            }
+          }, 400);
+          return;
+        }
       }
-      setIsListening(false);
-      setIsSoundActive(false);
-      recognitionRef.current = null;
+
+      // Ignore no-speech errors (silence timeouts) during listening, keep listening state active
+      if (event.error === 'no-speech') {
+        if (recognitionRef.current === recognition) {
+          setIsSoundActive(false);
+          // Restart silently
+          setTimeout(() => {
+            if (recognitionRef.current === recognition) {
+              try {
+                recognition.start();
+              } catch (_) {}
+            }
+          }, 300);
+          return;
+        }
+      }
+
+      if (recognitionRef.current === recognition) {
+        if (event.error === 'not-allowed') {
+          setVoiceError('Quyền truy cập Micro bị từ chối. Vui lòng bật Micro trong cài đặt trình duyệt.');
+        } else {
+          setVoiceError(`Lỗi kết nối giọng nói: ${event.error}. Vui lòng thử lại.`);
+        }
+        setIsListening(false);
+        setIsSoundActive(false);
+        recognitionRef.current = null;
+      }
     };
 
     recognition.onend = () => {
-      setIsListening(false);
-      setIsSoundActive(false);
-      recognitionRef.current = null;
+      if (recognitionRef.current === recognition) {
+        setIsListening(false);
+        setIsSoundActive(false);
+        recognitionRef.current = null;
 
-      // Fallback: If we haven't parsed a final result yet but have captured some voice text, parse it now
-      if (!hasParsedRef.current && latestTranscriptRef.current.trim()) {
-        hasParsedRef.current = true;
-        const parsed = parseVietnameseVoiceCommand(latestTranscriptRef.current);
-        applyParsedResults(parsed);
+        // Fallback: If we haven't parsed a final result yet but have captured some voice text, parse it now
+        if (!hasParsedRef.current && latestTranscriptRef.current.trim()) {
+          hasParsedRef.current = true;
+          const parsed = parseVietnameseVoiceCommand(latestTranscriptRef.current);
+          applyParsedResults(parsed);
+        }
       }
     };
 
