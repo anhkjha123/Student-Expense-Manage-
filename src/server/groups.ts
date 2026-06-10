@@ -394,7 +394,22 @@ export const groupsController = {
       const groupName = group?.name || 'nhóm chi tiêu';
 
       splits.forEach(split => {
-        if (split.userId && split.userId !== userId) {
+        if (!split.userId || split.amount <= 0) return;
+
+        const personalExpense = {
+          id: `exp_group_${Date.now()}_${split.userId}_${Math.random().toString(36).substr(2, 4)}`,
+          userId: split.userId,
+          amount: split.amount,
+          categoryId: categoryId || 'group_fund',
+          title: `Chi phí nhóm: ${description.trim()}`,
+          date,
+          isNecessary: true,
+          note: `Nhóm: ${groupName} | Người trả trước: ${req.user?.name || 'Người dùng'}`
+        };
+
+        dbInstance.saveExpense(personalExpense);
+
+        if (split.userId !== userId) {
           const debtNotif: Notification = {
             id: `notif_sys_${Date.now()}_${split.userId}_${Math.random().toString(36).substr(2, 4)}`,
             userId: split.userId,

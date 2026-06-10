@@ -6,7 +6,6 @@ import {
   FileText, 
   Check, 
   AlertCircle,
-  Camera,
   UploadCloud,
   Loader2,
   Trash2
@@ -146,17 +145,13 @@ export default function AddExpenseModal({
     onClose();
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const processReceiptFile = async (file: File) => {
     // Validate size (max 10MB) - AC1
     if (file.size > 10 * 1024 * 1024) {
       setOcrError('Kích thước ảnh vượt quá giới hạn 10MB cho phép');
       return;
     }
 
-    // Validate type (JPG, PNG, HEIC) - AC1
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
     const isAllowed = ['jpg', 'jpeg', 'png', 'heic'].includes(fileExtension || '');
     if (!isAllowed) {
@@ -177,7 +172,7 @@ export default function AddExpenseModal({
 
         try {
           const res = await ApiService.scanReceipt(base64String, file.name, file.type);
-          
+
           if (res.amount) {
             setAmount(new Intl.NumberFormat('en-US').format(res.amount));
             setHighlightedFields(prev => ({ ...prev, amount: true }));
@@ -200,14 +195,12 @@ export default function AddExpenseModal({
             setNote(res.note);
           }
 
-          // Suggest category if matching name
           const matchedCategory = categories.find(c => 
             res.merchant && new RegExp(c.name, 'i').test(res.merchant)
           );
           if (matchedCategory) {
             setCategoryId(matchedCategory.id);
           } else {
-            // default categorization based on keywords
             const text = `${res.merchant || ''} ${res.note || ''}`.toLowerCase();
             if (text.includes('cơm') || text.includes('ăn') || text.includes('uống') || text.includes('coffee') || text.includes('phở') || text.includes('lẩu')) {
               setCategoryId('food');
@@ -223,7 +216,6 @@ export default function AddExpenseModal({
               setCategoryId('rent');
             }
           }
-
         } catch (apiErr: any) {
           setOcrError(apiErr.message || 'Lỗi quét hóa đơn');
         } finally {
@@ -238,6 +230,30 @@ export default function AddExpenseModal({
     } catch (err: any) {
       setOcrError(err.message || 'Lỗi đọc tệp ảnh');
       setIsScanning(false);
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await processReceiptFile(file);
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    await processReceiptFile(file);
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const items = Array.from(e.clipboardData.items || []);
+    const imageItem = items.find(item => item.kind === 'file' && item.type.startsWith('image/'));
+    if (imageItem) {
+      const file = imageItem.getAsFile();
+      if (file) {
+        await processReceiptFile(file);
+      }
     }
   };
 
@@ -284,7 +300,7 @@ export default function AddExpenseModal({
         </div>
 
         {/* Content Form */}
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-3 sm:space-y-4 overflow-y-auto flex-1">
+        <form onSubmit={handleSubmit} onPaste={handlePaste} className="p-4 sm:p-6 space-y-3 sm:space-y-4 overflow-y-auto flex-1">
           {error && (
             <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-xs font-semibold text-red-700">
               <AlertCircle className="h-4.5 w-4.5 shrink-0" />
@@ -296,7 +312,7 @@ export default function AddExpenseModal({
           {!editingExpense && (
             <div className="space-y-1 bg-slate-50 p-4 rounded-2xl border border-slate-200/60 shadow-inner">
               <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                Quét hóa đơn bằng AI (Camera / Tệp)
+                Quét hóa đơn bằng AI
               </label>
 
               {ocrError && (
@@ -337,15 +353,15 @@ export default function AddExpenseModal({
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
-                  <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-emerald-400 bg-white rounded-xl py-4 transition-all cursor-pointer group">
+                          <label
+                    className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-emerald-400 bg-white rounded-xl py-5 px-3 transition-all cursor-pointer group text-center"
+                    onDrop={handleDrop}
+                    onDragOver={(e) => e.preventDefault()}
+                    onPaste={handlePaste}
+                  >
                     <UploadCloud className="h-6 w-6 text-slate-400 group-hover:text-emerald-500 transition-colors" />
-                    <span className="text-[10px] font-bold text-slate-500 group-hover:text-slate-700 mt-1">Chọn ảnh hóa đơn</span>
+                    <span className="text-[10px] font-bold text-slate-500 group-hover:text-slate-700 mt-1">Chọn ảnh hóa đơn hoặc kéo thả / dán ảnh (Ctrl+V)</span>
                     <input type="file" accept="image/png, image/jpeg, image/heic" onChange={handleFileChange} className="hidden" />
-                  </label>
-                  <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-emerald-400 bg-white rounded-xl py-4 transition-all cursor-pointer group">
-                    <Camera className="h-6 w-6 text-slate-400 group-hover:text-emerald-500 transition-colors" />
-                    <span className="text-[10px] font-bold text-slate-500 group-hover:text-slate-700 mt-1">Chụp bằng Camera</span>
-                    <input type="file" accept="image/png, image/jpeg, image/heic" capture="environment" onChange={handleFileChange} className="hidden" />
                   </label>
                 </div>
               )}
