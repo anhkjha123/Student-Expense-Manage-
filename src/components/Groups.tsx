@@ -80,11 +80,24 @@ export default function Groups({ user }: GroupsProps) {
   const loadActiveGroup = async (id: string) => {
     try {
       const data = await ApiService.getGroup(id);
-      setActiveGroupData(data);
+      
+      // Sync current user's name dynamically in members list (for instant UI update)
+      const updatedMembers = data.members.map(m => 
+        m.userId === user.id ? { ...m, name: user.name } : m
+      );
+      
+      // Recalculate debts with updated member names
+      const updatedDebts = ApiService.calculateDebts(id, updatedMembers, data.expenses);
+      
+      setActiveGroupData({
+        ...data,
+        members: updatedMembers,
+        debts: updatedDebts
+      });
+      
       // Pre-populate custom shares with equal split amounts
       const initialCustom: Record<string, string> = {};
-      const share = Math.round((0) / data.members.length);
-      data.members.forEach(m => {
+      updatedMembers.forEach(m => {
         if (m.userId) initialCustom[m.userId] = '';
       });
       setCustomShares(initialCustom);
@@ -786,7 +799,7 @@ export default function Groups({ user }: GroupsProps) {
                                     </span>
                                   )}
                                 </td>
-                                <td className="px-4 py-3 font-medium text-slate-600 dark:text-slate-350">{exp.paidByName}</td>
+                                <td className="px-4 py-3 font-medium text-slate-600 dark:text-slate-350">{exp.paidBy === user.id ? user.name : exp.paidByName}</td>
                                 <td className="px-4 py-3 text-right font-bold text-slate-900 dark:text-slate-100 font-mono">
                                   {new Intl.NumberFormat('vi-VN').format(exp.amount)}đ
                                 </td>
