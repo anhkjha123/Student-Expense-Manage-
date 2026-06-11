@@ -213,11 +213,10 @@ export default function AddExpenseModal({
     };
 
     recognition.onerror = (event: any) => {
-      console.warn('Speech recognition error:', event.error);
-      
       if (event.error === 'aborted' || event.error === 'network' || isStoppingRef.current) {
         return;
       }
+      console.warn('Speech recognition error:', event.error);
 
       if (event.error === 'no-speech') {
         setVoiceError('Không nghe thấy giọng nói. Vui lòng bấm Mic để thử lại.');
