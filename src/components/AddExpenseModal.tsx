@@ -221,7 +221,7 @@ export default function AddExpenseModal({
             if (isOpen && helperTab === 'voice') {
               startSpeechRecognition(true);
             }
-          }, 400);
+          }, 80);
           return;
         }
       }
@@ -237,7 +237,7 @@ export default function AddExpenseModal({
           if (isOpen && helperTab === 'voice') {
             startSpeechRecognition(true);
           }
-        }, 300);
+        }, 80);
         return;
       }
 
@@ -264,7 +264,7 @@ export default function AddExpenseModal({
             if (isOpen && helperTab === 'voice') {
               startSpeechRecognition(true);
             }
-          }, 300);
+          }, 80);
         } else {
           setIsListening(false);
           setIsSoundActive(false);
@@ -289,10 +289,10 @@ export default function AddExpenseModal({
 
   useEffect(() => {
     let timer: any;
-    if (isOpen && helperTab === 'voice' && !editingExpense) {
+    if (isOpen && helperTab === 'voice') {
       timer = setTimeout(() => {
         startSpeechRecognition();
-      }, 300);
+      }, 50);
     }
 
     return () => {

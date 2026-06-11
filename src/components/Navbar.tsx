@@ -88,7 +88,7 @@ export default function Navbar({
             <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
           <div className="flex flex-col justify-center">
-            <h1 className="font-display text-sm sm:text-lg font-bold tracking-tight text-slate-900 leading-tight drop-shadow-sm">
+            <h1 className="font-display text-sm sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 leading-tight drop-shadow-sm">
               SemTietKiem
             </h1>
             <p className="hidden sm:block text-[10px] font-bold uppercase tracking-wider text-emerald-600 font-mono leading-tight mt-0.5">
@@ -112,8 +112,8 @@ export default function Navbar({
                     onClick={() => setActiveTab('history')}
                     className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs xl:text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
                       isActive
-                        ? 'bg-emerald-50 text-emerald-600'
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                        ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-300'
+                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
                     }`}
                     title={tab.name}
                   >
