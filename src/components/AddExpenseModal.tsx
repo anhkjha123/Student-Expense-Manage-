@@ -129,13 +129,14 @@ export default function AddExpenseModal({
     }
   }, [editingExpense, isOpen, categories, startWithVoice]);
 
-  const startSpeechRecognition = (isRetry = false) => {
+  const startSpeechRecognition = (isRetry: any = false) => {
+    const isRetryBool = isRetry === true;
     if (!SpeechRecognition) {
       setVoiceError('Trình duyệt của bạn không hỗ trợ Nhận diện giọng nói. Vui lòng dùng Google Chrome.');
       return;
     }
 
-    if (!isRetry) {
+    if (!isRetryBool) {
       setVoiceError(null);
       setVoiceText('');
       setIsListening(true);
@@ -705,7 +706,7 @@ export default function AddExpenseModal({
                     ) : (
                       <button
                         type="button"
-                        onClick={startSpeechRecognition}
+                        onClick={() => startSpeechRecognition()}
                         className="group flex h-16 w-16 items-center justify-center rounded-full bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800 transition-all duration-300 transform active:scale-95 shadow-md shadow-rose-100 dark:shadow-none cursor-pointer animate-pulse"
                         title="Bắt đầu ghi giọng nói"
                       >
