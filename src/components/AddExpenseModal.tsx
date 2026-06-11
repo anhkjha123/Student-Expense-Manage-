@@ -61,6 +61,7 @@ export default function AddExpenseModal({
   // Voice States (CH-01)
   const [helperTab, setHelperTab] = useState<'ocr' | 'voice'>('ocr');
   const [isListening, setIsListening] = useState<boolean>(false);
+  const [isStopping, setIsStopping] = useState<boolean>(false);
   const [isSoundActive, setIsSoundActive] = useState<boolean>(false);
   const [voiceText, setVoiceText] = useState<string>('');
   const [voiceError, setVoiceError] = useState<string | null>(null);
@@ -125,6 +126,7 @@ export default function AddExpenseModal({
       setVoiceText('');
       setVoiceError(null);
       setIsListening(false);
+      setIsStopping(false);
       setIsSoundActive(false);
     }
   }, [editingExpense, isOpen, categories, startWithVoice]);
@@ -140,6 +142,7 @@ export default function AddExpenseModal({
       setVoiceError(null);
       setVoiceText('');
       setIsListening(true);
+      setIsStopping(false);
       setIsSoundActive(false);
       setHighlightedFields({});
       hasParsedRef.current = false;
@@ -242,6 +245,10 @@ export default function AddExpenseModal({
         return;
       }
 
+      if (event.error === 'aborted') {
+        return;
+      }
+
       if (event.error === 'not-allowed') {
         setVoiceError('Quyền truy cập Micro bị từ chối. Vui lòng bật Micro trong cài đặt trình duyệt.');
       } else {
@@ -259,7 +266,7 @@ export default function AddExpenseModal({
       }
 
       if (recognitionRef.current === recognition) {
-        if (isOpen && helperTab === 'voice' && isListening) {
+        if (isOpen && helperTab === 'voice' && isListening && !isStopping) {
           isRetryingRef.current = true;
           setTimeout(() => {
             if (isOpen && helperTab === 'voice') {
@@ -268,6 +275,7 @@ export default function AddExpenseModal({
           }, 80);
         } else {
           setIsListening(false);
+          setIsStopping(false);
           setIsSoundActive(false);
           recognitionRef.current = null;
 
@@ -305,6 +313,7 @@ export default function AddExpenseModal({
         recognitionRef.current = null;
       }
       setIsListening(false);
+      setIsStopping(false);
       setIsSoundActive(false);
     };
   }, [isOpen, helperTab]);
@@ -671,7 +680,12 @@ export default function AddExpenseModal({
                           </div>
                         </div>
 
-                        {voiceText ? (
+                        {isStopping ? (
+                          <div className="flex flex-col items-center py-2 animate-pulse">
+                            <div className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent mb-1.5" />
+                            <span className="text-xs font-bold text-slate-500 font-mono">Đang hoàn tất nhận diện...</span>
+                          </div>
+                        ) : voiceText ? (
                           <div className="px-6 text-center animate-fade-in max-w-xs">
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Đang nghe:</span>
                             <p className="text-xs font-bold text-slate-700 dark:text-slate-100 bg-slate-100/80 dark:bg-slate-800/70 px-3.5 py-2 rounded-2xl border border-slate-200/50 dark:border-slate-700 inline-block shadow-inner leading-relaxed">
@@ -687,20 +701,20 @@ export default function AddExpenseModal({
 
                         <button
                           type="button"
+                          disabled={isStopping}
                           onClick={() => {
-                            setIsListening(false);
+                            setIsStopping(true);
                             setIsSoundActive(false);
                             if (recognitionRef.current) {
                               try {
                                 recognitionRef.current.stop();
                               } catch (e) {}
-                              recognitionRef.current = null;
                             }
                           }}
-                          className="mt-1 rounded-2xl bg-rose-500 hover:bg-rose-600 px-5 py-2 text-xs font-bold text-white shadow-md shadow-rose-200 dark:shadow-none flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95 border border-rose-600/20"
+                          className="mt-1 rounded-2xl bg-rose-500 hover:bg-rose-600 disabled:bg-rose-300 disabled:pointer-events-none px-5 py-2 text-xs font-bold text-white shadow-md shadow-rose-200 dark:shadow-none flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95 border border-rose-600/20"
                         >
                           <Square className="h-3 w-3 fill-white text-white" />
-                          Dừng ghi âm
+                          {isStopping ? 'Đang dừng...' : 'Dừng ghi âm'}
                         </button>
                       </div>
                     ) : (
