@@ -198,9 +198,11 @@ export default function AddExpenseModal({
         setVoiceText(displayedText);
         latestTranscriptRef.current = displayedText;
 
-        // Parse and apply in real-time as user speaks for maximum responsiveness!
-        const parsed = parseVietnameseVoiceCommand(displayedText);
-        applyParsedResults(parsed);
+        // Only parse and apply on final results to avoid React re-render flooding (avoids app freezing)
+        if (finalTranscript.trim()) {
+          const parsed = parseVietnameseVoiceCommand(displayedText);
+          applyParsedResults(parsed);
+        }
       }
 
       if (finalTranscript.trim()) {
@@ -211,80 +213,34 @@ export default function AddExpenseModal({
     recognition.onerror = (event: any) => {
       console.warn('Speech recognition error:', event.error);
       
-      // Auto-retry silently for network errors (transient connection drops)
-      if (event.error === 'network') {
-        if (voiceRetryCountRef.current < 5) {
-          voiceRetryCountRef.current += 1;
-          isRetryingRef.current = true;
-          
-          try {
-            recognition.abort();
-          } catch (e) {}
-
-          setTimeout(() => {
-            if (isOpen && helperTab === 'voice') {
-              startSpeechRecognition(true);
-            }
-          }, 80);
-          return;
-        }
-      }
-
-      // Ignore no-speech errors (silence timeouts) during listening, keep listening state active
-      if (event.error === 'no-speech') {
-        isRetryingRef.current = true;
-        try {
-          recognition.abort();
-        } catch (e) {}
-
-        setTimeout(() => {
-          if (isOpen && helperTab === 'voice') {
-            startSpeechRecognition(true);
-          }
-        }, 80);
-        return;
-      }
-
       if (event.error === 'aborted') {
         return;
       }
 
-      if (event.error === 'not-allowed') {
-        setVoiceError('Quyền truy cập Micro bị từ chối. Vui lòng bật Micro trong cài đặt trình duyệt.');
+      if (event.error === 'no-speech') {
+        setVoiceError('Không nghe thấy giọng nói. Vui lòng bấm Mic để thử lại.');
+      } else if (event.error === 'not-allowed') {
+        setVoiceError('Quyền truy cập Micro bị từ chối. Vui lòng bật Micro trong cài đặt.');
       } else {
         setVoiceError(`Lỗi kết nối giọng nói: ${event.error}. Vui lòng thử lại.`);
       }
       setIsListening(false);
+      setIsStopping(false);
       setIsSoundActive(false);
       recognitionRef.current = null;
     };
 
     recognition.onend = () => {
-      if (isRetryingRef.current) {
-        isRetryingRef.current = false;
-        return;
-      }
-
       if (recognitionRef.current === recognition) {
-        if (isOpen && helperTab === 'voice' && isListening && !isStopping) {
-          isRetryingRef.current = true;
-          setTimeout(() => {
-            if (isOpen && helperTab === 'voice') {
-              startSpeechRecognition(true);
-            }
-          }, 80);
-        } else {
-          setIsListening(false);
-          setIsStopping(false);
-          setIsSoundActive(false);
-          recognitionRef.current = null;
+        setIsListening(false);
+        setIsStopping(false);
+        setIsSoundActive(false);
+        recognitionRef.current = null;
 
-          // Fallback: If we haven't parsed a final result yet but have captured some voice text, parse it now
-          if (!hasParsedRef.current && latestTranscriptRef.current.trim()) {
-            hasParsedRef.current = true;
-            const parsed = parseVietnameseVoiceCommand(latestTranscriptRef.current);
-            applyParsedResults(parsed);
-          }
+        // Fallback: If we have captured some voice text, parse it now to ensure no data is lost
+        if (latestTranscriptRef.current.trim()) {
+          const parsed = parseVietnameseVoiceCommand(latestTranscriptRef.current);
+          applyParsedResults(parsed);
         }
       }
     };
