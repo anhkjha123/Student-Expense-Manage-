@@ -92,7 +92,7 @@ export default function Navbar({
               SemTietKiem
             </h1>
             <p className="hidden sm:block text-[10px] font-bold uppercase tracking-wider text-emerald-600 font-mono leading-tight mt-0.5">
-              Student Expense MVP
+              SemTietKiem MVP
             </p>
           </div>
         </div>
