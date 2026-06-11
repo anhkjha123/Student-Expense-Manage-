@@ -213,7 +213,7 @@ export default function AddExpenseModal({
     recognition.onerror = (event: any) => {
       console.warn('Speech recognition error:', event.error);
       
-      if (event.error === 'aborted') {
+      if (event.error === 'aborted' || isStopping) {
         return;
       }
 

@@ -19,7 +19,7 @@ function removeVietnameseTones(str: string): string {
  * Expands shorthand numbers like "50k", "2tr" into standard token parts.
  */
 function expandToken(token: string): string[] {
-  const match = token.match(/^(\d+(?:[\.,]\d+)?)(k|nghìn|ngàn|tr|triệu|tỷ|đ|đồng)$/i);
+  const match = token.match(/^(\d+(?:[\.,\d]*\d)?)(k|nghìn|ngàn|tr|triệu|tỷ|đ|đồng)$/i);
   if (match) {
     return [match[1], match[2]];
   }
@@ -30,7 +30,10 @@ function expandToken(token: string): string[] {
  * Converts Vietnamese spoken words and numbers into a numeric value.
  */
 function parseWordBasedNumber(phrase: string): number | null {
-  const words = phrase.toLowerCase().replace(/[,.?]/g, ' ').split(/\s+/).filter(Boolean);
+  const cleanPhrase = removeVietnameseTones(phrase.toLowerCase());
+  const hasMultiplier = /\b(k|nghin|ngan|trieu|tr|ty)\b/i.test(cleanPhrase);
+
+  const words = phrase.toLowerCase().split(/\s+/).filter(Boolean);
   const expandedWords: string[] = [];
   for (const w of words) {
     expandedWords.push(...expandToken(w));
@@ -59,11 +62,14 @@ function parseWordBasedNumber(phrase: string): number | null {
   for (const token of expandedWords) {
     const clean = removeVietnameseTones(token);
 
-    if (/^\d+(?:[\.,]\d+)?$/.test(token)) {
-      const val = parseFloat(token.replace(/,/g, '.'));
-      if (!isNaN(val)) {
-        tempValue = val;
+    if (/^\d+(?:[\.,\d]*\d)?$/.test(token)) {
+      let val = 0;
+      if (hasMultiplier) {
+        val = parseFloat(token.replace(/,/g, '.')) || 0;
+      } else {
+        val = parseFloat(token.replace(/[\.,]/g, '')) || 0;
       }
+      tempValue = val;
       continue;
     }
 
@@ -107,6 +113,9 @@ export function parseVietnameseVoiceCommand(text: string): ParsedVoiceCommand {
   const normalized = text.toLowerCase().trim();
   if (!normalized) return {};
 
+  // Clean punctuation but preserve dot/comma inside numbers (e.g. 35.000, 2.5)
+  const cleanedText = normalized.replace(/(?<!\d)[.,?]|[.,?](?!\d)/g, ' ');
+
   const numKeywords = new Set([
     'khong', 'mot', 'hai', 'ba', 'bon', 'tu', 'nam', 'lam', 'nham', 'sau', 'bay', 'tam', 'chin',
     'muoi', 'mươi', 'chuc', 'tram', 'nghin', 'ngan', 'trieu', 'tr', 'ty', 'k', 'le', 'linh', 'dong', 'd'
@@ -115,13 +124,13 @@ export function parseVietnameseVoiceCommand(text: string): ParsedVoiceCommand {
   const isNumberToken = (w: string) => {
     const expanded = expandToken(w);
     return expanded.every(token => {
-      if (/^\d+(?:[\.,]\d+)?$/.test(token)) return true;
+      if (/^\d+(?:[\.,\d]*\d)?$/.test(token)) return true;
       const clean = removeVietnameseTones(token);
       return numKeywords.has(clean);
     });
   };
 
-  const words = normalized.replace(/[,.?]/g, ' ').split(/\s+/).filter(Boolean);
+  const words = cleanedText.split(/\s+/).filter(Boolean);
   let bestStart = -1;
   let bestEnd = -1;
   let currentStart = -1;
@@ -170,6 +179,11 @@ export function parseVietnameseVoiceCommand(text: string): ParsedVoiceCommand {
   // Clean filler words from start of title
   title = title
     .replace(/^(het|chi|thu|tien|khoan|mua|thanh toan|cho|mot|hai|ba|bon|nam|sau|bay|tam|chin|muoi)\s+/gi, '')
+    .trim();
+
+  // Clean trailing currency units
+  title = title
+    .replace(/\s+(vnd|dong|d|đ)$/gi, '')
     .trim();
 
   if (title) {
