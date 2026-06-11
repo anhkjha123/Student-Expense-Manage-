@@ -12,14 +12,15 @@ function removeVietnameseTones(str: string): string {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/đ/g, 'd')
-    .replace(/Đ/g, 'D');
+    .replace(/Đ/g, 'D')
+    .replace(/₫/g, 'd');
 }
 
 /**
  * Expands shorthand numbers like "50k", "2tr" into standard token parts.
  */
 function expandToken(token: string): string[] {
-  const match = token.match(/^(\d+(?:[\.,\d]*\d)?)(k|nghìn|ngàn|tr|triệu|tỷ|đ|đồng)$/i);
+  const match = token.match(/^(\d+(?:[\.,\d]*\d)?)(k|nghìn|ngàn|tr|triệu|tỷ|đ|đồng|₫|vnd)$/i);
   if (match) {
     return [match[1], match[2]];
   }
@@ -118,7 +119,7 @@ export function parseVietnameseVoiceCommand(text: string): ParsedVoiceCommand {
 
   const numKeywords = new Set([
     'khong', 'mot', 'hai', 'ba', 'bon', 'tu', 'nam', 'lam', 'nham', 'sau', 'bay', 'tam', 'chin',
-    'muoi', 'mươi', 'chuc', 'tram', 'nghin', 'ngan', 'trieu', 'tr', 'ty', 'k', 'le', 'linh', 'dong', 'd'
+    'muoi', 'mươi', 'chuc', 'tram', 'nghin', 'ngan', 'trieu', 'tr', 'ty', 'k', 'le', 'linh', 'dong', 'd', '₫', 'vnd'
   ]);
 
   const isNumberToken = (w: string) => {

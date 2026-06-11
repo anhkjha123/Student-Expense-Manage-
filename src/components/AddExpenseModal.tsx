@@ -70,6 +70,7 @@ export default function AddExpenseModal({
   const latestTranscriptRef = useRef<string>('');
   const voiceRetryCountRef = useRef<number>(0);
   const isRetryingRef = useRef<boolean>(false);
+  const isStoppingRef = useRef<boolean>(false);
 
   const applyParsedResults = (parsed: any) => {
     if (parsed.amount) {
@@ -127,6 +128,7 @@ export default function AddExpenseModal({
       setVoiceError(null);
       setIsListening(false);
       setIsStopping(false);
+      isStoppingRef.current = false;
       setIsSoundActive(false);
     }
   }, [editingExpense, isOpen, categories, startWithVoice]);
@@ -213,7 +215,7 @@ export default function AddExpenseModal({
     recognition.onerror = (event: any) => {
       console.warn('Speech recognition error:', event.error);
       
-      if (event.error === 'aborted' || isStopping) {
+      if (event.error === 'aborted' || isStoppingRef.current) {
         return;
       }
 
@@ -226,6 +228,7 @@ export default function AddExpenseModal({
       }
       setIsListening(false);
       setIsStopping(false);
+      isStoppingRef.current = false;
       setIsSoundActive(false);
       recognitionRef.current = null;
     };
@@ -234,6 +237,7 @@ export default function AddExpenseModal({
       if (recognitionRef.current === recognition) {
         setIsListening(false);
         setIsStopping(false);
+        isStoppingRef.current = false;
         setIsSoundActive(false);
         recognitionRef.current = null;
 
@@ -270,6 +274,7 @@ export default function AddExpenseModal({
       }
       setIsListening(false);
       setIsStopping(false);
+      isStoppingRef.current = false;
       setIsSoundActive(false);
     };
   }, [isOpen, helperTab]);
@@ -660,6 +665,7 @@ export default function AddExpenseModal({
                           disabled={isStopping}
                           onClick={() => {
                             setIsStopping(true);
+                            isStoppingRef.current = true;
                             setIsSoundActive(false);
                             if (recognitionRef.current) {
                               try {
