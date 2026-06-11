@@ -6,90 +6,197 @@ export interface ParsedVoiceCommand {
 
 /**
  * Parses a Vietnamese voice transcript into expense fields.
- * Example inputs:
- * - "ăn trưa 35 nghìn" -> { amount: 35000, title: "Ăn trưa", categoryId: "food" }
- * - "xăng xe 50k" -> { amount: 50000, title: "Xăng xe", categoryId: "transport" }
- * - "tiền trọ 2 triệu" -> { amount: 2000000, title: "Tiền trọ", categoryId: "rent" }
- * - "mua sách giáo trình 120 ngàn" -> { amount: 120000, title: "Sách giáo trình", categoryId: "study" }
  */
 function removeVietnameseTones(str: string): string {
   return str
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/đ/g, 'd')
-    .replace(/Đ/g, 'D');
+    .replace(/Đ/g, 'D')
+    .replace(/₫/g, 'd');
 }
 
 /**
- * Parses a Vietnamese voice transcript into expense fields.
- * Example inputs:
- * - "ăn trưa 35 nghìn" -> { amount: 35000, title: "Ăn trưa", categoryId: "food" }
- * - "xăng xe 50k" -> { amount: 50000, title: "Xăng xe", categoryId: "transport" }
- * - "tiền trọ 2 triệu" -> { amount: 2000000, title: "Tiền trọ", categoryId: "rent" }
- * - "mua sách giáo trình 120 ngàn" -> { amount: 120000, title: "Sách giáo trình", categoryId: "study" }
+ * Expands shorthand numbers like "50k", "2tr" into standard token parts.
  */
+function expandToken(token: string): string[] {
+  const match = token.match(/^(\d+(?:[\.,\d]*\d)?)(k|nghìn|ngàn|tr|triệu|tỷ|đ|đồng|₫|vnd)$/i);
+  if (match) {
+    return [match[1], match[2]];
+  }
+  return [token];
+}
+
+/**
+ * Converts Vietnamese spoken words and numbers into a numeric value.
+ */
+function parseWordBasedNumber(phrase: string): number | null {
+  const cleanPhrase = removeVietnameseTones(phrase.toLowerCase());
+  const hasMultiplier = /\b(k|nghin|ngan|trieu|tr|ty)\b/i.test(cleanPhrase);
+
+  const words = phrase.toLowerCase().split(/\s+/).filter(Boolean);
+  const expandedWords: string[] = [];
+  for (const w of words) {
+    expandedWords.push(...expandToken(w));
+  }
+
+  const unitMap: Record<string, number> = {
+    'khong': 0,
+    'mot': 1,
+    'hai': 2,
+    'ba': 3,
+    'bon': 4,
+    'tu': 4,
+    'nam': 5,
+    'lam': 5,
+    'nham': 5,
+    'sau': 6,
+    'bay': 7,
+    'tam': 8,
+    'chin': 9
+  };
+
+  let total = 0;
+  let groupValue = 0;
+  let tempValue = 0;
+
+  for (const token of expandedWords) {
+    const clean = removeVietnameseTones(token);
+
+    if (/^\d+(?:[\.,\d]*\d)?$/.test(token)) {
+      let val = 0;
+      if (hasMultiplier) {
+        val = parseFloat(token.replace(/,/g, '.')) || 0;
+      } else {
+        val = parseFloat(token.replace(/[\.,]/g, '')) || 0;
+      }
+      tempValue = val;
+      continue;
+    }
+
+    if (unitMap[clean] !== undefined) {
+      tempValue = unitMap[clean];
+    } else if (clean === 'muoi' || clean === 'mươi' || clean === 'chuc') {
+      if (tempValue === 0) {
+        tempValue = 10;
+      } else {
+        tempValue = tempValue * 10;
+      }
+    } else if (clean === 'tram') {
+      if (tempValue === 0) {
+        tempValue = 100;
+      } else {
+        tempValue = tempValue * 100;
+      }
+    } else if (clean === 'nghin' || clean === 'ngan' || clean === 'k') {
+      groupValue += tempValue;
+      total += (groupValue || 1) * 1000;
+      groupValue = 0;
+      tempValue = 0;
+    } else if (clean === 'trieu' || clean === 'tr') {
+      groupValue += tempValue;
+      total += (groupValue || 1) * 1000000;
+      groupValue = 0;
+      tempValue = 0;
+    } else if (clean === 'ty') {
+      groupValue += tempValue;
+      total += (groupValue || 1) * 1000000000;
+      groupValue = 0;
+      tempValue = 0;
+    }
+  }
+
+  total += groupValue + tempValue;
+  return total > 0 ? total : null;
+}
+
 export function parseVietnameseVoiceCommand(text: string): ParsedVoiceCommand {
   const normalized = text.toLowerCase().trim();
-  
-  // 1. Regex to match number and unit: e.g. "35 nghìn", "35.000", "50k", "2 triệu", "120 ngàn"
-  // Match digits with dots/commas, optionally followed by multiplier unit
-  const numberRegex = /(\d+(?:[\.,\d]*\d)?)\s*(k|nghìn|ngàn|tr|triệu|đồng|đ)?\b/gi;
-  
-  let amount: number | undefined;
-  let parsedText = normalized;
-  
-  const matches = [...normalized.matchAll(numberRegex)];
-  
-  if (matches.length > 0) {
-    // We take the first match as primary amount
-    const match = matches[0];
-    const rawNumStr = match[1];
-    const unit = match[2] ? match[2].toLowerCase() : '';
-    
-    let value = 0;
-    if (unit === 'tr' || unit === 'triệu' || unit === 'tỷ') {
-      const normalizedNum = rawNumStr.replace(/,/g, '.');
-      value = parseFloat(normalizedNum);
+  if (!normalized) return {};
+
+  // Clean punctuation but preserve dot/comma inside numbers (e.g. 35.000, 2.5)
+  const cleanedText = normalized.replace(/(?<!\d)[.,?]|[.,?](?!\d)/g, ' ');
+
+  const numKeywords = new Set([
+    'khong', 'mot', 'hai', 'ba', 'bon', 'tu', 'nam', 'lam', 'nham', 'sau', 'bay', 'tam', 'chin',
+    'muoi', 'mươi', 'chuc', 'tram', 'nghin', 'ngan', 'trieu', 'tr', 'ty', 'k', 'le', 'linh', 'dong', 'd', '₫', 'vnd'
+  ]);
+
+  const isNumberToken = (w: string) => {
+    const expanded = expandToken(w);
+    return expanded.every(token => {
+      if (/^\d+(?:[\.,\d]*\d)?$/.test(token)) return true;
+      const clean = removeVietnameseTones(token);
+      return numKeywords.has(clean);
+    });
+  };
+
+  const words = cleanedText.split(/\s+/).filter(Boolean);
+  let bestStart = -1;
+  let bestEnd = -1;
+  let currentStart = -1;
+
+  for (let i = 0; i < words.length; i++) {
+    if (isNumberToken(words[i])) {
+      if (currentStart === -1) {
+        currentStart = i;
+      }
+      if (i - currentStart >= bestEnd - bestStart) {
+        bestStart = currentStart;
+        bestEnd = i;
+      }
     } else {
-      const normalizedNum = rawNumStr.replace(/[\.,]/g, '');
-      value = parseFloat(normalizedNum);
+      currentStart = -1;
     }
-    
-    if (unit === 'k') {
-      value *= 1000;
-    } else if (unit === 'nghìn' || unit === 'ngàn') {
-      value *= 1000;
-    } else if (unit === 'tr' || unit === 'triệu') {
-      value *= 1000000;
-    }
-    
-    // Auto-multiply shorthand numbers less than 1000 (e.g. "ăn trưa 35" -> 35000, "mua sách 120" -> 120000)
-    if (value < 1000 && (!unit || unit === 'đ' || unit === 'đồng')) {
-      value *= 1000;
-    }
-    
-    amount = value;
-    
-    // Remove the matched part from the text to get a clean title
-    parsedText = normalized.replace(match[0], '').trim();
   }
-  
-  // Clean up filler words from the title
-  let title = parsedText
-    .replace(/^(hết|chi|thu|tiền|khoản|mua|thanh toán|cho|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười)\s+/gi, '')
+
+  let amount: number | undefined;
+  let title = normalized;
+
+  if (bestStart !== -1) {
+    const numberPhraseWords = words.slice(bestStart, bestEnd + 1);
+    const numberPhrase = numberPhraseWords.join(' ');
+    
+    const parsedAmount = parseWordBasedNumber(numberPhrase);
+    if (parsedAmount !== null) {
+      amount = parsedAmount;
+      
+      // Shorthand auto-multiply: e.g. "35" -> 35000
+      if (amount < 1000) {
+        const lastWord = numberPhraseWords[numberPhraseWords.length - 1];
+        const lastWordClean = removeVietnameseTones(lastWord);
+        if (!['trieu', 'tr', 'ty'].includes(lastWordClean)) {
+          amount *= 1000;
+        }
+      }
+
+      // Reconstruct title by excluding the matched number phrase
+      const before = words.slice(0, bestStart).join(' ');
+      const after = words.slice(bestEnd + 1).join(' ');
+      title = [before, after].filter(Boolean).join(' ');
+    }
+  }
+
+  // Clean filler words from start of title
+  title = title
+    .replace(/^(hết|chi|thu|tiền|khoản|mua|thanh\s+toán|cho|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|het|tien|khoan|thanh toan|mot|bon|nam|sau|bay|tam|chin|muoi)\s+/gi, '')
     .trim();
-  
-  // Capitalize first letter of title
+
+  // Clean trailing currency units
+  title = title
+    .replace(/\s+(vnd|dong|d|đ)$/gi, '')
+    .trim();
+
   if (title) {
     title = title.charAt(0).toUpperCase() + title.slice(1);
   } else {
     title = 'Chi tiêu bằng giọng nói';
   }
-  
-  // Map category based on keywords with regex word boundaries to avoid false matching
-  let categoryId = 'food'; // Default fallback
+
+  // Category mapping
+  let categoryId = 'food';
   const textToCheck = removeVietnameseTones(title.toLowerCase());
-  
+
   if (/\b(an|uong|com|pho|lau|tra sua|cafe|ca phe|banh|keo|snack|mi|hu tieu|an uong|an trua|an sang|an toi)\b/i.test(textToCheck)) {
     categoryId = 'food';
   } else if (/\b(xang|xe|grab|be|bus|taxi|gui xe|di lai|di chuyen|ve xe)\b/i.test(textToCheck)) {
@@ -103,6 +210,6 @@ export function parseVietnameseVoiceCommand(text: string): ParsedVoiceCommand {
   } else if (/\b(phong|tro|tien tro|dien|nuoc|wifi|mang|chung cu|nha o)\b/i.test(textToCheck)) {
     categoryId = 'rent';
   }
-  
+
   return { amount, title, categoryId };
 }

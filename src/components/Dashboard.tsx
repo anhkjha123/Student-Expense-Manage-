@@ -409,7 +409,7 @@ export default function Dashboard({
 
   return (
     <motion.div 
-      className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6"
+      className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6 text-slate-900 dark:text-slate-100"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -418,7 +418,7 @@ export default function Dashboard({
       {/* Welcome Banner */}
       <motion.div 
         variants={itemVariants}
-        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-emerald-400 to-emerald-400 rounded-3xl p-6 text-white shadow-xl shadow-emerald-200 backdrop-blur-md"
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-emerald-400 to-emerald-400 rounded-3xl p-6 text-white shadow-xl shadow-emerald-200 dark:shadow-none backdrop-blur-md"
       >
         <div className="space-y-1">
           <span className="inline-block rounded-full bg-white/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider font-mono shadow-inner border border-white/30">
@@ -448,10 +448,10 @@ export default function Dashboard({
           whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
           className={`rounded-3xl border p-5 shadow-sm relative transition-all duration-300 text-white bg-gradient-to-br ${
             walletBalance < 0 
-              ? 'from-rose-500 to-red-600 border-rose-200 shadow-rose-100' 
+              ? 'from-rose-500 to-red-600 border-rose-200 dark:border-rose-900 shadow-rose-100 dark:shadow-none' 
               : walletBalance < savingGoal 
-                ? 'from-amber-500 to-orange-600 border-amber-200 shadow-amber-100' 
-                : 'from-emerald-500 to-teal-600 border-emerald-100 shadow-emerald-100'
+                ? 'from-amber-500 to-orange-600 border-amber-200 dark:border-amber-900 shadow-amber-100 dark:shadow-none' 
+                : 'from-emerald-500 to-teal-600 border-emerald-100 dark:border-emerald-900 shadow-emerald-100 dark:shadow-none'
           }`}
         >
           <div className="flex justify-between items-start relative z-10">
@@ -544,26 +544,26 @@ export default function Dashboard({
         {/* Total Spent Box */}
         <motion.div 
           whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
-          className="rounded-3xl border border-amber-100 bg-gradient-to-br from-white to-amber-50/30 p-5 shadow-sm relative overflow-hidden transition-all duration-300"
+          className="rounded-3xl border border-amber-100 bg-gradient-to-br from-white to-amber-50/30 dark:from-slate-950 dark:to-amber-950/20 dark:border-amber-700 p-5 shadow-sm relative overflow-hidden transition-all duration-300"
         >
           <div className="flex justify-between items-start relative z-10">
             <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 font-mono">
                 Đã tiêu tháng này
               </span>
-              <div className="text-2xl font-black font-mono text-slate-900 drop-shadow-sm">
+              <div className="text-2xl font-black font-mono text-slate-900 dark:text-slate-100 drop-shadow-sm">
                 {new Intl.NumberFormat('vi-VN').format(totalSpentThisMonth)}đ
               </div>
             </div>
-            <span className="p-3 bg-rose-100 text-rose-600 rounded-2xl shadow-inner border border-rose-200">
+            <span className="p-3 bg-rose-100 dark:bg-rose-900 text-rose-600 rounded-2xl shadow-inner border border-rose-200 dark:border-rose-700">
               <TrendingDown className="h-5 w-5" />
             </span>
           </div>
           <div className="absolute -bottom-4 -right-4 text-rose-100/40 pointer-events-none transform -rotate-12">
             <TrendingDown className="h-24 w-24" />
           </div>
-          <div className="text-[10px] text-slate-600 font-semibold mt-3 pt-3 border-t border-amber-100/50 relative z-10">
-            Còn lại chi tiêu khả dụng: <strong className="text-amber-700 font-mono">{new Intl.NumberFormat('vi-VN').format(Math.max(0, remainingBudget))}đ</strong>
+          <div className="text-[10px] text-slate-600 dark:text-slate-300 font-semibold mt-3 pt-3 border-t border-amber-100/50 dark:border-amber-700/40 relative z-10">
+            Còn lại chi tiêu khả dụng: <strong className="text-amber-700 dark:text-amber-300 font-mono">{new Intl.NumberFormat('vi-VN').format(Math.max(0, remainingBudget))}đ</strong>
           </div>
         </motion.div>
       </motion.div>
@@ -573,9 +573,9 @@ export default function Dashboard({
         <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {insights.map(insight => (
             <div key={insight.id} className={`rounded-2xl p-4 border flex items-start gap-3 shadow-sm ${
-              insight.type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-900' :
-              insight.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-900' :
-              'bg-blue-50 border-blue-200 text-blue-900'
+              insight.type === 'warning' ? 'bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-700 text-amber-900 dark:text-amber-200' :
+              insight.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-950 border-emerald-200 dark:border-emerald-700 text-emerald-900 dark:text-emerald-200' :
+              'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-700 text-blue-900 dark:text-blue-200'
             }`}>
               {insight.type === 'warning' ? <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600" /> :
                insight.type === 'success' ? <CheckCircle className="h-5 w-5 shrink-0 text-emerald-600" /> :
@@ -590,38 +590,38 @@ export default function Dashboard({
       <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-12 gap-6">
         
         {/* Wallet Speed Safety Gauge */}
-        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md md:col-span-7 lg:col-span-8 flex flex-col justify-between space-y-4 hover:shadow-lg transition-shadow duration-300">
+        <div className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-md md:col-span-7 lg:col-span-8 flex flex-col justify-between space-y-4 hover:shadow-lg transition-shadow duration-300">
           <div className="flex items-center justify-between">
-            <h3 className="font-display text-base font-bold text-slate-800 flex items-center gap-2">
+            <h3 className="font-display text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
               <Activity className="h-5 w-5 text-emerald-600 animate-pulse-subtle" /> Chỉ số an toàn cháy ví sinh viên
             </h3>
-            <span className="text-[10px] font-mono text-slate-400">Thiết lập theo tốc độ trôi ngày</span>
+            <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">Thiết lập theo tốc độ trôi ngày</span>
           </div>
 
           <div className={`rounded-2xl p-4.5 border shadow-sm ${
             walletStatus === 'safe' 
-              ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' 
+              ? 'bg-emerald-50/80 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/30 text-emerald-900 dark:text-emerald-300' 
               : walletStatus === 'warning'
-              ? 'bg-amber-50/80 border-amber-200 text-amber-900'
-              : 'bg-rose-50/80 border-rose-200 text-rose-900'
+              ? 'bg-amber-50/80 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/30 text-amber-900 dark:text-amber-300'
+              : 'bg-rose-50/80 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/30 text-rose-900 dark:text-rose-350'
           }`}>
             <h4 className={`font-bold text-sm flex items-center gap-1.5 drop-shadow-sm`}>
               {walletStatus === 'safe' ? '🍏' : walletStatus === 'warning' ? '⚠️' : '🚨'} {walletStatusText}
             </h4>
-            <p className="font-normal text-xs text-slate-700 mt-1 leading-relaxed">
+            <p className="font-normal text-xs text-slate-700 dark:text-slate-300 mt-1 leading-relaxed">
               {walletStatusDescription}
             </p>
           </div>
 
           {/* Quick graphical calendar meter to explain why safety is styled this way */}
-          <div className="space-y-1.5 bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs font-semibold text-slate-600 shadow-inner">
+          <div className="space-y-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl p-4 text-xs font-semibold text-slate-600 dark:text-slate-300 shadow-inner">
             <div className="flex justify-between font-mono text-[10px] text-slate-400">
               <span>Đầu tháng (Ngày 1)</span>
               <span>Giữa tháng (Ngày 15)</span>
               <span>Cuối tháng (Ngày 30)</span>
             </div>
             {/* Horizontal timeline bar */}
-            <div className="relative h-2 w-full bg-slate-200 rounded-full overflow-hidden shadow-inner">
+            <div className="relative h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
               <motion.div 
                 initial={{ width: 0 }}
                 animate={{ width: `${(currentDay / Math.max(daysInMonth, 1)) * 100}%` }}
@@ -646,19 +646,19 @@ export default function Dashboard({
         </div>
 
         {/* Needs vs Wants 50/30/20 Mini Circle */}
-        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md md:col-span-5 lg:col-span-4 space-y-4 hover:shadow-lg transition-shadow duration-300">
-          <h3 className="font-display text-sm font-bold text-slate-800 drop-shadow-sm">
+        <div className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-md md:col-span-5 lg:col-span-4 space-y-4 hover:shadow-lg transition-shadow duration-300">
+          <h3 className="font-display text-sm font-bold text-slate-800 dark:text-slate-100 drop-shadow-sm">
             Phân loại chi tiêu tháng này
           </h3>
           
-          <div className="space-y-4 font-semibold text-slate-600">
+          <div className="space-y-4 font-semibold text-slate-600 dark:text-slate-300">
             {/* Needs */}
             <div className="space-y-1">
               <div className="flex justify-between text-xs">
-                <span className="text-emerald-700 font-bold flex items-center gap-1 drop-shadow-sm">🟢 Cần thiết (Needs)</span>
-                <span className="font-mono text-slate-900">{new Intl.NumberFormat('vi-VN').format(spentNecessary)}đ</span>
+                <span className="text-emerald-700 dark:text-emerald-300 font-bold flex items-center gap-1 drop-shadow-sm">🟢 Cần thiết (Needs)</span>
+                <span className="font-mono text-slate-900 dark:text-slate-100">{new Intl.NumberFormat('vi-VN').format(spentNecessary)}đ</span>
               </div>
-              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner flex">
+              <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner flex">
                 <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: `${totalSpentThisMonth > 0 ? (spentNecessary / totalSpentThisMonth) * 100 : 0}%` }}
@@ -671,10 +671,10 @@ export default function Dashboard({
             {/* Wants */}
             <div className="space-y-1">
               <div className="flex justify-between text-xs">
-                <span className="text-amber-700 font-bold flex items-center gap-1 drop-shadow-sm">🟡 Mong muốn (Wants)</span>
-                <span className="font-mono text-slate-900">{new Intl.NumberFormat('vi-VN').format(spentWants)}đ</span>
+                <span className="text-amber-700 dark:text-amber-300 font-bold flex items-center gap-1 drop-shadow-sm">🟡 Mong muốn (Wants)</span>
+                <span className="font-mono text-slate-900 dark:text-slate-100">{new Intl.NumberFormat('vi-VN').format(spentWants)}đ</span>
               </div>
-              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner flex">
+              <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner flex">
                 <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: `${totalSpentThisMonth > 0 ? (spentWants / totalSpentThisMonth) * 100 : 0}%` }}
@@ -695,9 +695,9 @@ export default function Dashboard({
       {overBudgetWarningList.length > 0 && (
         <motion.div 
           variants={itemVariants}
-          className="rounded-3xl border border-red-200 bg-gradient-to-br from-red-50 to-red-100/50 p-5 space-y-3 shadow-md"
+          className="rounded-3xl border border-red-200 bg-gradient-to-br from-red-50 to-red-100/50 dark:from-slate-950 dark:to-red-950/30 dark:border-red-700 p-5 space-y-3 shadow-md"
         >
-          <h4 className="font-display font-semibold text-red-800 text-sm flex items-center gap-2 drop-shadow-sm">
+          <h4 className="font-display font-semibold text-red-800 dark:text-red-200 text-sm flex items-center gap-2 drop-shadow-sm">
             <AlertTriangle className="h-5 w-5 text-red-600 shrink-0" /> Cảnh báo quan trọng: Vượt hạn mức danh mục!
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -705,14 +705,14 @@ export default function Dashboard({
               <motion.div 
                 whileHover={{ scale: 1.01 }}
                 key={cat.id} 
-                className="bg-white rounded-2xl p-4 border border-red-100 text-xs font-semibold text-slate-700 shadow-sm"
+                className="bg-white dark:bg-slate-950 rounded-2xl p-4 border border-red-100 dark:border-red-700 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm"
                 id={`over-budget-warning-${cat.id}`}
               >
-                <div className="flex justify-between font-bold text-red-700">
+                <div className="flex justify-between font-bold text-red-700 dark:text-red-300">
                   <span> Hạn mục: {cat.name}</span>
                   <span>Tiêu {Math.round(cat.percent)}%</span>
                 </div>
-                <p className="font-normal text-[11px] text-slate-500 mt-1">
+                <p className="font-normal text-[11px] text-slate-500 dark:text-slate-400 mt-1">
                   Đã tiêu {new Intl.NumberFormat('vi-VN').format(cat.spentAmount)}đ trên hạn mức cài đặt là {new Intl.NumberFormat('vi-VN').format(cat.limitAmount)}đ. 
                   Hãy hoãn lại mọi đơn chi tiêu danh mục này hằng ngày.
                 </p>
@@ -726,9 +726,9 @@ export default function Dashboard({
       <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-12 gap-6">
         
         {/* Cash Flow Area Chart (SVG Line Chart showing Wallet Balance) */}
-        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md md:col-span-7 lg:col-span-7 space-y-4 hover:shadow-lg transition-shadow duration-300 flex flex-col justify-between">
-          <div className="flex justify-between items-center pb-2 border-b border-slate-50">
-            <h3 className="font-display text-base font-bold text-slate-800 drop-shadow-sm">
+        <div className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-md md:col-span-7 lg:col-span-7 space-y-4 hover:shadow-lg transition-shadow duration-300 flex flex-col justify-between">
+          <div className="flex justify-between items-center pb-2 border-b border-slate-50 dark:border-slate-700">
+            <h3 className="font-display text-base font-bold text-slate-800 dark:text-slate-100 drop-shadow-sm">
               Xu hướng Số Dư Ví (Cash Flow)
             </h3>
           </div>
@@ -755,12 +755,12 @@ export default function Dashboard({
                   </defs>
                   
                   {/* Grid Lines */}
-                  <line x1="0" y1="15" x2="300" y2="15" stroke="#f8fafc" strokeWidth="0.75" />
-                  <line x1="0" y1="50" x2="300" y2="50" stroke="#f1f5f9" strokeWidth="0.5" strokeDasharray="2 2" />
-                  <line x1="0" y1="85" x2="300" y2="85" stroke="#f8fafc" strokeWidth="0.75" />
-                  <line x1="0" y1={yZeroPercent} x2="300" y2={yZeroPercent} stroke="#cbd5e1" strokeWidth="0.75" strokeDasharray="3 2" opacity="0.8" /> {/* Zero Line */}
+                  <line x1="0" y1="15" x2="300" y2="15" className="stroke-slate-100 dark:stroke-slate-800" strokeWidth="0.75" />
+                  <line x1="0" y1="50" x2="300" y2="50" className="stroke-slate-100 dark:stroke-slate-800" strokeWidth="0.5" strokeDasharray="2 2" opacity="0.5" />
+                  <line x1="0" y1="85" x2="300" y2="85" className="stroke-slate-100 dark:stroke-slate-800" strokeWidth="0.75" />
+                  <line x1="0" y1={yZeroPercent} x2="300" y2={yZeroPercent} className="stroke-slate-300 dark:stroke-slate-700" strokeWidth="0.75" strokeDasharray="3 2" opacity="0.8" /> {/* Zero Line */}
                   {yZeroPercent > 15 && yZeroPercent < 85 && (
-                    <text x="5" y={yZeroPercent - 3} fill="#94a3b8" fontSize="5" fontWeight="bold">0đ</text>
+                    <text x="5" y={yZeroPercent - 3} className="fill-slate-400 dark:fill-slate-500" fontSize="5" fontWeight="bold">0đ</text>
                   )}
 
                   {/* Area Under Line */}
@@ -853,21 +853,21 @@ export default function Dashboard({
             <span>Giữa tháng (Ngày 15)</span>
             <span>Cuối tháng</span>
           </div>
-          <div className="flex justify-center gap-5 text-[10px] text-slate-500 font-semibold pt-1 border-t border-slate-50">
+          <div className="flex justify-center gap-5 text-[10px] text-slate-500 dark:text-slate-400 font-semibold pt-1 border-t border-slate-50 dark:border-slate-700">
             <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-emerald-400"></div> Số dư dương (&gt;= 0đ)</span>
             <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-rose-500"></div> Số dư âm (&lt; 0đ)</span>
           </div>
         </div>
         
         {/* Categories Budget Limit Meters */}
-        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md md:col-span-7 lg:col-span-7 space-y-4 hover:shadow-lg transition-shadow duration-300">
-          <div className="flex justify-between items-center pb-2 border-b border-slate-50">
-            <h3 className="font-display text-base font-bold text-slate-800 drop-shadow-sm">
+        <div className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-md md:col-span-7 lg:col-span-7 space-y-4 hover:shadow-lg transition-shadow duration-300">
+          <div className="flex justify-between items-center pb-2 border-b border-slate-50 dark:border-slate-700">
+            <h3 className="font-display text-base font-bold text-slate-800 dark:text-slate-100 drop-shadow-sm">
               Theo dõi Ngân sách Danh mục hằng tháng
             </h3>
             <button
               onClick={() => setActiveTab('budget')}
-              className="text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors bg-emerald-50 px-2 py-1 rounded-lg"
+              className="text-xs font-bold text-emerald-600 dark:text-emerald-450 hover:text-emerald-700 dark:hover:text-emerald-350 transition-colors bg-emerald-50 dark:bg-emerald-950/30 px-2 py-1 rounded-lg"
             >
               Cài đặt hạn mức →
             </button>
@@ -881,7 +881,7 @@ export default function Dashboard({
               return (
                 <div key={cat.id} id={`dashboard-cat-meter-${cat.id}`} className="space-y-1.5">
                   <div className="flex justify-between text-xs font-semibold text-slate-700">
-                    <span className="flex items-center gap-1.5 drop-shadow-sm">
+                    <span className="flex items-center gap-1.5 drop-shadow-sm text-slate-700 dark:text-slate-300">
                       <span>
                         {cat.id === 'rent' && '🏠'}
                         {cat.id === 'food' && '🍲'}
@@ -894,13 +894,13 @@ export default function Dashboard({
                       </span>
                       {cat.name}
                     </span>
-                    <span className="font-mono text-slate-500 text-[11px]">
-                      <strong className="text-slate-800 font-bold">{new Intl.NumberFormat('vi-VN').format(cat.spentAmount)}đ</strong> / {new Intl.NumberFormat('vi-VN').format(cat.limitAmount)}đ
+                    <span className="font-mono text-slate-500 dark:text-slate-400 text-[11px]">
+                      <strong className="text-slate-800 dark:text-slate-100 font-bold">{new Intl.NumberFormat('vi-VN').format(cat.spentAmount)}đ</strong> / {new Intl.NumberFormat('vi-VN').format(cat.limitAmount)}đ
                     </span>
                   </div>
 
                   {/* Meter scrollbar bar representing category spending */}
-                  <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden relative shadow-inner">
+                  <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden relative shadow-inner">
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: `${Math.min(100, Math.max(0, cat.percent))}%` }}
@@ -924,15 +924,15 @@ export default function Dashboard({
         </div>
 
         {/* Recent Spendings List */}
-        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md md:col-span-5 lg:col-span-5 space-y-4 flex flex-col justify-between hover:shadow-lg transition-shadow duration-300">
+        <div className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-md md:col-span-5 lg:col-span-5 space-y-4 flex flex-col justify-between hover:shadow-lg transition-shadow duration-300">
           <div className="space-y-4">
-            <div className="flex justify-between items-center pb-2 border-b border-slate-50">
-              <h3 className="font-display text-base font-bold text-slate-800 drop-shadow-sm">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-50 dark:border-slate-800">
+              <h3 className="font-display text-base font-bold text-slate-800 dark:text-slate-100 drop-shadow-sm">
                 Giao dịch chép gần đây
               </h3>
               <button
                 onClick={() => setActiveTab('history')}
-                className="text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors bg-emerald-50 px-2 py-1 rounded-lg"
+                className="text-xs font-bold text-emerald-600 dark:text-emerald-450 hover:text-emerald-700 dark:hover:text-emerald-350 transition-colors bg-emerald-50 dark:bg-emerald-950/30 px-2 py-1 rounded-lg"
               >
                 Xem chi tất cả →
               </button>
@@ -952,7 +952,7 @@ export default function Dashboard({
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.1 * idx }}
                       key={exp.id}
-                      className="flex items-center justify-between rounded-xl border border-slate-100 p-2.5 hover:bg-slate-50/80 transition-colors shadow-sm"
+                      className="flex items-center justify-between rounded-xl border border-slate-100 dark:border-slate-800 p-2.5 bg-white dark:bg-slate-950 hover:bg-slate-50/80 dark:hover:bg-slate-900/80 transition-colors shadow-sm"
                       id={`recent-expense-${exp.id}`}
                     >
                       <div className="flex items-center gap-3">
@@ -967,14 +967,14 @@ export default function Dashboard({
                           {exp.categoryId === 'other' && '🔄'}
                         </div>
                         <div>
-                          <h4 className="text-xs font-bold text-slate-800 drop-shadow-sm">{exp.title}</h4>
-                          <span className="text-[10px] text-slate-400 font-mono block">{exp.date}</span>
+                          <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 drop-shadow-sm">{exp.title}</h4>
+                          <span className="text-[10px] text-slate-400 dark:text-slate-400 font-mono block">{exp.date}</span>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2.5">
                         <div className="text-right">
-                          <span className="block text-xs font-black text-slate-900 font-mono drop-shadow-sm">
+                          <span className="block text-xs font-black text-slate-900 dark:text-slate-100 font-mono drop-shadow-sm">
                             {new Intl.NumberFormat('vi-VN').format(exp.amount)}đ
                           </span>
                           {exp.isNecessary ? (
@@ -1001,8 +1001,8 @@ export default function Dashboard({
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-50">
-            <p className="text-[10.5px] leading-relaxed text-slate-400 bg-slate-50 p-3 rounded-xl border border-slate-100 shadow-inner">
+          <div className="pt-4 border-t border-slate-50 dark:border-slate-700">
+            <p className="text-[10.5px] leading-relaxed text-slate-400 dark:text-slate-400 bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-100 dark:border-slate-800 shadow-inner">
               💡 <strong>Thói quen tài chính:</strong> Việc viết ngay lập tức tốn chưa đầy 10 giây nhưng cứu bạn khỏi sự mơ hồ khoản tiền đã đi đâu!
             </p>
           </div>

@@ -143,38 +143,38 @@ export default function LoginRegister({
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 sm:px-6 py-10 relative overflow-hidden font-sans">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 sm:px-6 py-10 relative overflow-hidden font-sans text-slate-900 dark:text-slate-100">
       
       {/* Decorative Blur Blobs */}
       <div className="absolute top-[-10%] left-[-20%] w-[70vw] h-[60vh] rounded-full bg-emerald-200/30 blur-[120px] pointer-events-none z-0 object-cover" />
       <div className="absolute bottom-[-10%] right-[-20%] w-[60vw] h-[60vh] rounded-full bg-blue-200/30 blur-[130px] pointer-events-none z-0 object-cover" />
 
-      <div className="w-full max-w-md space-y-6 bg-white/85 backdrop-blur-xl p-8 rounded-[2rem] border border-white/60 shadow-2xl relative z-10 transition-all duration-300">
+      <div className="w-full max-w-md space-y-6 bg-white/85 dark:bg-slate-900/90 backdrop-blur-xl p-8 rounded-[2rem] border border-white/60 dark:border-slate-800 shadow-2xl relative z-10 transition-all duration-300">
         
         {/* Logo and Slogan */}
         <div className="text-center space-y-2">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-lg shadow-emerald-200/50">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-lg shadow-emerald-200/50 dark:shadow-none">
             <TrendingUp className="h-7 w-7" />
           </div>
           <div className="pt-1">
-            <h2 className="font-sans text-2xl font-extrabold tracking-tight text-slate-900 drop-shadow-sm">
+            <h2 className="font-sans text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 drop-shadow-sm">
               SemTietKiem
             </h2>
-            <p className="text-xs text-slate-500 max-w-[270px] mx-auto font-medium leading-relaxed mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[270px] mx-auto font-medium leading-relaxed mt-0.5">
               Giải pháp quản lý chi tiêu thông minh, đạt mục tiêu tích lũy cho Sinh viên!
             </p>
           </div>
         </div>
 
         {/* Tab Selection */}
-        <div className="grid grid-cols-2 p-1.5 bg-slate-100 rounded-2xl border border-slate-200/50">
+        <div className="grid grid-cols-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-2xl border border-slate-200/50 dark:border-slate-800">
           <button
             type="button"
             onClick={() => { setAuthMode('login'); setErrorMsg(null); }}
-            className={`py-2 text-xs font-bold rounded-xl transition-all ${
+            className={`py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
               authMode === 'login' 
-                ? 'bg-white text-slate-900 shadow-sm' 
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' 
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             Đăng nhập
@@ -182,10 +182,10 @@ export default function LoginRegister({
           <button
             type="button"
             onClick={() => { setAuthMode('register'); setErrorMsg(null); }}
-            className={`py-2 text-xs font-bold rounded-xl transition-all ${
+            className={`py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
               authMode === 'register' 
-                ? 'bg-white text-slate-900 shadow-sm' 
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' 
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             Đăng ký tài khoản
@@ -213,7 +213,7 @@ export default function LoginRegister({
                     <li className="pt-1.5">
                       <strong>Cách 2 (Sửa Firebase):</strong> Vào <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="text-emerald-600 font-bold hover:underline">Firebase Console</a>, vào Authentication &rarr; Settings &rarr; Authorized Domains và nhập miền này vào:
                       <div className="mt-1">
-                        <code className="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded font-mono text-emerald-600 font-bold break-all select-all text-[11.5px]">
+                        <code className="bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded font-mono text-emerald-600 font-bold break-all select-all text-[11.5px]">
                           {window.location.hostname}
                         </code>
                       </div>
@@ -239,7 +239,7 @@ export default function LoginRegister({
             <div className="space-y-3 animate-fade-in">
               {/* Name */}
               <div className="relative">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Họ và Tên</label>
+                <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">Họ và Tên</label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
                     <UserIcon className="h-4 w-4" />
@@ -250,14 +250,14 @@ export default function LoginRegister({
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Nguyễn Văn A"
-                    className="block w-full pl-10 pr-3 py-2.5 text-xs text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus:outline-none transition-all placeholder:text-slate-400"
+                    className="block w-full pl-10 pr-3 py-2.5 text-xs text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200/20 focus:outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
                   />
                 </div>
               </div>
 
               {/* School */}
               <div>
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Trường học / Học viện</label>
+                <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">Trường học / Học viện</label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
                     <BookOpen className="h-4 w-4" />
@@ -267,7 +267,7 @@ export default function LoginRegister({
                     value={school}
                     onChange={(e) => setSchool(e.target.value)}
                     placeholder="Đại Học Bách Khoa... (không bắt buộc)"
-                    className="block w-full pl-10 pr-3 py-2.5 text-xs text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus:outline-none transition-all placeholder:text-slate-400"
+                    className="block w-full pl-10 pr-3 py-2.5 text-xs text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200/20 focus:outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
                   />
                 </div>
               </div>
@@ -275,7 +275,7 @@ export default function LoginRegister({
               {/* Income and Goal Grid */}
               <div className="grid grid-cols-2 gap-3.5">
                 <div>
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Thu nhập hàng t. (đ)</label>
+                  <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">Thu nhập hàng t. (đ)</label>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
                       <DollarSign className="h-4 w-4" />
@@ -286,12 +286,12 @@ export default function LoginRegister({
                       value={monthlyIncome}
                       onChange={(e) => setMonthlyIncome(e.target.value)}
                       placeholder="Mức trợ cấp, làm thêm..."
-                      className="block w-full pl-9 pr-2 py-2.5 text-xs text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus:outline-none transition-all"
+                      className="block w-full pl-9 pr-2 py-2.5 text-xs text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200/20 focus:outline-none transition-all"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Mục tiêu tiết kiệm (đ)</label>
+                  <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">Mục tiêu tiết kiệm (đ)</label>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
                       <ShieldCheck className="h-4 w-4" />
@@ -302,7 +302,7 @@ export default function LoginRegister({
                       value={savingGoal}
                       onChange={(e) => setSavingGoal(e.target.value)}
                       placeholder="Số tiền giữ lại..."
-                      className="block w-full pl-9 pr-2 py-2.5 text-xs text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus:outline-none transition-all"
+                      className="block w-full pl-9 pr-2 py-2.5 text-xs text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200/20 focus:outline-none transition-all"
                     />
                   </div>
                 </div>
@@ -312,7 +312,7 @@ export default function LoginRegister({
 
           {/* Email */}
           <div>
-            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Địa chỉ Email</label>
+            <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">Địa chỉ Email</label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
                 <Mail className="h-4 w-4" />
@@ -323,14 +323,14 @@ export default function LoginRegister({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="sinhvien@gmail.com"
-                className="block w-full pl-10 pr-3 py-2.5 text-xs text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus:outline-none transition-all placeholder:text-slate-400"
+                className="block w-full pl-10 pr-3 py-2.5 text-xs text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200/20 focus:outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
               />
             </div>
           </div>
 
           {/* Password */}
           <div>
-            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Mật khẩu</label>
+            <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">Mật khẩu</label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
                 <Lock className="h-4 w-4" />
@@ -341,7 +341,7 @@ export default function LoginRegister({
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Mật khẩu tối thiểu 6 ký tự"
-                className="block w-full pl-10 pr-10 py-2.5 text-xs text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus:outline-none transition-all placeholder:text-slate-400"
+                className="block w-full pl-10 pr-10 py-2.5 text-xs text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200/20 focus:outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
               />
               <button
                 type="button"
@@ -357,7 +357,7 @@ export default function LoginRegister({
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-xs ring-offset-2 hover:opacity-95 active:scale-[0.98] transition-all cursor-pointer shadow-md shadow-emerald-200 disabled:opacity-50 disabled:pointer-events-none"
+            className="w-full flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-xs ring-offset-2 hover:opacity-95 active:scale-[0.98] transition-all cursor-pointer shadow-md shadow-emerald-200 dark:shadow-none disabled:opacity-50 disabled:pointer-events-none"
           >
             {isLoading ? (
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -372,9 +372,9 @@ export default function LoginRegister({
 
         {/* Divider */}
         <div className="relative flex py-1.5 items-center justify-center">
-          <div className="flex-grow border-t border-slate-100"></div>
+          <div className="flex-grow border-t border-slate-100 dark:border-slate-800"></div>
           <span className="flex-shrink mx-4 text-[10px] uppercase font-bold tracking-wider text-slate-400">Hoặc chọn phương thức</span>
-          <div className="flex-grow border-t border-slate-100"></div>
+          <div className="flex-grow border-t border-slate-100 dark:border-slate-800"></div>
         </div>
 
         {/* Secondary Login Actions */}
@@ -384,7 +384,7 @@ export default function LoginRegister({
             type="button"
             onClick={handleGuestLogin}
             disabled={isLoading}
-            className="w-full flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100 border border-indigo-100/50 text-indigo-700 font-bold text-xs active:scale-[0.98] transition-all cursor-pointer shadow-sm shadow-indigo-100/30"
+            className="w-full flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-950/40 dark:to-blue-950/20 hover:from-indigo-100 hover:to-blue-100 dark:hover:from-indigo-900/50 dark:hover:to-blue-900/30 border border-indigo-100/50 dark:border-indigo-900/30 text-indigo-700 dark:text-indigo-400 font-bold text-xs active:scale-[0.98] transition-all cursor-pointer shadow-sm shadow-indigo-100/30 dark:shadow-none"
           >
             <Sparkles className="h-4 w-4 mr-2.5 text-indigo-500 animate-pulse" />
             Dùng thử Offline (Bỏ qua Firebase)
@@ -395,7 +395,7 @@ export default function LoginRegister({
             type="button"
             onClick={handleGoogleLogin}
             disabled={isLoading}
-            className="w-full flex h-11 items-center justify-center rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer"
+            className="w-full flex h-11 items-center justify-center rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all cursor-pointer"
           >
             <svg className="w-4 h-4 mr-2.5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />

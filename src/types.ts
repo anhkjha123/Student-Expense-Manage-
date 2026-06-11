@@ -9,6 +9,7 @@ export interface User {
   age?: number;
   avatar?: string;
   phone?: string;
+  theme?: 'light' | 'dark';
 }
 
 export interface Category {

@@ -5,6 +5,24 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
 
 ---
 
+### [v5.4.2] - 2026-06-10
+#### 🌙 Hỗ trợ Dark Mode toàn bộ UI và tối ưu màu nền
+*   **Mở rộng hỗ trợ Dark Mode cho giao diện chính:** Cập nhật nhiều component UI quan trọng gồm `Reports.tsx`, `CalendarView.tsx`, `ExpenseHistory.tsx`, `Navbar.tsx`, `LoginRegister.tsx`, `Incomes.tsx`, và `RecurringExpenses.tsx`.
+*   **Thêm biến thể Tailwind `dark:` cho màu nền, border và hover:** Bổ sung các lớp `dark:bg-*`, `dark:border-*`, `dark:text-*`, `dark:hover:*` để đảm bảo các thẻ, bảng, form, button và tooltip hiển thị rõ ở chế độ tối.
+*   **Cải thiện độ tương phản dữ liệu lịch và bảng:** Tối ưu lại màu ô lịch, hộp chi tiết ngày trong Calendar, bảng chi tiêu và các nhãn trạng thái để đọc tốt trong cả Light/ Dark theme.
+*   **Đã kiểm tra đầy đủ:** Chạy `npm run lint` và `npm run test`, tất cả test pass thành công (28 tests).
+
+### [v5.4.1] - 2026-06-10
+#### 🔧 Khắc phục triệt để lỗi kết nối Network Speech & Cải tiến hoạt ảnh Siri Light-mode
+*   **Khắc phục hoàn toàn lỗi mất kết nối giọng nói (`network` và `no-speech` errors):**
+    *   Sửa lỗi logic trong vòng đời `SpeechRecognition` khiến sự kiện `onend` giải phóng các biến trạng thái (`isListening(false)`) sớm hơn trước khi các hàm xử lý trì hoãn (`setTimeout`) thử lại có thể được gọi.
+    *   Tự động phát hiện lỗi và khởi động lại micro ngầm êm ái mà không ngắt quãng trải nghiệm của người dùng.
+    *   Sử dụng cờ `isRetryingRef` để đồng bộ hóa trạng thái thu âm, bảo đảm kết nối liên tục kể cả khi gặp các sự cố rớt mạng máy chủ giọng nói tạm thời (Silent Reconnect Guard up to 5 times).
+*   **Tốc độ nhận diện nhanh vượt trội (Continuous Real-time STT):** Chuyển cấu hình `recognition.continuous = true` giữ micro hoạt động liên tục khi nói dài, kết hợp phân tích tích lũy tất cả kết quả (`interimResults`) giúp điền biểu mẫu nhanh chóng, loại bỏ độ trễ khởi động lại liên tục.
+*   **Tự động dọn dẹp bộ nhớ (Lifecycle Cleanup):** Bổ sung hàm dọn dẹp `useEffect` tự động ngắt kết nối micro và giải phóng tài nguyên khi đóng modal hoặc chuyển tab khỏi Nhập giọng nói, tránh rò rỉ bộ nhớ.
+*   **Giao diện Siri Light-mode sang trọng:** Thiết kế lại giao diện quả cầu siri phát sáng nền tối thành dạng thanh sóng đa sắc gradient (Emerald -> Teal -> Cyan -> Blue -> Indigo -> Purple) kết hợp hiệu ứng glassmorphism mờ trên nền sáng nhẹ (`bg-linear-to-br from-slate-50 to-white`), đồng bộ hoàn hảo với phong cách tối giản cao cấp của ứng dụng.
+*   **Sửa lỗi nút dừng ghi âm:** Cập nhật hàm xử lý click trên nút Dừng ghi âm để tức thời cập nhật trạng thái UI và kết thúc tiến trình nhận diện mà không có bất kỳ độ trễ nào.
+
 ### [v5.4.0] - 2026-06-10
 #### 🌟 Hồ sơ Người dùng, Avatar Điều hướng & Tích hợp Cash Flow Định kỳ (User Profile, Navbar Avatar, Cash Flow Fix & Audio-Active Siri Wave)
 *   **Giao diện Hồ sơ cá nhân (User Profile):** Bổ sung trang hồ sơ cá nhân [UserProfile.tsx](file:///c:/Users/ADMIN/Desktop/New%20folder/Student-Expense-Manage-/src/components/UserProfile.tsx) cho phép cập nhật Tên, Tuổi, Số điện thoại và Trường học của sinh viên. Tích hợp bộ tải ảnh đại diện hỗ trợ tải ảnh và mã hóa Base64 lưu trữ đồng bộ.
@@ -15,6 +33,8 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
 *   **Hoạt ảnh Siri tương tác âm thanh & Nhận dạng thời gian thực:**
     *   Bổ sung trạng thái `isSoundActive` liên kết với các sự kiện âm lượng của `SpeechRecognition` để tắt hoạt ảnh nhấp nhô của sóng âm Siri thành các chấm tròn ngang phẳng khi im lặng, chỉ kích hoạt chuyển động mượt mà khi bắt đầu nói hoặc nhận diện âm thanh.
     *   **Nhận diện Speech-to-Text thời gian thực:** Tinh chỉnh cơ chế xử lý sự kiện `onresult` để liên tục phân tích cú pháp NLP và điền biểu mẫu trực tiếp trên các kết quả trung gian (`interimResults`). Cho phép các trường nhập liệu tự động cập nhật số tiền, nội dung giao dịch và danh mục ngay khi người dùng đang nói.
+    *   **Cơ chế tự động khôi phục lỗi kết nối micro (Speech Retry Guard):** Tự động bắt lỗi `network` (rớt mạng máy chủ Google Speech) để thực hiện kết nối lại thầm lặng tối đa 3 lần mà không ngắt phiên lắng nghe (`isListening`) hoặc làm mất phần văn bản ghi nhận dở dang của người dùng. Tự động xử lý lỗi im lặng `no-speech` để khởi động lại máy thu một cách êm ái.
+
 
 ### [v5.3.0] - 2026-06-10
 #### 🌟 Nhập giọng nói AI, Biểu đồ Số dư Ví & Tối ưu hóa Hiệu năng (AI Voice, Running Balance Line Chart & SWR Performance)

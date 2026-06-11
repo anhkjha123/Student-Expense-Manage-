@@ -1,4 +1,4 @@
-import { User, Expense, Budget, Notification, Income, RecurringExpense, Group, GroupMember, GroupExpense, GroupSettlement } from '../types';
+import { User, Expense, Budget, Notification, Income, RecurringExpense, Group, GroupMember, GroupExpense, GroupExpenseSplit, GroupSettlement } from '../types';
 import { db, auth } from './firebase';
 import { 
   collection, 

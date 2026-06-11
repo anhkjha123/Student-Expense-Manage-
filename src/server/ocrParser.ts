@@ -163,13 +163,37 @@ export function parseReceiptText(text: string): { amount: number | null, date: s
   };
 }
 
+function isBinaryBuffer(buffer: Buffer): boolean {
+  // Check first 1000 bytes for null bytes or excessive non-printable chars
+  let nonPrintable = 0;
+  const len = Math.min(buffer.length, 1000);
+  for (let i = 0; i < len; i++) {
+    const byte = buffer[i];
+    if (byte === 0) return true; // Null byte -> binary
+    // Non-printable control characters (excluding tab, lf, cr)
+    if (byte < 32 && byte !== 9 && byte !== 10 && byte !== 13) {
+      nonPrintable++;
+    }
+  }
+  if (len > 0 && nonPrintable / len > 0.1) return true; // more than 10% non-printable ASCII
+  
+  // Check for excessive UTF-8 replacement chars
+  const str = buffer.toString('utf8');
+  const replacementCharCount = (str.match(/\uFFFD/g) || []).length;
+  if (replacementCharCount > str.length * 0.05) return true;
+
+  return false;
+}
+
 export async function parseReceipt(imageBase64: string, mimeType: string): Promise<{ amount: number | null, date: string | null, merchant: string | null, note: string }> {
   const hasApiKey = !!process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'MY_GEMINI_API_KEY' && process.env.GEMINI_API_KEY !== '';
-  
+  const cleanBase64 = imageBase64.replace(/^data:image\/[a-zA-Z]+;base64,/, '');
+  const buffer = Buffer.from(cleanBase64, 'base64');
+  const isImg = isBinaryBuffer(buffer);
+
   if (hasApiKey) {
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      const cleanBase64 = imageBase64.replace(/^data:image\/[a-zA-Z]+;base64,/, '');
       
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
@@ -222,20 +246,34 @@ export async function parseReceipt(imageBase64: string, mimeType: string): Promi
         merchant: data.merchant || 'Cửa hàng tiện lợi',
         note: data.note || `Quét tự động từ hóa đơn ${data.merchant || 'tiện lợi'}`
       };
-    } catch (err) {
-      console.warn("Gemini API parsing failed, falling back to offline parser:", err);
+    } catch (err: any) {
+      console.warn("Gemini API parsing failed, falling back to offline parser if possible:", err);
+      
+      // If it is a binary image, we cannot parse it offline. Propagate the error!
+      if (isImg) {
+        let errMsg = err.message || '';
+        if (err.status === 429 || errMsg.includes('quota') || errMsg.includes('Quota')) {
+          throw new Error('Lượt quét hóa đơn AI (Gemini) đã hết hạn mức trong ngày (429). Vui lòng thử lại sau hoặc nhập thủ công.');
+        } else if (err.status === 503 || errMsg.includes('503') || errMsg.includes('high demand') || errMsg.includes('UNAVAILABLE')) {
+          throw new Error('Dịch vụ AI (Gemini) hiện tại đang quá tải hoặc tạm thời không khả dụng (503). Vui lòng thử lại sau.');
+        } else if (err.status === 400 || errMsg.includes('API key')) {
+          throw new Error('Cấu hình API Key của AI (Gemini) không hợp lệ hoặc đã bị vô hiệu hóa (400).');
+        }
+        throw new Error(`Quét hóa đơn AI thất bại: ${err.message || 'Lỗi kết nối dịch vụ AI'}`);
+      }
     }
   }
 
-  // Fallback to text parsing if input base64 holds text
-  try {
-    const cleanBase64 = imageBase64.replace(/^data:image\/[a-zA-Z]+;base64,/, '');
-    const decodedText = Buffer.from(cleanBase64, 'base64').toString('utf8');
-    if (decodedText && /[a-zA-Z0-9\s]/.test(decodedText)) {
-      return parseReceiptText(decodedText);
+  // Fallback to text parsing if input base64 holds text (non-binary)
+  if (!isImg) {
+    try {
+      const decodedText = buffer.toString('utf8');
+      if (decodedText && /[a-zA-Z0-9\s]/.test(decodedText)) {
+        return parseReceiptText(decodedText);
+      }
+    } catch (e) {
+      // ignore
     }
-  } catch (e) {
-    // ignore
   }
 
   return {

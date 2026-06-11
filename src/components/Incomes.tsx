@@ -164,21 +164,21 @@ export default function Incomes({ user }: IncomesProps) {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8"
+      className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 text-slate-900 dark:text-slate-100"
     >
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4 bg-white dark:bg-slate-950 p-6 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <DollarSign className="h-6 w-6 text-emerald-500" /> Quản lý thu nhập
           </h2>
-          <p className="text-slate-500 text-sm mt-1">Theo dõi các nguồn tiền vào của bạn</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Theo dõi các nguồn tiền vào của bạn</p>
         </div>
         <div className="flex gap-2">
           <input 
             type="month" 
             value={filterMonth} 
             onChange={(e) => setFilterMonth(e.target.value)}
-            className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-emerald-500 transition-colors"
+            className="px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500 transition-colors"
           />
           <button
             onClick={() => setShowForm(!showForm)}
@@ -190,36 +190,36 @@ export default function Incomes({ user }: IncomesProps) {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8 max-w-3xl">
-          <h3 className="font-semibold text-slate-800 mb-4">Ghi nhận thu nhập mới</h3>
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-950 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 mb-8 max-w-3xl">
+          <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4">Ghi nhận thu nhập mới</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Số tiền (đ)</label>
-              <input required value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} type="number" min="0" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" placeholder="500000" />
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Số tiền (đ)</label>
+              <input required value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} type="number" min="0" className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" placeholder="500000" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Nguồn</label>
-              <select required value={formData.source} onChange={e => setFormData({...formData, source: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all">
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Nguồn</label>
+              <select required value={formData.source} onChange={e => setFormData({...formData, source: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all">
                 {SOURCES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Ngày nhận</label>
-              <input required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} type="date" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Ngày nhận</label>
+              <input required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} type="date" className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Ghi chú (Tùy chọn)</label>
-              <input value={formData.note} onChange={e => setFormData({...formData, note: e.target.value})} type="text" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" placeholder="Tháng 6" />
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Ghi chú (Tùy chọn)</label>
+              <input value={formData.note} onChange={e => setFormData({...formData, note: e.target.value})} type="text" className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" placeholder="Tháng 6" />
             </div>
           </div>
           <div className="mt-4 flex justify-end">
-            <button type="submit" className="bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-6 rounded-xl transition-all">Lưu khoản thu</button>
+            <button type="submit" className="bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-semibold py-2 px-6 rounded-xl transition-all cursor-pointer">Lưu khoản thu</button>
           </div>
         </form>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+        <div className="lg:col-span-1 bg-white dark:bg-slate-950 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
           <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Tổng thu nhập {filterMonth ? 'tháng ' + filterMonth : ''}</h3>
           <div className="text-3xl font-extrabold text-emerald-600 mb-6">
             {new Intl.NumberFormat('vi-VN').format(totalIncome)}<span className="text-xl">đ</span>
@@ -229,10 +229,10 @@ export default function Incomes({ user }: IncomesProps) {
             {sourceData.map(s => (
               <div key={s.id}>
                 <div className="flex justify-between text-sm font-medium mb-1">
-                  <span className="text-slate-600">{s.label}</span>
-                  <span className="text-slate-900">{new Intl.NumberFormat('vi-VN').format(s.total)}đ</span>
+                  <span className="text-slate-600 dark:text-slate-400">{s.label}</span>
+                  <span className="text-slate-900 dark:text-slate-100">{new Intl.NumberFormat('vi-VN').format(s.total)}đ</span>
                 </div>
-                <div className="w-full bg-slate-100 rounded-full h-2">
+                <div className="w-full bg-slate-100 dark:bg-slate-850 rounded-full h-2">
                   <div className={`h-2 rounded-full ${s.color}`} style={{ width: `${(s.total / totalIncome) * 100}%` }}></div>
                 </div>
               </div>
@@ -240,23 +240,23 @@ export default function Incomes({ user }: IncomesProps) {
           </div>
         </div>
 
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
-          <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-            <h3 className="font-semibold text-slate-800">Danh sách khoản thu</h3>
-            <span className="text-xs font-medium text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">{incomes.length} giao dịch</span>
+        <div className="lg:col-span-2 bg-white dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/70 flex justify-between items-center">
+            <h3 className="font-semibold text-slate-900 dark:text-slate-100">Danh sách khoản thu</h3>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">{incomes.length} giao dịch</span>
           </div>
           
           {isLoading ? (
             <div className="p-8 text-center text-slate-500">Đang tải...</div>
           ) : incomes.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 text-slate-400">
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-slate-400 dark:text-slate-400">
               <Download className="h-12 w-12 mb-3 text-slate-300" />
               <p>Chưa có khoản thu nào trong thời gian này.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm text-slate-600">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-500 font-semibold border-b border-slate-100">
+                <thead className="bg-slate-50 dark:bg-slate-900/70 text-xs uppercase text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-100 dark:border-slate-800">
                   <tr>
                     <th className="px-6 py-3">Ngày</th>
                     <th className="px-6 py-3">Nguồn</th>
@@ -265,18 +265,18 @@ export default function Incomes({ user }: IncomesProps) {
                     <th className="px-6 py-3 text-center">Xóa</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {incomes.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(item => {
                     const sourceObj = SOURCES.find(s => s.id === item.source);
                     return (
-                      <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap font-medium text-slate-700">{item.date}</td>
+                      <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap font-medium text-slate-700 dark:text-slate-350">{item.date}</td>
                         <td className="px-6 py-4">
                           <span className={`px-2.5 py-1 text-[10px] font-bold rounded-md text-white ${sourceObj?.color || 'bg-slate-500'}`}>
                             {sourceObj?.label || item.source}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-slate-500 truncate max-w-[200px]">{item.note || '-'}</td>
+                        <td className="px-6 py-4 text-slate-500 dark:text-slate-400 truncate max-w-[200px]">{item.note || '-'}</td>
                         <td className="px-6 py-4 text-right font-bold text-emerald-600 whitespace-nowrap">
                           +{new Intl.NumberFormat('vi-VN').format(item.amount)}đ
                         </td>

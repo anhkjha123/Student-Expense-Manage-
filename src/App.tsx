@@ -35,6 +35,7 @@ import UserProfile from './components/UserProfile';
 export default function App() {
   // --- CORE STATE ---
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -106,6 +107,34 @@ export default function App() {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('sem_theme') as 'light' | 'dark' | null;
+    if (savedTheme === 'dark' || savedTheme === 'light') {
+      setTheme(savedTheme);
+      return;
+    }
+
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setTheme(prefersDark ? 'dark' : 'light');
+  }, []);
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('sem_theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('sem_theme', 'light');
+    }
+  }, [theme]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    if (currentUser.theme && currentUser.theme !== theme) {
+      setTheme(currentUser.theme);
+    }
+  }, [currentUser, theme]);
 
   // --- LOAD RECURRING EXPENSES (for CalendarView) ---
   const loadRecurringExpenses = async (userId: string) => {
@@ -360,8 +389,11 @@ export default function App() {
     } else {
       localStorage.setItem('sem_guest_mode', 'false');
     }
+    const resolvedTheme = user.theme || (localStorage.getItem('sem_theme') as 'light' | 'dark' | null) || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    setTheme(resolvedTheme);
     setCurrentUser(user);
     localStorage.setItem('sem_user', JSON.stringify(user));
+    localStorage.setItem('sem_theme', resolvedTheme);
   };
 
   const handleLogout = async () => {
@@ -774,10 +806,10 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 transition-colors">
         <div className="text-center space-y-2">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-300 border-t-emerald-500" />
-          <p className="text-xs font-bold text-slate-500 font-mono">Đang khởi tạo hệ thống ví...</p>
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-300 dark:border-slate-800 border-t-emerald-500" />
+          <p className="text-xs font-bold text-slate-500 dark:text-slate-400 font-mono">Đang khởi tạo hệ thống ví...</p>
         </div>
       </div>
     );
@@ -793,7 +825,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-emerald-200 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans selection:bg-emerald-200 relative overflow-hidden transition-colors duration-300">
       
       {/* Decorative Modern Background Blobs */}
       <div className="absolute top-[-5%] left-[-10%] w-[60%] h-[50%] rounded-full bg-emerald-200/20 blur-[100px] object-cover pointer-events-none z-0" />
@@ -887,6 +919,10 @@ export default function App() {
               onUpdateProfile={(updated) => {
                 setCurrentUser(updated);
                 localStorage.setItem('sem_user', JSON.stringify(updated));
+                if (updated.theme) {
+                  setTheme(updated.theme);
+                  localStorage.setItem('sem_theme', updated.theme);
+                }
               }}
               onBack={() => setActiveTab('dashboard')}
             />
@@ -894,7 +930,7 @@ export default function App() {
         </main>
 
         {/* FOOTER */}
-        <footer className="pt-6 pb-24 sm:py-6 border-t border-slate-200/60 bg-white/50 backdrop-blur-sm text-center text-slate-400 text-xs font-medium relative z-20">
+        <footer className="pt-6 pb-24 sm:py-6 border-t border-slate-200/60 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm text-center text-slate-400 dark:text-slate-500 text-xs font-medium relative z-20 transition-colors">
           <p>© 2026 Student Expense Manager (SemTietKiem) | MVP Cắt giảm lạm chi cho Sinh viên</p>
         </footer>
       </div>
