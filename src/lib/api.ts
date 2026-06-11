@@ -197,6 +197,26 @@ export class ApiService {
       });
 
       await setDoc(doc(db, 'users', userId), updateData, { merge: true });
+
+      // Also update name/email in all groups this user belongs to
+      if (updateData.name || updateData.email) {
+        try {
+          const memberQuery = query(collection(db, 'groupMembers'), where('userId', '==', userId));
+          const memberSnapshot = await getDocs(memberQuery);
+          if (!memberSnapshot.empty) {
+            const batch = writeBatch(db);
+            memberSnapshot.docs.forEach(memberDoc => {
+              const memberUpdate: any = {};
+              if (updateData.name) memberUpdate.name = updateData.name;
+              if (updateData.email) memberUpdate.email = updateData.email;
+              batch.update(memberDoc.ref, memberUpdate);
+            });
+            await batch.commit();
+          }
+        } catch (groupErr) {
+          console.warn('Failed to update user name/email in groups:', groupErr);
+        }
+      }
     } catch (err) {
       console.error('Failed to update user:', err);
       throw err;
