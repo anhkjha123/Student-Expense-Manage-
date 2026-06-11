@@ -133,7 +133,7 @@ export default function BudgetSettings({
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex items-center gap-2 rounded-2xl bg-emerald-50 border border-emerald-100 p-4 text-sm font-semibold text-emerald-600"
+              className="flex items-center gap-2 rounded-2xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 p-4 text-sm font-semibold text-emerald-600 dark:text-emerald-400"
             >
               <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0" />
               <span>{successMsg}</span>
@@ -311,10 +311,10 @@ export default function BudgetSettings({
         </div>
 
         {/* Save CTA */}
-        <div className="flex justify-end pt-4 border-t border-slate-100">
+        <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
           <button
             type="submit"
-            className="rounded-2xl bg-emerald-500 hover:bg-emerald-500 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-200 transition-all cursor-pointer"
+            className="rounded-2xl bg-emerald-500 hover:bg-emerald-500 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-200 dark:shadow-none transition-all cursor-pointer"
           >
             Lưu hạn mức chi tiêu mới
           </button>

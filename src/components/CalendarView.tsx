@@ -112,7 +112,7 @@ export default function CalendarView({ expenses, categories, recurringExpenses =
         {/* Calendar Section */}
         <div className="flex-1 bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
               <CalendarIcon className="h-5 w-5 text-emerald-500" />
               {currentDate.toLocaleString('vi-VN', { month: 'long', year: 'numeric' })}
             </h2>
@@ -167,12 +167,12 @@ export default function CalendarView({ expenses, categories, recurringExpenses =
           </div>
 
           {/* Legend */}
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-slate-500">
-            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-emerald-100 border border-emerald-200" /> &lt; 100k</div>
-            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-amber-100 border border-amber-200" /> 100k - 500k</div>
-            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-red-100 border border-red-200" /> &gt; 500k</div>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-slate-500 dark:text-slate-450">
+            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-emerald-100 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800" /> &lt; 100k</div>
+            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-amber-100 dark:bg-amber-950 border border-amber-200 dark:border-amber-800" /> 100k - 500k</div>
+            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-red-100 dark:bg-red-950 border border-red-200 dark:border-red-800" /> &gt; 500k</div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-sm bg-blue-100 border border-blue-200 relative flex items-center justify-center">
+              <div className="w-3 h-3 rounded-sm bg-blue-100 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 relative flex items-center justify-center">
                 <span className="w-1 h-1 rounded-full bg-blue-500 absolute top-0 right-0" />
               </div>
               Định kỳ
@@ -199,8 +199,8 @@ export default function CalendarView({ expenses, categories, recurringExpenses =
                     return (
                       <div key={exp.id} className="flex justify-between items-start border-l-2 border-emerald-500 pl-3">
                         <div>
-                          <p className="text-sm font-semibold text-slate-800">{exp.title}</p>
-                          <p className="text-[10px] text-slate-500">{cat?.name || 'Khác'}{exp.note ? ` - ${exp.note}` : ''}</p>
+                          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{exp.title}</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">{cat?.name || 'Khác'}{exp.note ? ` - ${exp.note}` : ''}</p>
                         </div>
                         <span className="text-sm font-bold text-red-500 whitespace-nowrap pl-2">
                           -{new Intl.NumberFormat('vi-VN').format(exp.amount)}đ
@@ -216,13 +216,13 @@ export default function CalendarView({ expenses, categories, recurringExpenses =
                       <div key={`rec-${rec.id}`} className="flex justify-between items-start border-l-2 border-blue-400 pl-3">
                         <div>
                           <div className="flex items-center gap-1.5">
-                            <p className="text-sm font-semibold text-slate-800">{rec.title}</p>
-                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded-full">
+                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{rec.title}</p>
+                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 rounded-full">
                               <Repeat className="h-2.5 w-2.5" />
                               Định kỳ
                             </span>
                           </div>
-                          <p className="text-[10px] text-slate-500">{cat?.name || 'Khác'}{rec.note ? ` - ${rec.note}` : ''}</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">{cat?.name || 'Khác'}{rec.note ? ` - ${rec.note}` : ''}</p>
                         </div>
                         <span className="text-sm font-bold text-blue-600 whitespace-nowrap pl-2">
                           -{new Intl.NumberFormat('vi-VN').format(rec.amount)}đ
@@ -232,9 +232,9 @@ export default function CalendarView({ expenses, categories, recurringExpenses =
                   })}
 
                   {/* Total */}
-                  <div className="pt-4 mt-4 border-t border-slate-100 flex justify-between items-center font-bold">
-                    <span className="text-slate-600">Tổng chi:</span>
-                    <span className="text-lg text-slate-900">
+                  <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center font-bold">
+                    <span className="text-slate-600 dark:text-slate-400 font-bold">Tổng chi:</span>
+                    <span className="text-lg text-slate-900 dark:text-slate-100">
                       {new Intl.NumberFormat('vi-VN').format(
                         selectedExpenses.reduce((s, e) => s + e.amount, 0) +
                         selectedRecurring.reduce((s, r) => s + r.amount, 0)

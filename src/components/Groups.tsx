@@ -429,7 +429,7 @@ export default function Groups({ user }: GroupsProps) {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="flex flex-col gap-1.5 rounded-2xl bg-red-50 border border-red-200 p-4 text-xs font-bold text-red-800 shadow-sm"
+            className="flex flex-col gap-1.5 rounded-2xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 p-4 text-xs font-bold text-red-800 dark:text-red-400 shadow-sm"
           >
             <div className="flex items-center justify-between">
               <span>Gặp lỗi khi xử lý nhóm:</span>
@@ -437,14 +437,14 @@ export default function Groups({ user }: GroupsProps) {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <pre className="mt-1 max-h-40 overflow-auto rounded-lg bg-red-100/50 p-2 text-[10px] font-mono whitespace-pre-wrap break-all select-text leading-relaxed font-semibold">
+            <pre className="mt-1 max-h-40 overflow-auto rounded-lg bg-red-100/50 dark:bg-slate-900/50 p-2 text-[10px] font-mono whitespace-pre-wrap break-all select-text leading-relaxed font-semibold">
               {groupError}
             </pre>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-3xl p-6 text-white shadow-xl shadow-emerald-100">
+      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-3xl p-6 text-white shadow-xl shadow-emerald-100 dark:shadow-none">
         <div className="space-y-1">
           <h2 className="font-display text-2xl font-extrabold tracking-tight drop-shadow-md">
             Quỹ Nhóm & Chia Tiền 💸
@@ -455,7 +455,7 @@ export default function Groups({ user }: GroupsProps) {
         </div>
         <button
           onClick={() => setIsCreating(true)}
-          className="rounded-2xl bg-white dark:bg-slate-900 hover:bg-emerald-50 px-5 py-3 text-center text-sm font-bold text-emerald-600 transition-all shadow-md shrink-0 cursor-pointer"
+          className="rounded-2xl bg-white dark:bg-slate-900 hover:bg-emerald-50 dark:hover:bg-slate-800 px-5 py-3 text-center text-sm font-bold text-emerald-600 dark:text-emerald-400 transition-all shadow-md dark:shadow-none shrink-0 cursor-pointer"
         >
           + Tạo nhóm chi tiêu mới
         </button>
@@ -501,7 +501,7 @@ export default function Groups({ user }: GroupsProps) {
                         <span className="text-[10px] text-slate-400 dark:text-slate-400 block font-mono">Ngày tạo: {g.createdAt}</span>
                       </div>
 
-                      <div className="flex items-center justify-between pt-4 mt-4 border-t border-slate-50 text-xs text-slate-600 font-bold">
+                      <div className="flex items-center justify-between pt-4 mt-4 border-t border-slate-50 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400 font-bold">
                         <span>Bấm để quản lý nhóm</span>
                         <ChevronRight className="h-4 w-4 text-emerald-500" />
                       </div>
@@ -542,7 +542,7 @@ export default function Groups({ user }: GroupsProps) {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="rounded-3xl border border-emerald-100 bg-emerald-50/20 p-5 shadow-sm space-y-3"
+                  className="rounded-3xl border border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/20 dark:bg-emerald-950/20 p-5 shadow-sm space-y-3"
                 >
                   <div className="flex justify-between items-center">
                     <h3 className="text-sm font-bold text-slate-800">Tạo nhóm chi tiêu mới</h3>
@@ -600,7 +600,7 @@ export default function Groups({ user }: GroupsProps) {
             <div className="flex gap-2">
               <button
                 onClick={() => setIsAddExpenseOpen(true)}
-                className="rounded-xl bg-emerald-500 hover:bg-emerald-500 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-100 flex items-center gap-1.5 cursor-pointer"
+                className="rounded-xl bg-emerald-500 hover:bg-emerald-500 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-100 dark:shadow-none flex items-center gap-1.5 cursor-pointer"
                 id="add-group-expense-trigger"
               >
                 <Plus className="h-4 w-4" /> Thêm khoản chi nhóm
@@ -698,9 +698,9 @@ export default function Groups({ user }: GroupsProps) {
                           <div
                             key={idx}
                             className={`rounded-2xl p-4 border flex flex-col justify-between space-y-3 ${isMeDebtor
-                              ? 'bg-amber-50/50 border-amber-200'
+                              ? 'bg-amber-50/50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/40 text-amber-900 dark:text-amber-300'
                               : isMeCreditor
-                                ? 'bg-emerald-50/50 border-emerald-200'
+                                ? 'bg-emerald-50/50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/40 text-emerald-900 dark:text-emerald-300'
                                 : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-700'
                               }`}
                           >
@@ -765,7 +765,7 @@ export default function Groups({ user }: GroupsProps) {
                               <tr key={idx} className="hover:bg-slate-50/30 dark:hover:bg-slate-800/30 transition-colors">
                                 <td className="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100">
                                   {isSettleTrans ? (
-                                    <span className="inline-flex items-center gap-1 rounded bg-teal-50 px-1.5 py-0.5 text-[9px] font-bold text-teal-700 border border-teal-150">
+                                    <span className="inline-flex items-center gap-1 rounded bg-teal-50 dark:bg-emerald-950 px-1.5 py-0.5 text-[9px] font-bold text-teal-700 dark:text-teal-400 border border-teal-150 dark:border-emerald-900/30">
                                       🤝 Tất toán nợ
                                     </span>
                                   ) : null}
@@ -786,11 +786,11 @@ export default function Groups({ user }: GroupsProps) {
                                     </span>
                                   )}
                                 </td>
-                                <td className="px-4 py-3 font-medium text-slate-600">{exp.paidByName}</td>
+                                <td className="px-4 py-3 font-medium text-slate-600 dark:text-slate-350">{exp.paidByName}</td>
                                 <td className="px-4 py-3 text-right font-bold text-slate-900 dark:text-slate-100 font-mono">
                                   {new Intl.NumberFormat('vi-VN').format(exp.amount)}đ
                                 </td>
-                                <td className="px-4 py-3 font-mono text-slate-400">{exp.date}</td>
+                                <td className="px-4 py-3 font-mono text-slate-455">{exp.date}</td>
                                 <td className="px-4 py-3">
                                   <div className="max-w-[200px] truncate text-[10px] text-slate-400 font-mono" title={exp.splits.map(s => `${s.email || s.userId}: ${new Intl.NumberFormat('vi-VN').format(s.amount)}đ`).join(', ')}>
                                     {exp.splitType === 'EQUAL' ? 'Chia đều' : 'Tùy chọn'} ({exp.splits.length} người)
@@ -822,7 +822,7 @@ export default function Groups({ user }: GroupsProps) {
                   <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
                     {activeGroupData.members.map((m, idx) => (
                       <div key={idx} className="flex items-center gap-3 bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs font-mono uppercase">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold text-xs font-mono uppercase">
                           {m.name.substring(0, 2)}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -851,7 +851,7 @@ export default function Groups({ user }: GroupsProps) {
             animate={{ scale: 1, opacity: 1 }}
             className="relative z-50 w-full max-w-md bg-white dark:bg-slate-950 rounded-3xl shadow-2xl p-6 overflow-hidden max-h-[90vh] flex flex-col"
           >
-            <div className="flex justify-between items-center pb-3 border-b border-slate-150 shrink-0">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-150 dark:border-slate-800 shrink-0">
               <div>
                 <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">Thêm một khoản chi nhóm mới</h3>
                 <p className="text-[10px] text-slate-400 dark:text-slate-500">Tiền hóa đơn chung sẽ tự động tính toán phân nợ</p>
@@ -876,15 +876,15 @@ export default function Groups({ user }: GroupsProps) {
 
               {/* Amount */}
               <div className="space-y-1">
-                <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">Số tiền thanh toán (VND) <span className="text-red-500">*</span></label>
-                <div className="relative rounded-2xl border border-slate-200 focus-within:border-emerald-400 overflow-hidden shadow-sm">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400 font-mono">đ</span>
+                <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Số tiền thanh toán (VND) <span className="text-red-500">*</span></label>
+                <div className="relative rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus-within:border-emerald-400 overflow-hidden shadow-sm">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400 dark:text-slate-500 font-mono">đ</span>
                   <input
                     type="text"
                     value={expAmount}
                     onChange={handleAmountChange}
                     placeholder="0"
-                    className="w-full py-2.5 pl-9 pr-4 text-base font-bold font-mono text-slate-900 focus:outline-none"
+                    className="w-full py-2.5 pl-9 pr-4 text-base font-bold font-mono text-slate-900 dark:text-slate-100 bg-transparent focus:outline-none"
                     required
                   />
                 </div>
@@ -905,8 +905,8 @@ export default function Groups({ user }: GroupsProps) {
 
               {/* Category — group expenses always use group_fund */}
               <div className="space-y-1">
-                <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">Danh mục khoản chi</label>
-                <div className="w-full rounded-2xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-emerald-700 flex items-center gap-1.5">
+                <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Danh mục khoản chi</label>
+                <div className="w-full rounded-2xl border border-emerald-200 dark:border-emerald-900/30 bg-emerald-50 dark:bg-emerald-950/20 px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-emerald-700 dark:text-emerald-450 flex items-center gap-1.5">
                   <span>👥</span> Quỹ nhóm
                 </div>
               </div>
@@ -974,13 +974,13 @@ export default function Groups({ user }: GroupsProps) {
                 <button
                   type="button"
                   onClick={() => setIsAddExpenseOpen(false)}
-                  className="rounded-xl px-4 py-2 border border-slate-200 text-xs font-semibold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 dark:text-slate-200"
+                  className="rounded-xl px-4 py-2 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 dark:text-slate-200 cursor-pointer"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-emerald-500 text-white font-bold py-2 px-5 text-xs hover:bg-emerald-600 transition-colors shadow-md"
+                  className="rounded-xl bg-emerald-500 text-white font-bold py-2 px-5 text-xs hover:bg-emerald-600 transition-colors shadow-md dark:shadow-none cursor-pointer"
                 >
                   Lưu giao dịch nhóm
                 </button>

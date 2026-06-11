@@ -97,7 +97,7 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
           <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <Repeat className="h-6 w-6 text-emerald-500" /> Chi tiêu định kỳ
           </h2>
-          <p className="text-slate-500 text-sm mt-1">Tự động hóa việc ghi nhận các khoản chi cố định hàng tháng/tuần</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Tự động hóa việc ghi nhận các khoản chi cố định hàng tháng/tuần</p>
         </div>
       </div>
 
@@ -146,7 +146,7 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white dark:bg-slate-950 rounded-2xl p-6 max-w-md w-full shadow-2xl border border-slate-100 dark:border-slate-800 transform scale-100 transition-all duration-300 animate-in zoom-in-95 duration-200">
             <div className="flex items-center gap-3 text-amber-500 mb-4">
-              <div className="p-3 bg-amber-50 rounded-xl">
+              <div className="p-3 bg-amber-50 dark:bg-amber-950/20 rounded-xl">
                 <AlertTriangle className="h-6 w-6" />
               </div>
               <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Xác nhận xóa chi tiêu định kỳ</h3>
@@ -166,7 +166,7 @@ export default function RecurringExpenses({ user, categories }: RecurringExpense
               <button
                 type="button"
                 onClick={confirmDelete}
-                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl text-sm shadow-sm shadow-red-200 transition-all"
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl text-sm shadow-sm shadow-red-200 dark:shadow-none transition-all cursor-pointer"
               >
                 Xác nhận xóa
               </button>

@@ -213,7 +213,7 @@ export default function Incomes({ user }: IncomesProps) {
             </div>
           </div>
           <div className="mt-4 flex justify-end">
-            <button type="submit" className="bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-6 rounded-xl transition-all">Lưu khoản thu</button>
+            <button type="submit" className="bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-semibold py-2 px-6 rounded-xl transition-all cursor-pointer">Lưu khoản thu</button>
           </div>
         </form>
       )}
@@ -229,10 +229,10 @@ export default function Incomes({ user }: IncomesProps) {
             {sourceData.map(s => (
               <div key={s.id}>
                 <div className="flex justify-between text-sm font-medium mb-1">
-                  <span className="text-slate-600">{s.label}</span>
-                  <span className="text-slate-900">{new Intl.NumberFormat('vi-VN').format(s.total)}đ</span>
+                  <span className="text-slate-600 dark:text-slate-400">{s.label}</span>
+                  <span className="text-slate-900 dark:text-slate-100">{new Intl.NumberFormat('vi-VN').format(s.total)}đ</span>
                 </div>
-                <div className="w-full bg-slate-100 rounded-full h-2">
+                <div className="w-full bg-slate-100 dark:bg-slate-850 rounded-full h-2">
                   <div className={`h-2 rounded-full ${s.color}`} style={{ width: `${(s.total / totalIncome) * 100}%` }}></div>
                 </div>
               </div>
@@ -265,18 +265,18 @@ export default function Incomes({ user }: IncomesProps) {
                     <th className="px-6 py-3 text-center">Xóa</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {incomes.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(item => {
                     const sourceObj = SOURCES.find(s => s.id === item.source);
                     return (
                       <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap font-medium text-slate-700">{item.date}</td>
+                        <td className="px-6 py-4 whitespace-nowrap font-medium text-slate-700 dark:text-slate-350">{item.date}</td>
                         <td className="px-6 py-4">
                           <span className={`px-2.5 py-1 text-[10px] font-bold rounded-md text-white ${sourceObj?.color || 'bg-slate-500'}`}>
                             {sourceObj?.label || item.source}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-slate-500 truncate max-w-[200px]">{item.note || '-'}</td>
+                        <td className="px-6 py-4 text-slate-500 dark:text-slate-400 truncate max-w-[200px]">{item.note || '-'}</td>
                         <td className="px-6 py-4 text-right font-bold text-emerald-600 whitespace-nowrap">
                           +{new Intl.NumberFormat('vi-VN').format(item.amount)}đ
                         </td>

@@ -121,7 +121,7 @@ export default function Navbar({
                     <span className="hidden xl:inline">{tab.name}</span>
                   </button>
                   {/* Dropdown Menu on Hover */}
-                  <div className="absolute left-0 mt-1 hidden group-hover:block bg-white border border-slate-100 rounded-xl shadow-lg p-2 min-w-[150px] z-50 animate-fade-in">
+                  <div className="absolute left-0 mt-1 hidden group-hover:block bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl shadow-lg p-2 min-w-[150px] z-50 animate-fade-in">
                     <button
                       onClick={() => setActiveTab('history')}
                       className={`w-full text-left px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
@@ -134,7 +134,7 @@ export default function Navbar({
                     <button
                       onClick={() => setActiveTab('recurring')}
                       className={`w-full text-left px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
-                        activeTab === 'recurring' ? 'bg-emerald-50 text-emerald-600' : 'text-slate-600 hover:bg-slate-50'
+                        activeTab === 'recurring' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-300' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                       }`}
                     >
                       <Repeat className="h-3.5 w-3.5" />
@@ -210,14 +210,14 @@ export default function Navbar({
                     exit={{ opacity: 0, y: 10 }}
                     className="absolute right-0 mt-2 z-50 w-80 sm:w-96 rounded-2xl border border-slate-100 bg-white dark:bg-slate-900 dark:border-slate-800 p-4 shadow-xl ring-1 ring-black/5"
                   >
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
-                      <span className="font-display font-semibold text-slate-800 text-sm flex items-center gap-1.5">
+                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2 mb-2">
+                      <span className="font-display font-semibold text-slate-800 dark:text-slate-200 text-sm flex items-center gap-1.5">
                         <Bell className="h-4 w-4 text-emerald-500" /> Thông báo ({unreadCount})
                       </span>
                       {notifications.length > 0 && (
                         <button
                           onClick={clearNotifications}
-                          className="text-xs text-slate-500 hover:text-red-500 transition-colors font-medium"
+                          className="text-xs text-slate-500 dark:text-slate-450 hover:text-red-500 transition-colors font-medium"
                         >
                           Xóa tất cả
                         </button>
@@ -243,13 +243,13 @@ export default function Navbar({
                           >
                             <div className="mt-0.5 shrink-0">{getNotifIcon(notif.type)}</div>
                             <div className="space-y-0.5">
-                              <h4 className={`text-xs font-bold ${notif.read ? 'text-slate-700' : 'text-slate-900'}`}>
+                              <h4 className={`text-xs font-bold ${notif.read ? 'text-slate-700 dark:text-slate-300' : 'text-slate-900 dark:text-slate-100'}`}>
                                 {notif.title}
                               </h4>
-                              <p className="text-[11px] leading-relaxed text-slate-500">
+                              <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
                                 {notif.message}
                               </p>
-                              <span className="block text-[9px] text-slate-400 font-mono">
+                              <span className="block text-[9px] text-slate-400 dark:text-slate-500 font-mono">
                                 {notif.date}
                               </span>
                             </div>
@@ -267,7 +267,7 @@ export default function Navbar({
           <div className="flex items-center gap-1.5 sm:gap-2.5 border-l border-slate-200 pl-2 sm:pl-4">
             <button
               onClick={() => setActiveTab('profile')}
-              className="relative group flex h-9 w-9 items-center justify-center rounded-full overflow-hidden border border-slate-200 shadow-sm cursor-pointer hover:border-emerald-500 hover:scale-105 active:scale-95 transition-all duration-200"
+              className="relative group flex h-9 w-9 items-center justify-center rounded-full overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm cursor-pointer hover:border-emerald-500 hover:scale-105 active:scale-95 transition-all duration-200"
               title={user.name}
               id="navbar-profile-avatar-btn"
             >
@@ -317,7 +317,7 @@ export default function Navbar({
                 }
               }}
               className={`flex flex-col items-center gap-1 py-1 text-[10px] font-semibold transition-all ${
-                isActive ? 'text-emerald-600 font-bold scale-105' : 'text-slate-500'
+                isActive ? 'text-emerald-600 dark:text-emerald-400 font-bold scale-105' : 'text-slate-500 dark:text-slate-400'
               }`}
             >
               {tab.id === 'dashboard' && <Home className="h-4.5 w-4.5" />}

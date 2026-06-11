@@ -529,7 +529,7 @@ export default function AddExpenseModal({
         {/* Content Form */}
         <form onSubmit={handleSubmit} onPaste={handlePaste} className="p-4 sm:p-6 space-y-3 sm:space-y-4 overflow-y-auto flex-1">
           {error && (
-            <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-xs font-semibold text-red-700">
+            <div className="flex items-center gap-2 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 p-3 text-xs font-semibold text-red-700 dark:text-red-400">
               <AlertCircle className="h-4.5 w-4.5 shrink-0" />
               <span>{error}</span>
             </div>
@@ -572,12 +572,12 @@ export default function AddExpenseModal({
                   </label>
 
                   {ocrError && (
-                    <div className="mb-2 flex flex-col gap-1.5 rounded-xl bg-red-50 p-3 text-[11px] font-semibold text-red-700">
+                    <div className="mb-2 flex flex-col gap-1.5 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 p-3 text-[11px] font-semibold text-red-700 dark:text-red-400">
                       <div className="flex items-center gap-2">
                         <AlertCircle className="h-4 w-4 shrink-0" />
                         <span>Lỗi quét hóa đơn:</span>
                       </div>
-                      <pre className="mt-1 max-h-40 overflow-auto rounded-lg bg-red-100/50 p-2 text-[10px] font-mono whitespace-pre-wrap break-all select-text leading-relaxed">
+                      <pre className="mt-1 max-h-40 overflow-auto rounded-lg bg-red-100/50 dark:bg-slate-900/50 p-2 text-[10px] font-mono whitespace-pre-wrap break-all select-text leading-relaxed">
                         {ocrError}
                       </pre>
                     </div>
@@ -586,7 +586,7 @@ export default function AddExpenseModal({
                   {isScanning ? (
                     <div className="flex flex-col items-center justify-center py-6 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl space-y-2 shadow-xs">
                       <Loader2 className="h-8 w-8 text-emerald-500 animate-spin" />
-                      <span className="text-xs font-bold text-slate-500 animate-pulse font-mono">Đang quét và phân tích hóa đơn...</span>
+                      <span className="text-xs font-bold text-slate-500 dark:text-slate-400 animate-pulse font-mono">Đang quét và phân tích hóa đơn...</span>
                     </div>
                   ) : receiptImage ? (
                     <div className="flex items-center gap-4 bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-slate-700 animate-fade-in shadow-xs">
@@ -602,7 +602,7 @@ export default function AddExpenseModal({
                           setIsAmountMissing(false);
                           setHighlightedFields({});
                         }}
-                        className="p-2 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-colors"
+                        className="p-2 bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -640,7 +640,7 @@ export default function AddExpenseModal({
                   </div>
 
                   {voiceError && (
-                    <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-[11px] font-semibold text-red-700">
+                    <div className="flex items-center gap-2 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 p-3 text-[11px] font-semibold text-red-700 dark:text-red-400">
                       <AlertCircle className="h-4 w-4 shrink-0" />
                       <span>{voiceError}</span>
                     </div>
@@ -650,7 +650,7 @@ export default function AddExpenseModal({
                     {isListening ? (
                       <div className="flex flex-col items-center space-y-4 w-full">
                         {/* Siri glowing wave container - Theme matching the white background */}
-                        <div className="relative w-72 h-24 flex items-center justify-center overflow-hidden rounded-3xl bg-linear-to-br from-slate-50 to-white border border-slate-200/60 shadow-inner">
+                        <div className="relative w-72 h-24 flex items-center justify-center overflow-hidden rounded-3xl bg-linear-to-br from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 border border-slate-200/60 dark:border-slate-800 shadow-inner">
                           {/* Siri glowing spheres background */}
                           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                             <div className={`absolute w-40 h-14 bg-emerald-400/15 rounded-full filter blur-xl ${isSoundActive ? 'animate-siri-glow-1' : ''}`}></div>
@@ -696,7 +696,7 @@ export default function AddExpenseModal({
                               recognitionRef.current = null;
                             }
                           }}
-                          className="mt-1 rounded-2xl bg-rose-500 hover:bg-rose-600 px-5 py-2 text-xs font-bold text-white shadow-md shadow-rose-200 flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95 border border-rose-600/20"
+                          className="mt-1 rounded-2xl bg-rose-500 hover:bg-rose-600 px-5 py-2 text-xs font-bold text-white shadow-md shadow-rose-200 dark:shadow-none flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95 border border-rose-600/20"
                         >
                           <Square className="h-3 w-3 fill-white text-white" />
                           Dừng ghi âm
@@ -706,7 +706,7 @@ export default function AddExpenseModal({
                       <button
                         type="button"
                         onClick={startSpeechRecognition}
-                        className="group flex h-16 w-16 items-center justify-center rounded-full bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-all duration-300 transform active:scale-95 shadow-md shadow-rose-100 cursor-pointer animate-pulse"
+                        className="group flex h-16 w-16 items-center justify-center rounded-full bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800 transition-all duration-300 transform active:scale-95 shadow-md shadow-rose-100 dark:shadow-none cursor-pointer animate-pulse"
                         title="Bắt đầu ghi giọng nói"
                       >
                         <Mic className="h-7 w-7 text-rose-500 group-hover:scale-110 transition-transform" />
@@ -745,7 +745,7 @@ export default function AddExpenseModal({
                 ? 'border-red-500 bg-red-50/10' 
                 : highlightedFields.amount 
                 ? 'border-emerald-500 bg-emerald-50/10 ring-2 ring-emerald-500/10' 
-                : 'border-slate-200'
+                : 'border-slate-200 dark:border-slate-800'
             }`}>
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400 dark:text-slate-500 font-mono">
                 đ
@@ -778,7 +778,7 @@ export default function AddExpenseModal({
               Nội dung chi tiêu <span className="text-red-500">*</span>
             </label>
             <div className={`relative rounded-2xl border focus-within:border-emerald-500 shadow-sm transition-all overflow-hidden ${
-              highlightedFields.title ? 'border-emerald-500 bg-emerald-50/10 ring-2 ring-emerald-500/10' : 'border-slate-200'
+              highlightedFields.title ? 'border-emerald-500 bg-emerald-50/10 ring-2 ring-emerald-500/10' : 'border-slate-200 dark:border-slate-800'
             }`}>
               <input
                 type="text"
@@ -806,7 +806,7 @@ export default function AddExpenseModal({
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full rounded-2xl border border-slate-200 px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-100 bg-white dark:bg-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 shadow-sm"
+                className="w-full rounded-2xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-100 bg-white dark:bg-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 shadow-sm"
                 id="expense-category-input"
                 required
               >
@@ -824,13 +824,13 @@ export default function AddExpenseModal({
                 Ngày thực hiện <span className="text-red-500">*</span>
               </label>
               <div className={`relative rounded-2xl border focus-within:border-emerald-500 shadow-sm transition-all ${
-                highlightedFields.date ? 'border-emerald-500 bg-emerald-50/10 ring-2 ring-emerald-500/10' : 'border-slate-200'
+                highlightedFields.date ? 'border-emerald-500 bg-emerald-50/10 ring-2 ring-emerald-500/10' : 'border-slate-200 dark:border-slate-800'
               }`}>
                 <input
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-slate-700 focus:outline-none focus:ring-0 bg-transparent"
+                  className="w-full px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-100 focus:outline-none focus:ring-0 bg-transparent"
                   id="expense-date-input"
                   required
                 />
@@ -854,8 +854,8 @@ export default function AddExpenseModal({
                 onClick={() => setIsNecessary(true)}
                 className={`flex flex-col items-center justify-center rounded-2xl border p-2 text-center transition-all cursor-pointer ${
                   isNecessary
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-600 ring-2 ring-emerald-500/10'
-                    : 'border-slate-200 hover:border-slate-300 text-slate-500'
+                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-450 ring-2 ring-emerald-500/10'
+                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-500 dark:text-slate-450'
                 }`}
               >
                 <span className="text-xs font-bold block">Bắt buộc</span>
@@ -867,8 +867,8 @@ export default function AddExpenseModal({
                 onClick={() => setIsNecessary(false)}
                 className={`flex flex-col items-center justify-center rounded-2xl border p-2 text-center transition-all cursor-pointer ${
                   !isNecessary
-                    ? 'border-amber-500 bg-amber-50 text-amber-800 ring-2 ring-amber-500/10'
-                    : 'border-slate-200 hover:border-slate-300 text-slate-500'
+                    ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-400 ring-2 ring-amber-500/10'
+                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-500 dark:text-slate-450'
                 }`}
               >
                 <span className="text-xs font-bold block">Sở thích</span>
@@ -901,7 +901,7 @@ export default function AddExpenseModal({
               <select
                 value={recurringCycle}
                 onChange={(e) => setRecurringCycle(e.target.value as 'NONE' | 'WEEKLY' | 'MONTHLY')}
-                className="w-full rounded-2xl border border-slate-200 px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-100 bg-white dark:bg-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 shadow-sm bg-no-repeat bg-[right_16px_center]"
+                className="w-full rounded-2xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-100 bg-white dark:bg-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 shadow-sm bg-no-repeat bg-[right_16px_center]"
                 id="expense-recurring-input"
               >
                 <option value="NONE">Không lặp lại (Một lần)</option>

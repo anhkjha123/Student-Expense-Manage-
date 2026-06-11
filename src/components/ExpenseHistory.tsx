@@ -95,10 +95,10 @@ export default function ExpenseHistory({
       {/* Title Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white/60 dark:bg-slate-950/80 backdrop-blur-md p-5 rounded-3xl border border-slate-200/50 dark:border-slate-800 shadow-sm">
         <div>
-          <h2 className="font-display text-2xl font-bold text-slate-900 flex items-center gap-2 drop-shadow-sm">
+          <h2 className="font-display text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2 drop-shadow-sm">
             <BookOpen className="h-6 w-6 text-emerald-400 drop-shadow-sm" /> Sổ chép chi tiêu sinh viên
           </h2>
-          <p className="text-sm text-slate-500 mt-1 font-medium">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
             Tổng quan và tra cứu chi tiết mọi giao dịch bạn đã lưu trữ vào hệ thống
           </p>
         </div>
@@ -116,7 +116,7 @@ export default function ExpenseHistory({
           <p className="text-[10px] text-slate-400 mt-1">Trong các bộ lọc tìm kiếm hiện tại</p>
         </motion.div>
 
-          <motion.div whileHover={{ y: -5 }} className="rounded-3xl bg-gradient-to-br from-emerald-50/80 to-teal-50/50 p-5 border border-emerald-100/50 shadow-sm hover:shadow-md transition-shadow dark:bg-emerald-950">
+        <motion.div whileHover={{ y: -5 }} className="rounded-3xl bg-gradient-to-br from-emerald-50/80 to-teal-50/50 p-5 border border-emerald-100/50 dark:border-emerald-900/30 shadow-sm hover:shadow-md transition-shadow dark:from-emerald-950/40 dark:to-emerald-900/20">
           <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-500 dark:text-emerald-300">
             Cần thiết (Needs)
           </span>
@@ -128,7 +128,7 @@ export default function ExpenseHistory({
           </p>
         </motion.div>
 
-          <motion.div whileHover={{ y: -5 }} className="rounded-3xl bg-gradient-to-br from-amber-50/80 to-orange-50/50 p-5 border border-amber-100/50 shadow-sm hover:shadow-md transition-shadow dark:bg-amber-950">
+        <motion.div whileHover={{ y: -5 }} className="rounded-3xl bg-gradient-to-br from-amber-50/80 to-orange-50/50 p-5 border border-amber-100/50 dark:border-amber-900/30 shadow-sm hover:shadow-md transition-shadow dark:from-amber-950/40 dark:to-amber-900/20">
           <span className="block text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-300">
             Sở thích / Mong muốn (Wants)
           </span>
@@ -164,12 +164,12 @@ export default function ExpenseHistory({
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full appearance-none px-4 py-2.5 text-sm font-semibold text-slate-700 bg-transparent focus:outline-none focus:ring-0"
+              className="w-full appearance-none px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-100 bg-transparent focus:outline-none focus:ring-0"
               id="expense-category-filter"
             >
-              <option value="all">📁 Tất cả danh mục</option>
+              <option value="all" className="dark:bg-slate-950">📁 Tất cả danh mục</option>
               {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
+                <option key={cat.id} value={cat.id} className="dark:bg-slate-950">
                   {cat.name}
                 </option>
               ))}
@@ -184,13 +184,13 @@ export default function ExpenseHistory({
             <select
               value={necessityFilter}
               onChange={(e) => setNecessityFilter(e.target.value as any)}
-              className="w-full appearance-none px-4 py-2.5 text-sm font-semibold text-slate-700 bg-transparent focus:outline-none focus:ring-0"
+              className="w-full appearance-none px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-100 bg-transparent focus:outline-none focus:ring-0"
               id="expense-necessity-filter"
             >
-              <option value="all">⚖️ Tất cả phân loại tài chính</option>
-              <option value="needs">✔️ Cần thiết (Bắt buộc - Needs)</option>
-              <option value="wants">☕ Ưa thích (Cắt giảm được - Wants)</option>
-              <option value="recurring">🔄 Định kỳ (Recurring)</option>
+              <option value="all" className="dark:bg-slate-950">⚖️ Tất cả phân loại tài chính</option>
+              <option value="needs" className="dark:bg-slate-950">✔️ Cần thiết (Bắt buộc - Needs)</option>
+              <option value="wants" className="dark:bg-slate-950">☕ Ưa thích (Cắt giảm được - Wants)</option>
+              <option value="recurring" className="dark:bg-slate-950">🔄 Định kỳ (Recurring)</option>
             </select>
             <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
               <ChevronDown className="h-4 w-4" />
@@ -207,8 +207,8 @@ export default function ExpenseHistory({
             onClick={() => toggleSort('date')}
             className={`rounded-xl px-3 py-1.5 transition-colors cursor-pointer border flex items-center gap-1 ${
               sortField === 'date'
-                ? 'bg-emerald-50 border-emerald-100 text-emerald-600 font-bold dark:bg-emerald-500/10 dark:border-emerald-500/20'
-                : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900'
+                ? 'bg-emerald-50 border-emerald-100 text-emerald-600 font-bold dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400'
+                : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-500 dark:text-slate-300'
             }`}
           >
             Thời gian {sortField === 'date' && (sortOrder === 'desc' ? '⬇️' : '⬆️')}
@@ -217,8 +217,8 @@ export default function ExpenseHistory({
             onClick={() => toggleSort('amount')}
             className={`rounded-xl px-3 py-1.5 transition-colors cursor-pointer border flex items-center gap-1 ${
               sortField === 'amount'
-                ? 'bg-emerald-50 border-emerald-100 text-emerald-600 font-bold dark:bg-emerald-500/10 dark:border-emerald-500/20'
-                : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900'
+                ? 'bg-emerald-50 border-emerald-100 text-emerald-600 font-bold dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400'
+                : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-500 dark:text-slate-300'
             }`}
           >
             Số tiền {sortField === 'amount' && (sortOrder === 'desc' ? '⬇️' : '⬆️')}
@@ -252,7 +252,7 @@ export default function ExpenseHistory({
                   <th className="px-6 py-4 text-center">Thao tác</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-sm">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                 {sortedExpenses.map((exp) => (
                   <tr 
                     key={exp.id} 
@@ -296,7 +296,7 @@ export default function ExpenseHistory({
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-1">
                         {exp.isNecessary ? (
-                          <span className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 border border-emerald-150 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
+                          <span className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-150 dark:border-emerald-900/30 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
                             🟢 Bắt buộc
                           </span>
                         ) : (
@@ -340,7 +340,7 @@ export default function ExpenseHistory({
                             </button>
                             <button
                               onClick={() => setDeleteConfirmId(null)}
-                              className="rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+                              className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-1 text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                               title="Hủy bỏ"
                               id={`cancel-delete-btn-${exp.id}`}
                             >

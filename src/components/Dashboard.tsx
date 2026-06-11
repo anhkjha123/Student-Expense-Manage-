@@ -418,7 +418,7 @@ export default function Dashboard({
       {/* Welcome Banner */}
       <motion.div 
         variants={itemVariants}
-        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-emerald-400 to-emerald-400 rounded-3xl p-6 text-white shadow-xl shadow-emerald-200 backdrop-blur-md"
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-emerald-400 to-emerald-400 rounded-3xl p-6 text-white shadow-xl shadow-emerald-200 dark:shadow-none backdrop-blur-md"
       >
         <div className="space-y-1">
           <span className="inline-block rounded-full bg-white/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider font-mono shadow-inner border border-white/30">
@@ -448,10 +448,10 @@ export default function Dashboard({
           whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
           className={`rounded-3xl border p-5 shadow-sm relative transition-all duration-300 text-white bg-gradient-to-br ${
             walletBalance < 0 
-              ? 'from-rose-500 to-red-600 border-rose-200 shadow-rose-100' 
+              ? 'from-rose-500 to-red-600 border-rose-200 dark:border-rose-900 shadow-rose-100 dark:shadow-none' 
               : walletBalance < savingGoal 
-                ? 'from-amber-500 to-orange-600 border-amber-200 shadow-amber-100' 
-                : 'from-emerald-500 to-teal-600 border-emerald-100 shadow-emerald-100'
+                ? 'from-amber-500 to-orange-600 border-amber-200 dark:border-amber-900 shadow-amber-100 dark:shadow-none' 
+                : 'from-emerald-500 to-teal-600 border-emerald-100 dark:border-emerald-900 shadow-emerald-100 dark:shadow-none'
           }`}
         >
           <div className="flex justify-between items-start relative z-10">
@@ -600,15 +600,15 @@ export default function Dashboard({
 
           <div className={`rounded-2xl p-4.5 border shadow-sm ${
             walletStatus === 'safe' 
-              ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' 
+              ? 'bg-emerald-50/80 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/30 text-emerald-900 dark:text-emerald-300' 
               : walletStatus === 'warning'
-              ? 'bg-amber-50/80 border-amber-200 text-amber-900'
-              : 'bg-rose-50/80 border-rose-200 text-rose-900'
+              ? 'bg-amber-50/80 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/30 text-amber-900 dark:text-amber-300'
+              : 'bg-rose-50/80 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/30 text-rose-900 dark:text-rose-350'
           }`}>
             <h4 className={`font-bold text-sm flex items-center gap-1.5 drop-shadow-sm`}>
               {walletStatus === 'safe' ? '🍏' : walletStatus === 'warning' ? '⚠️' : '🚨'} {walletStatusText}
             </h4>
-            <p className="font-normal text-xs text-slate-700 mt-1 leading-relaxed">
+            <p className="font-normal text-xs text-slate-700 dark:text-slate-300 mt-1 leading-relaxed">
               {walletStatusDescription}
             </p>
           </div>
@@ -658,7 +658,7 @@ export default function Dashboard({
                 <span className="text-emerald-700 dark:text-emerald-300 font-bold flex items-center gap-1 drop-shadow-sm">🟢 Cần thiết (Needs)</span>
                 <span className="font-mono text-slate-900 dark:text-slate-100">{new Intl.NumberFormat('vi-VN').format(spentNecessary)}đ</span>
               </div>
-              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner flex">
+              <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner flex">
                 <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: `${totalSpentThisMonth > 0 ? (spentNecessary / totalSpentThisMonth) * 100 : 0}%` }}
@@ -674,7 +674,7 @@ export default function Dashboard({
                 <span className="text-amber-700 dark:text-amber-300 font-bold flex items-center gap-1 drop-shadow-sm">🟡 Mong muốn (Wants)</span>
                 <span className="font-mono text-slate-900 dark:text-slate-100">{new Intl.NumberFormat('vi-VN').format(spentWants)}đ</span>
               </div>
-              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner flex">
+              <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner flex">
                 <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: `${totalSpentThisMonth > 0 ? (spentWants / totalSpentThisMonth) * 100 : 0}%` }}
@@ -755,12 +755,12 @@ export default function Dashboard({
                   </defs>
                   
                   {/* Grid Lines */}
-                  <line x1="0" y1="15" x2="300" y2="15" stroke="#f8fafc" strokeWidth="0.75" />
-                  <line x1="0" y1="50" x2="300" y2="50" stroke="#f1f5f9" strokeWidth="0.5" strokeDasharray="2 2" />
-                  <line x1="0" y1="85" x2="300" y2="85" stroke="#f8fafc" strokeWidth="0.75" />
-                  <line x1="0" y1={yZeroPercent} x2="300" y2={yZeroPercent} stroke="#cbd5e1" strokeWidth="0.75" strokeDasharray="3 2" opacity="0.8" /> {/* Zero Line */}
+                  <line x1="0" y1="15" x2="300" y2="15" className="stroke-slate-100 dark:stroke-slate-800" strokeWidth="0.75" />
+                  <line x1="0" y1="50" x2="300" y2="50" className="stroke-slate-100 dark:stroke-slate-800" strokeWidth="0.5" strokeDasharray="2 2" opacity="0.5" />
+                  <line x1="0" y1="85" x2="300" y2="85" className="stroke-slate-100 dark:stroke-slate-800" strokeWidth="0.75" />
+                  <line x1="0" y1={yZeroPercent} x2="300" y2={yZeroPercent} className="stroke-slate-300 dark:stroke-slate-700" strokeWidth="0.75" strokeDasharray="3 2" opacity="0.8" /> {/* Zero Line */}
                   {yZeroPercent > 15 && yZeroPercent < 85 && (
-                    <text x="5" y={yZeroPercent - 3} fill="#94a3b8" fontSize="5" fontWeight="bold">0đ</text>
+                    <text x="5" y={yZeroPercent - 3} className="fill-slate-400 dark:fill-slate-500" fontSize="5" fontWeight="bold">0đ</text>
                   )}
 
                   {/* Area Under Line */}
@@ -867,7 +867,7 @@ export default function Dashboard({
             </h3>
             <button
               onClick={() => setActiveTab('budget')}
-              className="text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors bg-emerald-50 px-2 py-1 rounded-lg"
+              className="text-xs font-bold text-emerald-600 dark:text-emerald-450 hover:text-emerald-700 dark:hover:text-emerald-350 transition-colors bg-emerald-50 dark:bg-emerald-950/30 px-2 py-1 rounded-lg"
             >
               Cài đặt hạn mức →
             </button>
@@ -900,7 +900,7 @@ export default function Dashboard({
                   </div>
 
                   {/* Meter scrollbar bar representing category spending */}
-                  <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden relative shadow-inner">
+                  <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden relative shadow-inner">
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: `${Math.min(100, Math.max(0, cat.percent))}%` }}
@@ -926,13 +926,13 @@ export default function Dashboard({
         {/* Recent Spendings List */}
         <div className="rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-md md:col-span-5 lg:col-span-5 space-y-4 flex flex-col justify-between hover:shadow-lg transition-shadow duration-300">
           <div className="space-y-4">
-            <div className="flex justify-between items-center pb-2 border-b border-slate-50">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-50 dark:border-slate-800">
               <h3 className="font-display text-base font-bold text-slate-800 dark:text-slate-100 drop-shadow-sm">
                 Giao dịch chép gần đây
               </h3>
               <button
                 onClick={() => setActiveTab('history')}
-                className="text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors bg-emerald-50 px-2 py-1 rounded-lg"
+                className="text-xs font-bold text-emerald-600 dark:text-emerald-450 hover:text-emerald-700 dark:hover:text-emerald-350 transition-colors bg-emerald-50 dark:bg-emerald-950/30 px-2 py-1 rounded-lg"
               >
                 Xem chi tất cả →
               </button>

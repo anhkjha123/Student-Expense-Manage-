@@ -225,10 +225,10 @@ export default function Reports({
       {/* Header Month Selected */}
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm drop-shadow-sm">
         <div>
-          <h2 className="font-display text-2xl font-bold text-slate-900 flex items-center gap-2 drop-shadow-sm">
+          <h2 className="font-display text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2 drop-shadow-sm">
             <ChartIcon className="h-6 w-6 text-emerald-400 drop-shadow-sm" /> Báo cáo & Phân tích Tài chính
           </h2>
-          <p className="text-sm text-slate-500 font-medium mt-1">
+          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">
             Học hỏi thói quen chi dùng thực tế qua đồ thị phân bổ tỷ lệ và cảnh báo chuyên sâu
           </p>
         </div>
@@ -239,11 +239,11 @@ export default function Reports({
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="w-full appearance-none px-4 py-2.5 text-xs font-bold text-slate-700 bg-transparent pr-10 focus:outline-none cursor-pointer"
+              className="w-full appearance-none px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-100 bg-transparent pr-10 focus:outline-none cursor-pointer"
               id="report-month-select"
             >
               {monthOptions.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                <option key={opt.value} value={opt.value} className="dark:bg-slate-950">{opt.label}</option>
               ))}
             </select>
             <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]">
@@ -256,7 +256,7 @@ export default function Reports({
             whileTap={{ scale: 0.95 }}
             onClick={handleExportPDF}
             id="btn-export-pdf"
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-600 text-xs font-bold transition-all border border-emerald-100 cursor-pointer shadow-sm hover:shadow-md"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all border border-emerald-100 dark:border-emerald-900/30 cursor-pointer shadow-sm hover:shadow-md"
           >
             📄 Xuất PDF
           </motion.button>
@@ -266,7 +266,7 @@ export default function Reports({
             whileTap={{ scale: 0.95 }}
             onClick={handleExportExcel}
             id="btn-export-excel"
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-blue-50 hover:bg-blue-100 text-blue-800 text-xs font-bold transition-all border border-blue-100 cursor-pointer shadow-sm hover:shadow-md"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-blue-50 dark:bg-blue-950/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-800 dark:text-blue-400 text-xs font-bold transition-all border border-blue-100 dark:border-blue-900/30 cursor-pointer shadow-sm hover:shadow-md"
           >
             📈 Tải file Excel
           </motion.button>
@@ -294,7 +294,7 @@ export default function Reports({
           <span className="text-xl font-extrabold font-mono text-slate-900 dark:text-slate-100 drop-shadow-sm">
             {new Intl.NumberFormat('vi-VN').format(totalSpent)}đ
           </span>
-          <div className="flex items-center gap-1 text-[10px] text-slate-500 font-semibold mt-1.5">
+          <div className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-450 font-semibold mt-1.5">
             Tỉ lệ chi dùng: {totalIncome > 0 ? Math.round((totalSpent / totalIncome) * 100) : 0}% nguồn tiền
           </div>
         </motion.div>
@@ -374,7 +374,7 @@ export default function Reports({
                     </span>
                   </div>
                   {/* Progress bar representing category percent among total spendings */}
-                  <div className="w-full h-3 bg-slate-100 shadow-inner rounded-full overflow-hidden">
+                  <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 shadow-inner rounded-full overflow-hidden">
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: `${cat.percent}%` }}
@@ -406,7 +406,7 @@ export default function Reports({
             </p>
 
             {/* Combined Segment Bar representation */}
-            <div className="flex h-5 w-full rounded-full overflow-hidden bg-slate-100 text-[9px] font-black text-white text-center shadow-inner">
+            <div className="flex h-5 w-full rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 text-[9px] font-black text-white text-center shadow-inner">
               {percentNeeds > 0 && (
                 <motion.div 
                   initial={{ flexGrow: 0, width: 0 }}
@@ -443,7 +443,7 @@ export default function Reports({
             </div>
 
             {/* Explanatory blocks */}
-            <div className="space-y-2 text-xs font-semibold text-slate-600">
+            <div className="space-y-2 text-xs font-semibold text-slate-600 dark:text-slate-350">
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 drop-shadow-sm">
                   <span className="h-3 w-3 rounded-full bg-emerald-500 shadow-sm shrink-0" />
@@ -474,15 +474,15 @@ export default function Reports({
               whileHover={{ scale: 1.02 }}
               className={`rounded-2xl border p-4 text-xs font-semibold shadow-sm transition-transform ${
               advice.vibe === 'success' 
-                ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' 
+                ? 'bg-emerald-50/80 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/30 text-emerald-900 dark:text-emerald-300' 
                 : advice.vibe === 'warning'
-                ? 'bg-amber-50/80 border-amber-200 text-amber-900'
-                : 'bg-rose-50/80 border-rose-200 text-rose-900'
+                ? 'bg-amber-50/80 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/30 text-amber-900 dark:text-amber-300'
+                : 'bg-rose-50/80 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/30 text-rose-900 dark:text-rose-350'
             }`}>
               <h4 className="font-bold flex items-center gap-1 drop-shadow-sm">
                 {advice.vibe === 'success' ? '🍏' : '⚠️'} {advice.title}
               </h4>
-              <p className="font-normal text-[11px] text-slate-700 mt-1.5 leading-relaxed">
+              <p className="font-normal text-[11px] text-slate-700 dark:text-slate-300 mt-1.5 leading-relaxed">
                 {advice.desc}
               </p>
             </motion.div>

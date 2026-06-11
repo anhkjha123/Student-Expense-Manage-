@@ -39,6 +39,14 @@
   background: #94a3b8;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
 /* Custom animation utility */
 @keyframes pulse-subtle {
   0%, 100% { transform: scale(1); opacity: 1; }
