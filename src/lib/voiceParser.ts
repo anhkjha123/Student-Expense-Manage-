@@ -179,7 +179,7 @@ export function parseVietnameseVoiceCommand(text: string): ParsedVoiceCommand {
 
   // Clean filler words from start of title
   title = title
-    .replace(/^(het|chi|thu|tien|khoan|mua|thanh toan|cho|mot|hai|ba|bon|nam|sau|bay|tam|chin|muoi)\s+/gi, '')
+    .replace(/^(hết|chi|thu|tiền|khoản|mua|thanh\s+toán|cho|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|het|tien|khoan|thanh toan|mot|bon|nam|sau|bay|tam|chin|muoi)\s+/gi, '')
     .trim();
 
   // Clean trailing currency units

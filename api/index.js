@@ -1533,12 +1533,30 @@ function parseReceiptText(text) {
     note: noteItems
   };
 }
+function isBinaryBuffer(buffer) {
+  let nonPrintable = 0;
+  const len = Math.min(buffer.length, 1e3);
+  for (let i = 0; i < len; i++) {
+    const byte = buffer[i];
+    if (byte === 0) return true;
+    if (byte < 32 && byte !== 9 && byte !== 10 && byte !== 13) {
+      nonPrintable++;
+    }
+  }
+  if (len > 0 && nonPrintable / len > 0.1) return true;
+  const str = buffer.toString("utf8");
+  const replacementCharCount = (str.match(/\uFFFD/g) || []).length;
+  if (replacementCharCount > str.length * 0.05) return true;
+  return false;
+}
 async function parseReceipt(imageBase64, mimeType) {
   const hasApiKey = !!process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== "MY_GEMINI_API_KEY" && process.env.GEMINI_API_KEY !== "";
+  const cleanBase64 = imageBase64.replace(/^data:image\/[a-zA-Z]+;base64,/, "");
+  const buffer = Buffer.from(cleanBase64, "base64");
+  const isImg = isBinaryBuffer(buffer);
   if (hasApiKey) {
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      const cleanBase64 = imageBase64.replace(/^data:image\/[a-zA-Z]+;base64,/, "");
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: [
@@ -1590,16 +1608,28 @@ async function parseReceipt(imageBase64, mimeType) {
         note: data.note || `Qu\xE9t t\u1EF1 \u0111\u1ED9ng t\u1EEB h\xF3a \u0111\u01A1n ${data.merchant || "ti\u1EC7n l\u1EE3i"}`
       };
     } catch (err) {
-      console.warn("Gemini API parsing failed, falling back to offline parser:", err);
+      console.warn("Gemini API parsing failed, falling back to offline parser if possible:", err);
+      if (isImg) {
+        let errMsg = err.message || "";
+        if (err.status === 429 || errMsg.includes("quota") || errMsg.includes("Quota")) {
+          throw new Error("L\u01B0\u1EE3t qu\xE9t h\xF3a \u0111\u01A1n AI (Gemini) \u0111\xE3 h\u1EBFt h\u1EA1n m\u1EE9c trong ng\xE0y (429). Vui l\xF2ng th\u1EED l\u1EA1i sau ho\u1EB7c nh\u1EADp th\u1EE7 c\xF4ng.");
+        } else if (err.status === 503 || errMsg.includes("503") || errMsg.includes("high demand") || errMsg.includes("UNAVAILABLE")) {
+          throw new Error("D\u1ECBch v\u1EE5 AI (Gemini) hi\u1EC7n t\u1EA1i \u0111ang qu\xE1 t\u1EA3i ho\u1EB7c t\u1EA1m th\u1EDDi kh\xF4ng kh\u1EA3 d\u1EE5ng (503). Vui l\xF2ng th\u1EED l\u1EA1i sau.");
+        } else if (err.status === 400 || errMsg.includes("API key")) {
+          throw new Error("C\u1EA5u h\xECnh API Key c\u1EE7a AI (Gemini) kh\xF4ng h\u1EE3p l\u1EC7 ho\u1EB7c \u0111\xE3 b\u1ECB v\xF4 hi\u1EC7u h\xF3a (400).");
+        }
+        throw new Error(`Qu\xE9t h\xF3a \u0111\u01A1n AI th\u1EA5t b\u1EA1i: ${err.message || "L\u1ED7i k\u1EBFt n\u1ED1i d\u1ECBch v\u1EE5 AI"}`);
+      }
     }
   }
-  try {
-    const cleanBase64 = imageBase64.replace(/^data:image\/[a-zA-Z]+;base64,/, "");
-    const decodedText = Buffer.from(cleanBase64, "base64").toString("utf8");
-    if (decodedText && /[a-zA-Z0-9\s]/.test(decodedText)) {
-      return parseReceiptText(decodedText);
+  if (!isImg) {
+    try {
+      const decodedText = buffer.toString("utf8");
+      if (decodedText && /[a-zA-Z0-9\s]/.test(decodedText)) {
+        return parseReceiptText(decodedText);
+      }
+    } catch (e) {
     }
-  } catch (e) {
   }
   return {
     amount: null,
