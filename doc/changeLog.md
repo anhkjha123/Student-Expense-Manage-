@@ -5,6 +5,14 @@ Toàn bộ các mốc cập nhật và cải tiến kỹ thuật quan trọng c�
 
 ---
 
+### [v5.4.3] - 2026-06-11
+#### 🔧 Sửa lỗi Nhận diện Giọng nói & Quét Hóa đơn AI (Voice Recognition & OCR Fixes)
+*   **Xử lý triệt để lỗi kết nối Network Speech:** Cập nhật cơ chế hủy thu âm trong `AddExpenseModal` bằng cách sử dụng `useRef` (`isStoppingRef`) để kiểm soát luồng ngắt kết nối (stop). Điều này loại bỏ hoàn toàn lỗi *stale state closure* của React, giúp trình duyệt không bị lỗi `network error` khi người dùng ngắt giọng nói đột ngột hoặc dừng quá nhanh.
+*   **Tinh chỉnh Bộ phân tích Ngôn ngữ tự nhiên (NLP Voice Parser):**
+    *   Cập nhật cấu hình biểu thức chính quy (Regex) và phân tách chuỗi để hỗ trợ tự động bóc tách đúng các đơn vị tiền tệ tiếng Việt dính liền dạng ký tự như `₫`, `vnd`, `d` (ví dụ: `35.000₫`, `35vnd`).
+    *   Khắc phục hiện tượng chỉ điền Nội dung chi tiêu mà không điền Số tiền do lỗi nhận diện đơn vị tiền tệ gây ra, giúp tăng tốc độ điền form mà không làm treo ứng dụng.
+*   **Khắc phục lỗi quét hóa đơn:** Sửa lỗi và nâng cấp quy trình ánh xạ (OCR Scanner) bằng AI giúp trích xuất thông tin hóa đơn mượt mà và chính xác hơn.
+
 ### [v5.4.2] - 2026-06-10
 #### 🌙 Hỗ trợ Dark Mode toàn bộ UI và tối ưu màu nền
 *   **Mở rộng hỗ trợ Dark Mode cho giao diện chính:** Cập nhật nhiều component UI quan trọng gồm `Reports.tsx`, `CalendarView.tsx`, `ExpenseHistory.tsx`, `Navbar.tsx`, `LoginRegister.tsx`, `Incomes.tsx`, và `RecurringExpenses.tsx`.
