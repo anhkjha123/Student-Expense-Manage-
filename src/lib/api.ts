@@ -11,7 +11,8 @@ import {
   query, 
   where,
   getDoc,
-  writeBatch
+  writeBatch,
+  deleteField
 } from 'firebase/firestore';
 import { 
   signInWithPopup,
@@ -187,6 +188,14 @@ export class ApiService {
   public static async updateUserProfile(userId: string, data: Partial<User>): Promise<void> {
     try {
       const { id, ...updateData } = data as any;
+      
+      // Clean undefined values or set to deleteField() to remove them from Firestore
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key] === undefined) {
+          updateData[key] = deleteField();
+        }
+      });
+
       await setDoc(doc(db, 'users', userId), updateData, { merge: true });
     } catch (err) {
       console.error('Failed to update user:', err);
@@ -219,9 +228,13 @@ export class ApiService {
       amount: Number(expense.amount),
       userId
     };
-    if (fullExpense.note === undefined) {
-      delete fullExpense.note;
-    }
+    
+    // Clean undefined values to prevent Firestore error
+    Object.keys(fullExpense).forEach(key => {
+      if (fullExpense[key] === undefined) {
+        delete fullExpense[key];
+      }
+    });
     
     try {
       await setDoc(doc(db, 'expenses', newId), fullExpense);
@@ -239,9 +252,13 @@ export class ApiService {
     try {
       const { id: _, userId: __, ...updateData } = expense as any; // Strip constrained fields
       if('amount' in updateData) updateData.amount = Number(updateData.amount);
-      if (updateData.note === undefined) {
-        delete updateData.note;
-      }
+      
+      // Clean undefined values or set to deleteField() to remove them from Firestore
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key] === undefined) {
+          updateData[key] = deleteField();
+        }
+      });
       
       await updateDoc(doc(db, 'expenses', id), updateData);
       return { id, ...updateData } as Expense; // optimistic return
@@ -333,7 +350,13 @@ export class ApiService {
 
     const newId = `inc_${generateRandomId()}`;
     const full: any = { ...income, amount: Number(income.amount), userId };
-    if (full.note === undefined) delete full.note;
+    
+    // Clean undefined values to prevent Firestore error
+    Object.keys(full).forEach(key => {
+      if (full[key] === undefined) {
+        delete full[key];
+      }
+    });
 
     try {
       await setDoc(doc(db, 'incomes', newId), full);
@@ -378,8 +401,13 @@ export class ApiService {
 
     const newId = `rec_${generateRandomId()}`;
     const full: any = { ...rec, amount: Number(rec.amount), userId };
-    if (full.note === undefined) delete full.note;
-    if (full.repeatOn === undefined) delete full.repeatOn;
+    
+    // Clean undefined values to prevent Firestore error
+    Object.keys(full).forEach(key => {
+      if (full[key] === undefined) {
+        delete full[key];
+      }
+    });
 
     try {
       await setDoc(doc(db, 'recurringExpenses', newId), full);
