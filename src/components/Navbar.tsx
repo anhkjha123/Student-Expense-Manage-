@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { 
-  Bell, 
-  LogOut, 
-  User as UserIcon, 
-  TrendingUp, 
-  PieChart, 
-  Settings, 
+import {
+  Bell,
+  LogOut,
+  User as UserIcon,
+  TrendingUp,
+  PieChart,
+  Settings,
   AlertTriangle,
   BookOpen,
   Home,
@@ -110,11 +110,10 @@ export default function Navbar({
                   <button
                     id={`nav-tab-${tab.id}`}
                     onClick={() => setActiveTab('history')}
-                    className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs xl:text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
-                      isActive
+                    className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs xl:text-sm font-semibold transition-all duration-200 whitespace-nowrap ${isActive
                         ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-300'
                         : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
-                    }`}
+                      }`}
                     title={tab.name}
                   >
                     <BookOpen className="h-4 w-4 shrink-0" />
@@ -124,18 +123,16 @@ export default function Navbar({
                   <div className="absolute left-0 mt-1 hidden group-hover:block bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl shadow-lg p-2 min-w-[150px] z-50 animate-fade-in">
                     <button
                       onClick={() => setActiveTab('history')}
-                      className={`w-full text-left px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
-                        activeTab === 'history' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-300' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-                      }`}
+                      className={`w-full text-left px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${activeTab === 'history' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-300' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                        }`}
                     >
                       <BookOpen className="h-3.5 w-3.5" />
                       Lịch sử chi tiêu
                     </button>
                     <button
                       onClick={() => setActiveTab('recurring')}
-                      className={`w-full text-left px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
-                        activeTab === 'recurring' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-300' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-                      }`}
+                      className={`w-full text-left px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${activeTab === 'recurring' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-300' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                        }`}
                     >
                       <Repeat className="h-3.5 w-3.5" />
                       Chi tiêu định kỳ
@@ -150,11 +147,10 @@ export default function Navbar({
                 key={tab.id}
                 id={`nav-tab-${tab.id}`}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs xl:text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
-                  isActive
+                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs xl:text-sm font-semibold transition-all duration-200 whitespace-nowrap ${isActive
                     ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-300'
                     : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
+                  }`}
                 title={tab.name}
               >
                 {tab.id === 'dashboard' && <Home className="h-4 w-4 shrink-0" />}
@@ -200,9 +196,9 @@ export default function Navbar({
             <AnimatePresence>
               {showNotifDropdown && (
                 <>
-                  <div 
-                    className="fixed inset-0 z-40" 
-                    onClick={() => setShowNotifDropdown(false)} 
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowNotifDropdown(false)}
                   />
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -235,11 +231,10 @@ export default function Navbar({
                             key={notif.id}
                             id={`notification-item-${notif.id}`}
                             onClick={() => markNotificationAsRead(notif.id)}
-                            className={`flex gap-3 rounded-xl p-2.5 cursor-pointer text-left transition-colors border ${
-                              notif.read
+                            className={`flex gap-3 rounded-xl p-2.5 cursor-pointer text-left transition-colors border ${notif.read
                                 ? 'bg-white dark:bg-slate-950 border-transparent hover:bg-slate-50 dark:hover:bg-slate-800'
                                 : 'bg-emerald-50/40 dark:bg-emerald-900/40 border-emerald-100 dark:border-emerald-700 hover:bg-emerald-50/60 dark:hover:bg-emerald-900/60'
-                            }`}
+                              }`}
                           >
                             <div className="mt-0.5 shrink-0">{getNotifIcon(notif.type)}</div>
                             <div className="space-y-0.5">
@@ -278,7 +273,7 @@ export default function Navbar({
                   {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                 </div>
               )}
-              
+
               {/* Tooltip on hover */}
               <div className="absolute right-0 top-11 hidden group-hover:block bg-slate-900 text-white text-[10px] font-semibold px-2 py-1 rounded shadow-lg whitespace-nowrap z-50 animate-fade-in pointer-events-none">
                 {user.name}
@@ -316,9 +311,8 @@ export default function Navbar({
                   setActiveTab(tab.id);
                 }
               }}
-              className={`flex flex-col items-center gap-1 py-1 text-[10px] font-semibold transition-all ${
-                isActive ? 'text-emerald-600 dark:text-emerald-400 font-bold scale-105' : 'text-slate-500 dark:text-slate-400'
-              }`}
+              className={`flex flex-col items-center gap-1 py-1 text-[10px] font-semibold transition-all ${isActive ? 'text-emerald-600 dark:text-emerald-400 font-bold scale-105' : 'text-slate-500 dark:text-slate-400'
+                }`}
             >
               {tab.id === 'dashboard' && <Home className="h-4.5 w-4.5" />}
               {tab.id === 'history' && <BookOpen className="h-4.5 w-4.5" />}
